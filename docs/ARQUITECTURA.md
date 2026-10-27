@@ -28,7 +28,7 @@ MySQL 8 ◄──── sincronizacion/ (CLI batch, NO corre en cada pedido del 
 | Datos | MySQL 8, SQLAlchemy 2 (sync), Alembic, PyMySQL | ADR-0002 |
 | Frontend | React 18, Vite, TypeScript, React Router | ADR-0003 |
 | Autenticación | JWT en cookie httpOnly, hash Argon2 (`pwdlib`) | ADR-0005 |
-| Deploy | Render (servicio web gratis), MySQL en Aiven y cron de sincronización en GitHub Actions | ADR-0009 (propuesta, reemplaza a ADR-0006) |
+| Deploy | Render (servicio web gratis), MySQL en Aiven y cron de sincronización en GitHub Actions | ADR-0009 (reemplaza a ADR-0006) |
 | Idioma del código | Español | ADR-0007 |
 | Datos externos | Sincronización batch a MySQL | ADR-0008 |
 | Valor de mercado | transfermarkt-datasets (CSV, CC0) | ADR-0004 |

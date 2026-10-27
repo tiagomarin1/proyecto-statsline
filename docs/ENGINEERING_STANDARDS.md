@@ -71,6 +71,6 @@ Ver `TESTING_STRATEGY.md`. Prioridad por riesgo:
 | Lint | `ruff check` y `npm run lint` sin errores |
 | Revisión | PR aprobado por otro integrante |
 | Docs | Catálogo actualizado, línea en el CHANGELOG, glosario y reglas al día |
-| Deploy | Funciona en Railway (staging = main) |
+| Deploy | Funciona en Render (staging = main) |
 
-**Stack de ScoutIAndo:** FastAPI + SQLAlchemy 2 + Alembic + MySQL 8 (Railway) · React + Vite + TS · pytest/httpx · Vitest/Testing Library · Playwright (flujo de la demo).
+**Stack de ScoutIAndo:** FastAPI + SQLAlchemy 2 + Alembic + MySQL 8 (Aiven) · Render · React + Vite + TS · pytest/httpx · Vitest/Testing Library · Playwright (flujo de la demo).

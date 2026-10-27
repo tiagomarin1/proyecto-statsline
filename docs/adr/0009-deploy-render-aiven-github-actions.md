@@ -1,6 +1,6 @@
 # ADR-0009: Deploy gratis en Render + Aiven + GitHub Actions
 
-**Estado:** Propuesta (2026-10-27). Reemplaza a ADR-0006 cuando se acepte.
+**Estado:** Aceptada (2026-10-27). Reemplaza a ADR-0006.
 
 ## Contexto
 ADR-0006 eligió Railway. Al ir a crear el proyecto, la prueba gratis ya había vencido: Railway no deja crear proyectos sin un plan pago, que arranca en unos USD 5 por mes más el uso. El equipo decidió no pagar hosting en el MVP.
@@ -46,6 +46,6 @@ Opción 1, con tres piezas:
 - **Cupo de horas:** Render da 750 horas gratis por mes por workspace. Alcanzan para un solo servicio prendido todo el mes, y el tiempo apagado no cuenta.
 - **Los secretos se cargan en dos lugares:** en el panel de Render (servicio `web`) y en los secrets del repo de GitHub (cron). En un repo personal, los secrets de Actions los carga el dueño del repo.
 
-## Al aceptarla
-- ADR-0006 pasa a "Reemplazada por ADR-0009".
-- En `ENGINEERING_STANDARDS.md` §12, la fila "Deploy" pasa a decir "Funciona en Render (staging = main)". Ese archivo necesita aprobación explícita para cambiarse.
+## Al aceptarla (hecho el 2026-10-27)
+- ADR-0006 pasó a "Reemplazada por ADR-0009".
+- En `ENGINEERING_STANDARDS.md` §12, la fila "Deploy" pasó a decir "Funciona en Render (staging = main)" y el stack pasó a decir MySQL 8 (Aiven).

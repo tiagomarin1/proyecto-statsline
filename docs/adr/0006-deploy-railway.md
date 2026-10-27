@@ -1,6 +1,6 @@
 # ADR-0006: Deploy en Railway
 
-**Estado:** Aceptada (2026-10-27)
+**Estado:** Reemplazada por ADR-0009 (2026-10-27): la prueba gratis de Railway venció y el equipo decidió no pagar hosting.
 
 ## Contexto
 La demo del 9/11 necesita la app publicada con datos reales. Hace falta hostear la app, MySQL y la sincronización periódica.
