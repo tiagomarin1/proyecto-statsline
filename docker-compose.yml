@@ -1,0 +1,29 @@
+# MySQL 8 para desarrollo (statsline_dev) y para tests (statsline_test).
+#   docker compose up -d mysql
+# La base de test la crea docker/mysql/01-bases.sql la primera vez que arranca el volumen.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: statsline-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: statsline_dev
+      MYSQL_USER: statsline
+      MYSQL_PASSWORD: statsline
+    command:
+      - --default-time-zone=+00:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-datos:/var/lib/mysql
+      - ./docker/mysql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  mysql-datos:

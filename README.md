@@ -13,8 +13,10 @@ Plataforma para que clubes de fútbol chicos y medianos comparen jugadores por r
 | `CLAUDE.md` | Acuerdo de trabajo con la IA y orden de lectura. **Empezá por acá.** |
 | `docs/` | Documentación del proyecto: visión, glosario, modelo de datos, reglas de negocio, catálogo de features y specs |
 | `prototipo/` | Prototipo navegable v1. Abrí `prototipo/index.html` en el navegador (usuario `javier@deportivonorte.com`, contraseña `scoutiando`) |
-| `backend/` | API en FastAPI + MySQL (se crea con INF-001) |
-| `frontend/` | App en React + Vite (se crea con INF-001) |
+| `backend/` | API en FastAPI + MySQL |
+| `frontend/` | App en React + Vite |
+| `docker/`, `docker-compose.yml` | MySQL 8 de desarrollo y de test |
+| `Dockerfile`, `railway.toml` | Imagen única (React + FastAPI) y deploy en Railway |
 
 ## Cómo se trabaja
 
