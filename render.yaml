@@ -1,0 +1,28 @@
+# Blueprint de Render (ADR-0009): servicio web gratis que construye el Dockerfile de la raíz.
+# Las variables marcadas con sync: false se cargan a mano en el panel de Render.
+services:
+  - type: web
+    name: statsline
+    runtime: docker
+    plan: free
+    # Cerca de Argentina y de la región de Aiven en el este de EE. UU.
+    region: virginia
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/salud
+    # Despliega solo si pasan los tests del CI (.github/workflows/ci.yml)
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Service URI de Aiven (mysql://...?ssl-mode=REQUIRED)
+      - key: DATABASE_SSL_CA
+        sync: false # Contenido del "CA certificate" de Aiven (PEM)
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEMO_CONTRASENA
+        sync: false
+      - key: SESION_HORAS
+        value: "8"
+      - key: ENTORNO
+        value: produccion

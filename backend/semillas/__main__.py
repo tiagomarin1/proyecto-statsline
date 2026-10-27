@@ -1,4 +1,4 @@
-"""Corre todas las semillas: `python -m semillas`. Railway lo corre antes de cada deploy.
+"""Corre todas las semillas: `python -m semillas`. El contenedor lo corre al arrancar (ADR-0009).
 
 La del usuario demo se saltea si no hay DEMO_CONTRASENA, para no frenar el deploy.
 """

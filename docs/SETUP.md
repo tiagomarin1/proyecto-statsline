@@ -15,7 +15,8 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 
 | Variable | Para qué |
 |---|---|
-| `DATABASE_URL` | Base de desarrollo. También acepta `mysql://...`, como la entrega Railway |
+| `DATABASE_URL` | Base de desarrollo. También acepta la URL de Aiven tal cual (`mysql://...?ssl-mode=REQUIRED`) |
+| `DATABASE_SSL_CA` | Solo en producción. Contenido del CA de Aiven (PEM). Con esto la conexión usa TLS y verifica el servidor |
 | `DATABASE_URL_TEST` | Base de test. **pytest la borra y la recrea** en cada corrida |
 | `SECRET_KEY` | Firma de la cookie de sesión. Tiene que ser larga y aleatoria |
 | `API_FOOTBALL_KEY` | Solo para la sincronización (DAT-001) |
@@ -87,29 +88,51 @@ python -m app.sincronizacion.api_football                  # 6 ligas, unos 300 p
 python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv
 ```
 
-## Deploy (Railway)
+## Deploy (Render + Aiven + GitHub Actions)
 
-ADR-0006. Todo sale del mismo repo:
+ADR-0009, que reemplaza a ADR-0006. Las tres piezas son gratis y ninguna pide tarjeta.
 
-| Servicio | Cómo se configura |
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `alembic upgrade head`, `python -m semillas` y `uvicorn`. El healthcheck es `/api/v1/salud` |
+| MySQL | Aiven, plan gratis | MySQL 8 con TLS obligatorio |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Render despliega `main` solo si pasa |
+| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina. Hasta que exista DAT-001, no hace nada |
+
+### 1. Base en Aiven
+
+1. Crear la cuenta en https://aiven.io con el plan gratis.
+2. Crear un servicio **MySQL** con el plan **Free**, en una región del este de EE. UU. si está disponible.
+3. En la pestaña *Overview* del servicio, copiar dos cosas:
+   - la **Service URI**, con la forma `mysql://avnadmin:...@...aivencloud.com:PUERTO/defaultdb?ssl-mode=REQUIRED`. Va tal cual como `DATABASE_URL`;
+   - el **CA certificate** (descargar `ca.pem`). Su contenido va como `DATABASE_SSL_CA`.
+
+### 2. App en Render
+
+1. Crear la cuenta en https://render.com, entrando con GitHub.
+2. Ir a *New → Blueprint* y elegir el repo `tiagomarin1/proyecto-statsline`. Render lee `render.yaml` y crea el servicio `statsline`. El repo es de Marin, así que la app de Render en GitHub tiene que tener acceso a ese repo, y puede que lo tenga que autorizar él.
+3. Completar las variables que el Blueprint deja vacías:
+   - `DATABASE_URL`: la Service URI de Aiven;
+   - `DATABASE_SSL_CA`: el contenido de `ca.pem`, pegado entero, con las líneas `BEGIN` y `END`;
+   - `DEMO_CONTRASENA`: la contraseña del usuario demo.
+
+   `SECRET_KEY` la genera Render.
+4. El primer deploy crea las tablas y carga las ligas y el usuario demo. Para verificar, abrir `https://<servicio>.onrender.com/api/v1/salud`.
+
+Render despliega solo `main` y solo con el CI en verde (`autoDeployTrigger: checksPass`). Si el servicio pasa 15 minutos sin tráfico, se apaga, y la primera visita tarda alrededor de un minuto. Antes de una demo, abrí la página unos minutos antes.
+
+### 3. Secrets del cron en GitHub
+
+En el repo: *Settings → Secrets and variables → Actions*. Los carga el dueño del repo (Marin).
+
+| Secret | Valor |
 |---|---|
-| `web` | Usa el `Dockerfile` de la raíz y `railway.toml`. Antes de cada deploy corre `alembic upgrade head`. El healthcheck es `/api/v1/salud` |
-| `MySQL` | Plugin de MySQL de Railway. Su `MYSQL_URL` va como `DATABASE_URL` del servicio `web` |
-| `cron` | **Se crea con DAT-001.** Usa la misma imagen, con el comando `python -m app.sincronizacion.api_football` y la programación `0 6 * * *` (una vez por día, a las 3 de la mañana en Argentina) |
+| `DATABASE_URL` | La misma Service URI de Aiven |
+| `DATABASE_SSL_CA` | El mismo contenido de `ca.pem` |
+| `API_FOOTBALL_KEY` | La clave de API-Football |
 
-Variables del servicio `web`:
+Para correrla a mano: pestaña *Actions → Sincronización diaria → Run workflow*. GitHub desactiva los workflows programados si el repo pasa 60 días sin actividad.
 
-- `DATABASE_URL`, como referencia a `${{MySQL.MYSQL_URL}}`;
-- `SECRET_KEY`;
-- `SESION_HORAS`;
-- `DEMO_CONTRASENA`;
-- `ENTORNO=produccion`.
+### Conectarse a la base de producción desde la máquina
 
-El servicio `cron` usa las mismas, más `API_FOOTBALL_KEY`.
-
-Las semillas se corren una vez, desde el panel de Railway o con `railway run`:
-
-```bash
-railway run --service web python -m semillas.ligas
-railway run --service web python -m semillas.usuario_demo
-```
+Por ejemplo, para la importación de Transfermarkt (DAT-002): poné en `backend/.env` la `DATABASE_URL` y el `DATABASE_SSL_CA` de Aiven y corré el comando de siempre. Los tests no usan esas variables: usan `DATABASE_URL_TEST`.

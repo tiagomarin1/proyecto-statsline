@@ -14,7 +14,7 @@ router = APIRouter(tags=["salud"])
 def obtener_salud(
     response: Response, session: Annotated[Session, Depends(obtener_session)]
 ) -> RespuestaSalud:
-    """Healthcheck de Railway: 200 si la API y la base responden, 503 si la base no responde."""
+    """Healthcheck de Render: 200 si la API y la base responden, 503 si la base no responde."""
     if base_de_datos_disponible(session):
         return RespuestaSalud(estado="ok", base_de_datos="ok")
     response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE

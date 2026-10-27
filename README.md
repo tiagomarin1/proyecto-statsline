@@ -16,7 +16,8 @@ Plataforma para que clubes de fútbol chicos y medianos comparen jugadores por r
 | `backend/` | API en FastAPI + MySQL |
 | `frontend/` | App en React + Vite |
 | `docker/`, `docker-compose.yml` | MySQL 8 de desarrollo y de test |
-| `Dockerfile`, `railway.toml` | Imagen única (React + FastAPI) y deploy en Railway |
+| `Dockerfile`, `render.yaml` | Imagen única (React + FastAPI) y deploy en Render (ADR-0009) |
+| `.github/workflows/` | CI (tests en cada PR) y sincronización diaria con API-Football |
 
 ## Cómo se trabaja
 
@@ -69,7 +70,7 @@ Se hace en pareja porque todo lo demás depende de esto:
 - `tests/fabricas.py`;
 - la dependencia `usuario_actual`;
 - `GET /api/v1/salud`;
-- el primer deploy en Railway.
+- el primer deploy en Render, con MySQL en Aiven (ADR-0009).
 
 En esta fase también se acuerdan la firma de `servicios/metricas.py` y quién crea `routers/jugadores.py`.
 
@@ -82,7 +83,7 @@ En esta fase también se acuerdan la firma de `servicios/metricas.py` y quién c
 | 2-3/11 | BUS-006: orden, paginado y sugerencia sin resultados | BUS-004: filtro de presupuesto |
 | 3-5/11 | CMP-001: comparador | JUG-001: ficha, promedios de la posición y coincidencia con el perfil |
 | 5-6/11 | BUS-005: perfil de búsqueda | SEG-001: lista de seguimiento |
-| 6-8/11 | Juntos: integración con el front (Garrido), E2E del recorrido de la demo, sincronización con datos reales en Railway y margen para imprevistos | (lo mismo) |
+| 6-8/11 | Juntos: integración con el front (Garrido), E2E del recorrido de la demo, sincronización con datos reales en producción y margen para imprevistos | (lo mismo) |
 
 ### Puntos de contacto
 

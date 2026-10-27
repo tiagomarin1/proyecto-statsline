@@ -10,19 +10,23 @@ from app.modelos.base import Base
 target_metadata = Base.metadata
 
 
-def _url() -> str:
-    # Los tests pasan la URL de la base de test por la configuración de Alembic
-    return context.config.get_main_option("sqlalchemy.url") or obtener_configuracion().database_url
+def _url_y_ssl() -> tuple[str, str | None]:
+    # Los tests pasan la URL de la base de test por la configuración de Alembic (sin TLS)
+    url_de_test = context.config.get_main_option("sqlalchemy.url")
+    if url_de_test:
+        return url_de_test, None
+    configuracion = obtener_configuracion()
+    return configuracion.database_url, configuracion.database_ssl_ca
 
 
 def correr_offline() -> None:
-    context.configure(url=_url(), target_metadata=target_metadata, literal_binds=True)
+    context.configure(url=_url_y_ssl()[0], target_metadata=target_metadata, literal_binds=True)
     with context.begin_transaction():
         context.run_migrations()
 
 
 def correr_online() -> None:
-    engine = crear_engine(_url())
+    engine = crear_engine(*_url_y_ssl())
     with engine.connect() as conexion:
         context.configure(connection=conexion, target_metadata=target_metadata, compare_type=True)
         with context.begin_transaction():

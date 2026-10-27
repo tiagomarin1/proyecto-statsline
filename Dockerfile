@@ -1,4 +1,4 @@
-# Imagen única de StatsLine (ADR-0003 y ADR-0006): construye React y lo sirve con FastAPI.
+# Imagen única de StatsLine (ADR-0003 y ADR-0009): construye React y lo sirve con FastAPI.
 
 # 1. Build del frontend
 FROM node:22-alpine AS frontend
@@ -27,5 +27,6 @@ RUN useradd --create-home statsline
 USER statsline
 
 EXPOSE 8000
-# Railway define PORT. Las migraciones corren antes, en el preDeployCommand (railway.toml).
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# Render define PORT. El plan gratis no tiene pre-deploy, así que las migraciones y las semillas
+# corren al arrancar (hay una sola instancia). Si fallan, el contenedor no levanta.
+CMD ["sh", "-c", "alembic upgrade head && python -m semillas && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]

@@ -170,4 +170,4 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 
 ## Salud
 
-`GET /salud` (sin auth). Devuelve 200 `{"estado": "ok", "base_de_datos": "ok"}`. Si la base no responde, devuelve 503 `{"estado": "error", "base_de_datos": "error"}`. Lo usa Railway como healthcheck.
+`GET /salud` (sin auth). Devuelve 200 `{"estado": "ok", "base_de_datos": "ok"}`. Si la base no responde, devuelve 503 `{"estado": "error", "base_de_datos": "error"}`. Lo usa Render como healthcheck.
