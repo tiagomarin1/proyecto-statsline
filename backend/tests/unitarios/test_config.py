@@ -77,3 +77,20 @@ def test_inf001_el_ca_en_una_sola_linea_con_barra_n_tambien_sirve(ca_pem: str):
     contexto = argumentos_de_conexion(ca_pem.replace("\n", "\\n"))["ssl"]
 
     assert len(contexto.get_ca_certs()) == 1
+
+
+def test_inf001_en_produccion_se_rechaza_una_secret_key_corta():
+    with pytest.raises(ValueError, match="al menos 32 caracteres"):
+        Configuracion(database_url="mysql://u:c@h/db", secret_key="corta", entorno="produccion")
+
+
+def test_inf001_en_produccion_se_acepta_una_secret_key_de_32_caracteres():
+    configuracion = Configuracion(
+        database_url="mysql://u:c@h/db", secret_key="x" * 32, entorno="produccion"
+    )
+
+    assert configuracion.entorno == "produccion"
+
+
+def test_inf001_en_desarrollo_una_secret_key_corta_se_permite():
+    assert Configuracion(database_url="mysql://u:c@h/db", secret_key="x").secret_key == "x"

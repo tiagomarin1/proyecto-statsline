@@ -87,3 +87,11 @@ def test_inf001_las_semillas_del_deploy_cargan_el_demo_con_contrasena(session: S
 
     assert _cantidad(session, Liga) == 6
     assert _cantidad(session, Usuario) == 1
+
+
+def test_inf001_recargar_el_demo_con_la_misma_contrasena_no_cambia_el_hash(session: Session):
+    hash_original = cargar_usuario_demo(session, "una-contrasena-de-demo").hash_contrasena
+
+    usuario = cargar_usuario_demo(session, "una-contrasena-de-demo")
+
+    assert usuario.hash_contrasena == hash_original

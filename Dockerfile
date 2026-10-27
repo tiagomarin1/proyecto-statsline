@@ -28,5 +28,8 @@ USER statsline
 
 EXPOSE 8000
 # Render define PORT. El plan gratis no tiene pre-deploy, así que las migraciones y las semillas
-# corren al arrancar (hay una sola instancia). Si fallan, el contenedor no levanta.
-CMD ["sh", "-c", "alembic upgrade head && python -m semillas && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# corren al arrancar, con un bloqueo de MySQL por si dos contenedores arrancan a la vez
+# (app/preparar_base.py). Si fallan, el contenedor no levanta.
+# --forwarded-allow-ips='*': se confía en los headers X-Forwarded-* porque el único que llega al
+# contenedor es el proxy de Render, cuyas IPs no son fijas. Fuera de Render habría que acotarlo.
+CMD ["sh", "-c", "python -m app.preparar_base && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]

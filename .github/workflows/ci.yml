@@ -1,6 +1,10 @@
 # Tests y lint en cada PR y en cada push a main. Render despliega solo si esto pasa (ADR-0009).
 name: CI
 
+# El workflow solo lee el repo
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -85,7 +89,7 @@ jobs:
           docker run -d --name statsline --network host \
             -e PORT=8000 \
             -e DATABASE_URL=mysql://statsline:statsline@127.0.0.1:3306/statsline \
-            -e SECRET_KEY=clave-solo-para-el-ci \
+            -e SECRET_KEY=clave-solo-para-el-ci-de-mas-de-32-caracteres \
             -e DEMO_CONTRASENA=contrasena-del-ci \
             statsline
       - name: /api/v1/salud responde ok y la home se sirve

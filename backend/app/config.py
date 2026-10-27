@@ -4,11 +4,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import make_url
 
 RAIZ_REPO = Path(__file__).resolve().parents[2]
+# El JWT HS256 de la sesión es tan fuerte como esta clave (ADR-0005)
+LARGO_MINIMO_SECRET_KEY_PRODUCCION = 32
 
 
 class Configuracion(BaseSettings):
@@ -42,6 +44,18 @@ class Configuracion(BaseSettings):
             url_parseada = url_parseada.difference_update_query(["ssl-mode", "ssl_mode"])
             return url_parseada.render_as_string(hide_password=False)
         return url
+
+    @model_validator(mode="after")
+    def exigir_secret_key_larga_en_produccion(self) -> "Configuracion":
+        if (
+            self.entorno == "produccion"
+            and len(self.secret_key) < LARGO_MINIMO_SECRET_KEY_PRODUCCION
+        ):
+            raise ValueError(
+                f"SECRET_KEY tiene que tener al menos {LARGO_MINIMO_SECRET_KEY_PRODUCCION} "
+                "caracteres en producción."
+            )
+        return self
 
 
 @lru_cache

@@ -17,8 +17,8 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 |---|---|
 | `DATABASE_URL` | Base de desarrollo. También acepta la URL de Aiven tal cual (`mysql://...?ssl-mode=REQUIRED`) |
 | `DATABASE_SSL_CA` | Solo en producción. Contenido del CA de Aiven (PEM). Con esto la conexión usa TLS y verifica el servidor |
-| `DATABASE_URL_TEST` | Base de test. **pytest la borra y la recrea** en cada corrida |
-| `SECRET_KEY` | Firma de la cookie de sesión. Tiene que ser larga y aleatoria |
+| `DATABASE_URL_TEST` | Base de test. **pytest la borra y la recrea** en cada corrida, así que su nombre tiene que terminar en `_test` (si no, los tests frenan antes de borrar nada) |
+| `SECRET_KEY` | Firma de la cookie de sesión. Tiene que ser larga y aleatoria: con `ENTORNO=produccion`, la app no arranca si tiene menos de 32 caracteres |
 | `API_FOOTBALL_KEY` | Solo para la sincronización (DAT-001) |
 | `SESION_HORAS` | Duración de la sesión. Por defecto es 8 (ADR-0005) |
 | `DEMO_CONTRASENA` | Contraseña del usuario demo |
@@ -94,7 +94,7 @@ ADR-0009, que reemplaza a ADR-0006. Las tres piezas son gratis y ninguna pide ta
 
 | Pieza | Dónde | Qué hace |
 |---|---|---|
-| App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `alembic upgrade head`, `python -m semillas` y `uvicorn`. El healthcheck es `/api/v1/salud` |
+| App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de MySQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
 | MySQL | Aiven, plan gratis | MySQL 8 con TLS obligatorio |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Render despliega `main` solo si pasa |
 | Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina. Hasta que exista DAT-001, no hace nada |

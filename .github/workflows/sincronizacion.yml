@@ -2,6 +2,10 @@
 # Los secrets DATABASE_URL, DATABASE_SSL_CA y API_FOOTBALL_KEY los carga el dueño del repo.
 name: Sincronización diaria
 
+# Solo lee el repo: escribe en Aiven, no en GitHub
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 6 * * *" # 03:00 de Argentina

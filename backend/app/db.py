@@ -2,9 +2,10 @@
 
 import ssl
 from collections.abc import Iterator
+from contextlib import contextmanager
 from functools import lru_cache
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Connection, Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import obtener_configuracion
@@ -34,6 +35,26 @@ def crear_engine(url: str, ssl_ca: str | None = None) -> Engine:
             cursor.execute("SET time_zone = '+00:00'")
 
     return engine
+
+
+@contextmanager
+def bloqueo_exclusivo(conexion: Connection, nombre: str, segundos: int) -> Iterator[None]:
+    """Bloqueo con nombre de MySQL (GET_LOCK): solo una conexión a la vez entra al bloque.
+
+    Si no se consigue en `segundos`, lanza RuntimeError. El bloqueo es de la conexión, no de la
+    transacción: se confirma enseguida para no dejar una transacción abierta mientras se espera.
+    """
+    obtenido = conexion.execute(
+        text("SELECT GET_LOCK(:nombre, :segundos)"), {"nombre": nombre, "segundos": segundos}
+    ).scalar()
+    conexion.commit()
+    if obtenido != 1:
+        raise RuntimeError(f"No se pudo tomar el bloqueo '{nombre}' en {segundos} segundos.")
+    try:
+        yield
+    finally:
+        conexion.execute(text("SELECT RELEASE_LOCK(:nombre)"), {"nombre": nombre})
+        conexion.commit()
 
 
 @lru_cache

@@ -25,6 +25,7 @@ os.environ.setdefault("ENTORNO", "test")
 from app.config import RAIZ_REPO, obtener_configuracion  # noqa: E402
 from app.db import crear_engine, obtener_session  # noqa: E402
 from app.main import crear_app  # noqa: E402
+from tests.base_de_test import validar_nombre_base_de_test  # noqa: E402
 
 DIRECTORIO_BACKEND = RAIZ_REPO / "backend"
 
@@ -38,7 +39,10 @@ def _url_base_de_test() -> str:
 
 def _recrear_base(url: str) -> None:
     url_test = make_url(url)
-    nombre = url_test.database
+    try:
+        nombre = validar_nombre_base_de_test(url_test.database)
+    except ValueError as error:
+        pytest.fail(str(error))
     servidor = crear_engine(url_test.set(database=""))
     with servidor.begin() as conexion:
         conexion.execute(text(f"DROP DATABASE IF EXISTS `{nombre}`"))
