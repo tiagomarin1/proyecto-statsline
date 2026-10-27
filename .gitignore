@@ -218,3 +218,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- StatsLine ---
+# Borradores locales de la IA, no se versionan
+Claude outputs/
+
+# Frontend (Node / Vite)
+node_modules/
+frontend/dist/
+*.local
+
+# macOS
+.DS_Store

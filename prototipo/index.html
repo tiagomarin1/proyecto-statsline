@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScoutIAndo</title>
+<meta name="description" content="Prototipo navegable del MVP de ScoutIAndo: buscar, filtrar y comparar jugadores por rendimiento y presupuesto.">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+  /* Base mínima, antes de los estilos propios */
+  :root {
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+  <div class="demobar" id="demobar">
+    <div class="demobar__in wrap">
+      <span><strong>Prototipo navegable v1</strong> &middot; datos de demostraci&oacute;n: los jugadores, clubes y m&eacute;tricas son ficticios. En el MVP v1 vienen de API-Football.</span>
+      <button type="button" data-act="cerrar-demobar" aria-label="Ocultar el aviso del prototipo">Ocultar</button>
+    </div>
+  </div>
+
+  <header id="topbar"></header>
+  <main id="view"></main>
+  <footer id="foot"></footer>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
