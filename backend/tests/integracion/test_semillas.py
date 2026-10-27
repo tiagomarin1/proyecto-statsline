@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.modelos import Liga, Usuario
 from app.modelos.enums import Cobertura, Rol
 from app.seguridad.contrasenas import verificar_contrasena
+from semillas.__main__ import cargar_semillas
 from semillas.ligas import cargar_ligas
 from semillas.usuario_demo import EMAIL_DEMO, cargar_usuario_demo
 
@@ -71,3 +72,18 @@ def test_inf001_cargar_el_usuario_demo_dos_veces_no_lo_duplica(session: Session)
 def test_inf001_el_usuario_demo_necesita_demo_contrasena(session: Session):
     with pytest.raises(ValueError, match="DEMO_CONTRASENA"):
         cargar_usuario_demo(session, "")
+
+
+def test_inf001_las_semillas_del_deploy_saltean_el_demo_sin_contrasena(session: Session):
+    resumen = cargar_semillas(session, "")
+
+    assert _cantidad(session, Liga) == 6
+    assert _cantidad(session, Usuario) == 0
+    assert resumen[-1] == "Usuario demo salteado: falta DEMO_CONTRASENA"
+
+
+def test_inf001_las_semillas_del_deploy_cargan_el_demo_con_contrasena(session: Session):
+    cargar_semillas(session, "una-contrasena-de-demo")
+
+    assert _cantidad(session, Liga) == 6
+    assert _cantidad(session, Usuario) == 1
