@@ -1,8 +1,8 @@
 """Búsqueda de jugadores: BUS-001 (posición y edad), BUS-002 (liga), BUS-003 (métricas) y
 BUS-006 (orden, paginado y sugerencia sin resultados).
 
-Cada filtro es una función que recibe la consulta y la devuelve filtrada (PLAN_BACKEND.md), así
-BUS-004 (presupuesto) se engancha con una sola línea en buscar_jugadores.
+Cada filtro es una función que recibe la consulta y la devuelve filtrada (PLAN_BACKEND.md). El de
+BUS-004 (presupuesto) vive en servicios/presupuesto.py.
 """
 
 from datetime import date
@@ -33,6 +33,7 @@ from app.servicios.estadistica_vigente import (
     recuperaciones_por_partido,
     redondear,
 )
+from app.servicios.presupuesto import filtrar_por_presupuesto, sin_valor_de_mercado
 
 # Filtro de BUS-003 → columna de la consulta con la que se compara (RN-001)
 METRICAS_TACTICAS = {
@@ -224,7 +225,7 @@ def buscar_jugadores(
         excluidos_por_dato_faltante=(
             repositorio_jugador.contar(session, excluidos) if excluidos is not None else 0
         ),
-        excluidos_sin_valor=0,
+        excluidos_sin_valor=_contar_excluidos_sin_valor(session, filtros, usuario_id, hoy),
         liga_sin_datos=liga is not None and liga.cobertura == Cobertura.sin_datos,
         sugerencia=_sugerir(session, filtros, usuario_id, hoy) if total == 0 else None,
     )
@@ -236,8 +237,18 @@ def _aplicar_filtros(filtros: FiltrosBusqueda, usuario_id: int, hoy: date) -> tu
     consulta = filtrar_por_posicion(consulta, filtros.posicion)
     consulta = filtrar_por_liga(consulta, filtros.liga_id)
     consulta = filtrar_por_edad(consulta, filtros.edad_min, filtros.edad_max, hoy)
-    # BUS-004: acá se engancha filtrar_por_presupuesto (servicios/presupuesto.py)
+    consulta = filtrar_por_presupuesto(consulta, filtros.presupuesto_max_eur)
     return filtrar_por_metricas(consulta, filtros), consulta
+
+
+def _contar_excluidos_sin_valor(
+    session: Session, filtros: FiltrosBusqueda, usuario_id: int, hoy: date
+) -> int:
+    """RN-005: cumplen todos los demás filtros y quedan afuera solo por no tener valor."""
+    sin_presupuesto = filtros.model_copy(update={"presupuesto_max_eur": None})
+    consulta, _ = _aplicar_filtros(sin_presupuesto, usuario_id, hoy)
+    sin_valor = sin_valor_de_mercado(consulta, filtros.presupuesto_max_eur)
+    return repositorio_jugador.contar(session, sin_valor) if sin_valor is not None else 0
 
 
 def _sugerir(
