@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.modelos.base import Base, Id
 from app.modelos.enums import Cobertura
-from app.modelos.tipos import enum_mysql
+from app.modelos.tipos import tipo_enum
 
 
 class Liga(Base):
@@ -17,7 +17,7 @@ class Liga(Base):
     temporada_actual: Mapped[int] = mapped_column(SmallInteger)
     # Se recalcula al final de cada sincronización (RN-020)
     cobertura: Mapped[Cobertura] = mapped_column(
-        enum_mysql(Cobertura, "cobertura"),
+        tipo_enum(Cobertura, "cobertura"),
         default=Cobertura.sin_datos,
         server_default=Cobertura.sin_datos.value,
     )

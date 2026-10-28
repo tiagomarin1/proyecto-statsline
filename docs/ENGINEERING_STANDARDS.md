@@ -73,4 +73,4 @@ Ver `TESTING_STRATEGY.md`. Prioridad por riesgo:
 | Docs | Catálogo actualizado, línea en el CHANGELOG, glosario y reglas al día |
 | Deploy | Funciona en Render (staging = main) |
 
-**Stack de ScoutIAndo:** FastAPI + SQLAlchemy 2 + Alembic + MySQL 8 (Aiven) · Render · React + Vite + TS · pytest/httpx · Vitest/Testing Library · Playwright (flujo de la demo).
+**Stack de ScoutIAndo:** FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL 16 (Aiven) · Render · React + Vite + TS · pytest/httpx · Vitest/Testing Library · Playwright (flujo de la demo).

@@ -2,9 +2,11 @@
 
 Es la fuente de verdad de las entidades del sistema. Las migraciones de Alembic se generan a partir de este documento. Si una migración necesita algo que no está acá, primero se propone el cambio en este archivo.
 
-- **Motor:** MySQL 8, `utf8mb4`.
-- **Claves primarias:** `BIGINT UNSIGNED AUTO_INCREMENT`, salvo `seguimiento`, que usa una PK compuesta.
-- **Fechas:** `DATETIME` en UTC. Las columnas de auditoría se llaman `creado_en` y `actualizado_en`.
+- **Motor:** PostgreSQL 16, codificación `UTF8` (ADR-0010).
+- **Claves primarias:** `BIGINT` autoincremental (`BIGSERIAL`), salvo `seguimiento`, que usa una PK compuesta.
+- **Fechas:** `TIMESTAMP` sin zona, en UTC (cada conexión fija `timezone=UTC`). Las columnas de auditoría se llaman `creado_en` y `actualizado_en`.
+- **Enums:** se guardan como `VARCHAR` con un `CHECK` de los valores permitidos, no como tipos `ENUM` nativos.
+- **No negativos:** PostgreSQL no tiene `UNSIGNED`; los campos que no pueden ser negativos llevan un `CHECK (campo >= 0)`.
 
 ## Diagrama
 
@@ -30,10 +32,10 @@ Persona con cuenta. El club es texto libre: la gestión de clubes es R3.
 | hash_contrasena | VARCHAR(255) | no | — | Argon2 (ADR-0005). Nunca se guarda la contraseña en texto plano |
 | rol | ENUM(Rol) | no | — | `director_tecnico`, `director_deportivo`, `dirigente`, `ojeador` |
 | club | VARCHAR(120) | no | — | Club del usuario (texto libre) |
-| terminos_aceptados_en | DATETIME | no | — | Momento en que aceptó los términos |
-| creado_en | DATETIME | no | now | |
+| terminos_aceptados_en | TIMESTAMP | no | — | Momento en que aceptó los términos |
+| creado_en | TIMESTAMP | no | now | |
 
-- **Invariante:** `email` es único sin distinguir mayúsculas.
+- **Invariante:** `email` es único sin distinguir mayúsculas. Se garantiza guardándolo en minúsculas (`CHECK (email = lower(email))`) con una restricción única.
 - **Índices:** único en `email`.
 
 ### Entidad: Liga
@@ -74,10 +76,10 @@ Datos personales del jugador. Las estadísticas van aparte, en `EstadisticaTempo
 | apellido | VARCHAR(80) | sí | — | `player.lastname` |
 | fecha_nacimiento | DATE | sí | — | `player.birth.date`. Con esto se calcula la edad (RN-009) |
 | nacionalidad | VARCHAR(60) | sí | — | |
-| valor_mercado_eur | INT UNSIGNED | sí | — | Viene de transfermarkt-datasets. `NULL` = costo no disponible (RN-002) |
+| valor_mercado_eur | INTEGER | sí | — | Viene de transfermarkt-datasets. `NULL` = costo no disponible (RN-002). `CHECK ≥ 0` |
 | id_transfermarkt | INT | sí | — | Jugador de Transfermarkt con el que se cruzó. Único cuando no es nulo |
 | valor_mercado_fecha | DATE | sí | — | Fecha del valor según el dataset |
-| actualizado_en | DATETIME | no | now | |
+| actualizado_en | TIMESTAMP | no | now | |
 
 - **Invariante:** `valor_mercado_eur` ≥ 0 si no es nulo.
 - **Índices:**
@@ -107,7 +109,7 @@ Números de un jugador en una liga, un equipo y una temporada. Una fila por cada
 | duelos_ganados | SMALLINT | sí | — | `duels.won` |
 | rating | DECIMAL(4,2) | sí | — | `games.rating` |
 | intercepciones | SMALLINT | sí | — | `tackles.interceptions` |
-| sincronizado_en | DATETIME | no | now | |
+| sincronizado_en | TIMESTAMP | no | now | |
 
 **No se guardan, se calculan** (RN-018): `duelos_ganados_pct`, `recuperaciones_por_partido` y `edad`.
 
@@ -130,14 +132,14 @@ Filtros guardados. Hay uno por usuario en el MVP; tener varios es R2 (RN-023).
 | usuario_id | BIGINT | no | — | FK → usuario. Único |
 | posicion | ENUM(Posicion) | no | — | Obligatorio |
 | liga_id | BIGINT | no | — | FK → liga. Obligatorio |
-| edad_min | TINYINT | no | — | Obligatorio, entre 15 y 45 |
-| edad_max | TINYINT | no | — | Obligatorio, entre 15 y 45, y ≥ `edad_min` |
-| presupuesto_max_eur | INT UNSIGNED | sí | — | Nulo = sin filtro de presupuesto |
+| edad_min | SMALLINT | no | — | Obligatorio, entre 15 y 45 |
+| edad_max | SMALLINT | no | — | Obligatorio, entre 15 y 45, y ≥ `edad_min` |
+| presupuesto_max_eur | INTEGER | sí | — | Nulo = sin filtro de presupuesto. `CHECK ≥ 0` |
 | pases_min | DECIMAL(5,2) | sí | — | Nulo = sin filtro |
 | duelos_min | DECIMAL(5,2) | sí | — | Nulo = sin filtro |
 | recuperaciones_min | DECIMAL(4,2) | sí | — | Nulo = sin filtro |
 | minutos_min | INT | sí | — | Nulo = sin filtro |
-| actualizado_en | DATETIME | no | now | |
+| actualizado_en | TIMESTAMP | no | now | |
 
 - **Invariante:** `edad_min` ≤ `edad_max`.
 
@@ -149,7 +151,7 @@ Jugador guardado en la lista de seguimiento de un usuario.
 |---|---|---|---|---|
 | usuario_id | BIGINT | no | — | PK compuesta, FK → usuario |
 | jugador_id | BIGINT | no | — | PK compuesta, FK → jugador |
-| creado_en | DATETIME | no | now | La lista se ordena por este campo, del más reciente al más viejo |
+| creado_en | TIMESTAMP | no | now | La lista se ordena por este campo, del más reciente al más viejo |
 
 - **Invariante:** un jugador aparece una sola vez por usuario. Agregarlo de nuevo no hace nada (es idempotente).
 
@@ -163,8 +165,8 @@ Registro de cada corrida del proceso de sincronización, para auditar y diagnost
 | origen | ENUM(`api_football`,`transfermarkt`) | no | — | |
 | liga_id | BIGINT | sí | — | FK → liga. Nulo para Transfermarkt |
 | temporada | SMALLINT | sí | — | |
-| iniciada_en | DATETIME | no | now | |
-| finalizada_en | DATETIME | sí | — | |
+| iniciada_en | TIMESTAMP | no | now | |
+| finalizada_en | TIMESTAMP | sí | — | |
 | estado | ENUM(`en_curso`,`ok`,`error`) | no | `en_curso` | |
 | pedidos_usados | INT | no | 0 | Pedidos hechos a API-Football (cupo de 7.500 por día) |
 | registros_actualizados | INT | no | 0 | |

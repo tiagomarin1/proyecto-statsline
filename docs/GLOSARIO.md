@@ -38,7 +38,7 @@ Convenciones:
 | Promedio de la posición | `promedio_posicion` | Promedio de una métrica entre los jugadores de la misma posición (RN-015) | — | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Rol | `rol` | `director_tecnico`, `director_deportivo`, `dirigente` u `ojeador` | perfil (para esto), cargo | enum |
-| Sincronización | `sincronizacion` | Proceso batch que trae datos de API-Football o de Transfermarkt a MySQL | ingesta, import, sync | `Sincronizacion` |
+| Sincronización | `sincronizacion` | Proceso batch que trae datos de API-Football o de Transfermarkt a PostgreSQL | ingesta, import, sync | `Sincronizacion` |
 | Fichaje | — | Incorporación concretada de un jugador. **La plataforma no gestiona fichajes**, solo apoya la decisión | contratación, pase | — |
 | Score | `score` | Puntaje de 0 a 100. **Fuera del MVP v1** (R2) | puntaje, rating (el rating es otra cosa) | — |
 | Rating | `rating` | Calificación promedio que publica API-Football por partido (`games.rating`) | score | campo |

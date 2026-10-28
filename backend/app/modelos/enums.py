@@ -1,4 +1,4 @@
-"""Enums del modelo canónico. El valor es el que se guarda en MySQL y viaja en el JSON."""
+"""Enums del modelo canónico. El valor es el que se guarda en PostgreSQL y viaja en el JSON."""
 
 from enum import StrEnum
 

@@ -6,11 +6,11 @@ from typing import Literal
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import make_url
 
 RAIZ_REPO = Path(__file__).resolve().parents[2]
 # El JWT HS256 de la sesión es tan fuerte como esta clave (ADR-0005)
 LARGO_MINIMO_SECRET_KEY_PRODUCCION = 32
+PREFIJO_POSTGRESQL_PSYCOPG = "postgresql+psycopg://"
 
 
 class Configuracion(BaseSettings):
@@ -18,7 +18,7 @@ class Configuracion(BaseSettings):
 
     database_url: str
     database_url_test: str | None = None
-    # Contenido PEM del CA del servidor MySQL (Aiven exige TLS, ADR-0009). Vacío = sin TLS
+    # Contenido PEM del CA del servidor PostgreSQL (Aiven exige TLS, ADR-0009). Vacío = sin TLS
     database_ssl_ca: str | None = None
     secret_key: str
     api_football_key: str = ""
@@ -29,20 +29,17 @@ class Configuracion(BaseSettings):
 
     @field_validator("database_url", "database_url_test")
     @classmethod
-    def adaptar_url_mysql(cls, url: str | None) -> str | None:
-        """Adapta la URL que entrega Aiven (mysql://...?ssl-mode=REQUIRED) a SQLAlchemy + PyMySQL.
+    def adaptar_url_postgresql(cls, url: str | None) -> str | None:
+        """Agrega el driver psycopg a la URL que entrega Aiven (postgres://...?sslmode=require).
 
-        Se agrega el driver explícito y se saca ssl-mode, que PyMySQL no entiende: el TLS se
-        configura con DATABASE_SSL_CA (ver app/db.py).
+        El resto de la URL, incluido sslmode, se deja igual: libpq lo entiende. La verificación
+        del servidor se configura con DATABASE_SSL_CA (ver app/db.py).
         """
         if not url:
             return url
-        if url.startswith("mysql://"):
-            url = "mysql+pymysql://" + url.removeprefix("mysql://")
-        url_parseada = make_url(url)
-        if {"ssl-mode", "ssl_mode"} & set(url_parseada.query):
-            url_parseada = url_parseada.difference_update_query(["ssl-mode", "ssl_mode"])
-            return url_parseada.render_as_string(hide_password=False)
+        for prefijo in ("postgres://", "postgresql://"):
+            if url.startswith(prefijo):
+                return PREFIJO_POSTGRESQL_PSYCOPG + url.removeprefix(prefijo)
         return url
 
     @model_validator(mode="after")

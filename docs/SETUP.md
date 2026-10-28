@@ -6,7 +6,7 @@ Cómo levantar StatsLine desde un clon limpio. Se escribió al cerrar INF-001.
 
 - **Python 3.12.** Si tu Python es otro, `uv` instala el 3.12 sin tocar el del sistema.
 - **Node 22 LTS.** También anda con Node 20 o más nuevo.
-- **Docker y Docker Compose**, para MySQL 8. Sin Docker, mirá "MySQL sin Docker" más abajo.
+- **Docker y Docker Compose**, para PostgreSQL 16. Sin Docker, mirá "PostgreSQL sin Docker" más abajo.
 - **Una clave de API-Football (plan Pro)** para sincronizar. Para los tests no hace falta.
 
 ## Variables de entorno
@@ -15,7 +15,7 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 
 | Variable | Para qué |
 |---|---|
-| `DATABASE_URL` | Base de desarrollo. También acepta la URL de Aiven tal cual (`mysql://...?ssl-mode=REQUIRED`) |
+| `DATABASE_URL` | Base de desarrollo (`postgresql+psycopg://...`). También acepta la URL de Aiven tal cual (`postgres://...?sslmode=require`) |
 | `DATABASE_SSL_CA` | Solo en producción. Contenido del CA de Aiven (PEM). Con esto la conexión usa TLS y verifica el servidor |
 | `DATABASE_URL_TEST` | Base de test. **pytest la borra y la recrea** en cada corrida, así que su nombre tiene que terminar en `_test` (si no, los tests frenan antes de borrar nada) |
 | `SECRET_KEY` | Firma de la cookie de sesión. Tiene que ser larga y aleatoria: con `ENTORNO=produccion`, la app no arranca si tiene menos de 32 caracteres |
@@ -28,7 +28,7 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 ## Primer arranque
 
 ```bash
-docker compose up -d mysql                # MySQL 8 con statsline_dev y statsline_test
+docker compose up -d postgres             # PostgreSQL 16 con statsline_dev y statsline_test
 
 cd backend
 cp .env.example .env                      # completá SECRET_KEY y DEMO_CONTRASENA
@@ -49,16 +49,17 @@ Las dos semillas se pueden correr las veces que haga falta: no duplican nada.
 
 **Para ver el build de producción en local:** corré `npm run build` en `frontend/` y abrí `http://localhost:8000`. FastAPI sirve `frontend/dist` y devuelve `index.html` en cualquier ruta que no sea `/api`, `/docs` u `/openapi.json`.
 
-### MySQL sin Docker
+### PostgreSQL sin Docker
 
-Sirve cualquier MySQL 8 o más nuevo, por ejemplo el de Homebrew. Con un usuario administrador, se crean el usuario y las dos bases:
+Sirve cualquier PostgreSQL 16 o más nuevo, por ejemplo el de Homebrew (`brew install postgresql@16`). Con un usuario administrador, se crea el usuario `statsline` y las dos bases:
 
 ```bash
-mysql -uroot -e "CREATE USER 'statsline'@'%' IDENTIFIED BY 'statsline'; CREATE DATABASE statsline_dev CHARACTER SET utf8mb4; GRANT ALL PRIVILEGES ON statsline_dev.* TO 'statsline'@'%';"
-mysql -uroot < docker/mysql/01-bases.sql
+psql -d postgres -c "CREATE ROLE statsline LOGIN PASSWORD 'statsline' CREATEDB"
+psql -d postgres -c "CREATE DATABASE statsline_dev OWNER statsline"
+psql -d postgres -c "CREATE DATABASE statsline_test OWNER statsline"
 ```
 
-Después se ajusta el host y el puerto en `DATABASE_URL` y `DATABASE_URL_TEST`. Conviene arrancar el servidor con `--default-time-zone=+00:00`, aunque la app igual fija la zona en UTC en cada conexión.
+El usuario necesita `CREATEDB` porque pytest borra y recrea `statsline_test`. Si tu servidor no usa el puerto 5432, ajustá el host y el puerto en `DATABASE_URL` y `DATABASE_URL_TEST`. La app fija `timezone=UTC` en cada conexión, así que no hace falta configurar la zona del servidor.
 
 ## Tests y lint
 
@@ -66,7 +67,7 @@ Después se ajusta el host y el puerto en `DATABASE_URL` y `DATABASE_URL_TEST`. 
 cd backend
 pytest                                    # todo: unitarios + integración contra statsline_test
 pytest tests/unitarios                    # rápido, sin base
-pytest -m integracion                     # solo los que usan MySQL
+pytest -m integracion                     # solo los que usan PostgreSQL
 pytest --cov=app --cov=semillas           # con cobertura
 ruff format . && ruff check .
 
@@ -90,21 +91,21 @@ python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv
 
 ## Deploy (Render + Aiven + GitHub Actions)
 
-ADR-0009, que reemplaza a ADR-0006. Las tres piezas son gratis y ninguna pide tarjeta.
+ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son gratis y ninguna pide tarjeta.
 
 | Pieza | Dónde | Qué hace |
 |---|---|---|
-| App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de MySQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
-| MySQL | Aiven, plan gratis | MySQL 8 con TLS obligatorio |
+| App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de PostgreSQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
+| PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Render despliega `main` solo si pasa |
 | Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina. Hasta que exista DAT-001, no hace nada |
 
 ### 1. Base en Aiven
 
 1. Crear la cuenta en https://aiven.io con el plan gratis.
-2. Crear un servicio **MySQL** con el plan **Free**, en una región del este de EE. UU. si está disponible.
+2. Crear un servicio **PostgreSQL** con el plan **Free**, en una región del este de EE. UU. si está disponible.
 3. En la pestaña *Overview* del servicio, copiar dos cosas:
-   - la **Service URI**, con la forma `mysql://avnadmin:...@...aivencloud.com:PUERTO/defaultdb?ssl-mode=REQUIRED`. Va tal cual como `DATABASE_URL`;
+   - la **Service URI**, con la forma `postgres://avnadmin:...@...aivencloud.com:PUERTO/defaultdb?sslmode=require`. Va tal cual como `DATABASE_URL`;
    - el **CA certificate** (descargar `ca.pem`). Su contenido va como `DATABASE_SSL_CA`.
 
 ### 2. App en Render

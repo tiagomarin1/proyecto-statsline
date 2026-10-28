@@ -28,7 +28,7 @@ USER statsline
 
 EXPOSE 8000
 # Render define PORT. El plan gratis no tiene pre-deploy, así que las migraciones y las semillas
-# corren al arrancar, con un bloqueo de MySQL por si dos contenedores arrancan a la vez
+# corren al arrancar, con un bloqueo de PostgreSQL por si dos contenedores arrancan a la vez
 # (app/preparar_base.py). Si fallan, el contenedor no levanta.
 # --forwarded-allow-ips='*': se confía en los headers X-Forwarded-* porque el único que llega al
 # contenedor es el proxy de Render, cuyas IPs no son fijas. Fuera de Render habría que acotarlo.

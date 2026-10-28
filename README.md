@@ -13,9 +13,9 @@ Plataforma para que clubes de fútbol chicos y medianos comparen jugadores por r
 | `CLAUDE.md` | Acuerdo de trabajo con la IA y orden de lectura. **Empezá por acá.** |
 | `docs/` | Documentación del proyecto: visión, glosario, modelo de datos, reglas de negocio, catálogo de features y specs |
 | `prototipo/` | Prototipo navegable v1. Abrí `prototipo/index.html` en el navegador (usuario `javier@deportivonorte.com`, contraseña `scoutiando`) |
-| `backend/` | API en FastAPI + MySQL |
+| `backend/` | API en FastAPI + PostgreSQL |
 | `frontend/` | App en React + Vite |
-| `docker/`, `docker-compose.yml` | MySQL 8 de desarrollo y de test |
+| `docker/`, `docker-compose.yml` | PostgreSQL 16 de desarrollo y de test |
 | `Dockerfile`, `render.yaml` | Imagen única (React + FastAPI) y deploy en Render (ADR-0009) |
 | `.github/workflows/` | CI (tests en cada PR) y sincronización diaria con API-Football |
 
@@ -63,14 +63,14 @@ El trabajo se divide **por módulo completo, de punta a punta**: router, servici
 
 Se hace en pareja porque todo lo demás depende de esto:
 
-- la estructura de carpetas de `docs/ARQUITECTURA.md`, `pyproject.toml` y `docker-compose.yml` con MySQL de desarrollo y de test;
+- la estructura de carpetas de `docs/ARQUITECTURA.md`, `pyproject.toml` y `docker-compose.yml` con PostgreSQL de desarrollo y de test;
 - **una sola migración inicial** con todo el modelo canónico, para no romper la cadena de Alembic;
 - los modelos ORM de todas las entidades;
 - las semillas de las 6 ligas y del usuario demo;
 - `tests/fabricas.py`;
 - la dependencia `usuario_actual`;
 - `GET /api/v1/salud`;
-- el primer deploy en Render, con MySQL en Aiven (ADR-0009).
+- el primer deploy en Render, con PostgreSQL en Aiven (ADR-0009 y ADR-0010).
 
 En esta fase también se acuerdan la firma de `servicios/metricas.py` y quién crea `routers/jugadores.py`.
 

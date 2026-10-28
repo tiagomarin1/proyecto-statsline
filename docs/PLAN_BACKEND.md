@@ -16,14 +16,14 @@ Se divide **por módulo completo, de punta a punta**: router, servicio, reposito
 
 Se hace en pareja porque todo depende de esto:
 
-- [ ] Estructura de carpetas de `ARQUITECTURA.md`, `pyproject.toml` y `docker-compose.yml` con MySQL de desarrollo y de test.
+- [ ] Estructura de carpetas de `ARQUITECTURA.md`, `pyproject.toml` y `docker-compose.yml` con PostgreSQL de desarrollo y de test.
 - [ ] **Una sola migración inicial con todo el modelo canónico.** Si cada uno crea migraciones en paralelo, se rompe la cadena de Alembic.
 - [ ] Modelos ORM de todas las entidades.
 - [ ] Semillas: las 6 ligas y el usuario demo.
 - [ ] `tests/fabricas.py` con `crear_usuario`, `crear_liga`, `crear_jugador` y `crear_estadistica`.
 - [ ] La dependencia `usuario_actual` (`seguridad/`), porque todos los endpoints 🔒 la usan.
 - [ ] `GET /api/v1/salud`.
-- [ ] Deploy inicial en Render (servicio web) con MySQL en Aiven (ADR-0009).
+- [ ] Deploy inicial en Render (servicio web) con PostgreSQL en Aiven (ADR-0009 y ADR-0010).
 
 ## Fases 1 a 4 — En paralelo
 
