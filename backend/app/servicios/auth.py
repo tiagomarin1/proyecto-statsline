@@ -1,7 +1,9 @@
 """Registro e ingreso de usuarios (RN-022). Los mensajes son los del prototipo v1."""
 
 import re
+import secrets
 from dataclasses import dataclass
+from functools import lru_cache
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -12,13 +14,14 @@ from app.modelos import Usuario
 from app.modelos.base import ahora_utc
 from app.modelos.enums import Rol
 from app.repositorios import usuario as repositorio_usuario
-from app.seguridad.contrasenas import hashear_contrasena
+from app.seguridad.contrasenas import hashear_contrasena, verificar_contrasena
 
 LARGO_MINIMO_CONTRASENA = 8
 PATRON_EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 ROLES_VALIDOS = {rol.value for rol in Rol}
 
 MENSAJE_EMAIL_REGISTRADO = "Ese correo ya tiene una cuenta. Probá ingresando."
+MENSAJE_CREDENCIALES_INVALIDAS = "Correo o contraseña incorrectos."
 
 
 @dataclass(frozen=True)
@@ -93,4 +96,25 @@ def registrar(session: Session, datos: PedidoRegistro) -> Usuario:
         # Dos registros simultáneos con el mismo email: gana el primero
         session.rollback()
         raise ErrorApi(409, "email_registrado", MENSAJE_EMAIL_REGISTRADO) from error
+    return usuario
+
+
+@lru_cache
+def _hash_de_relleno() -> str:
+    """Hash de una contraseña al azar, para verificar contra algo cuando el email no existe."""
+    return hashear_contrasena(secrets.token_urlsafe(32))
+
+
+def ingresar(session: Session, email: str | None, contrasena: str | None) -> Usuario:
+    """AUT-002: devuelve el usuario si email y contraseña coinciden.
+
+    Si no, responde siempre 401 con el mismo mensaje y nunca dice cuál de los dos falló (RN-022).
+    Con un email inexistente igual se verifica una contraseña, para que el tiempo de respuesta
+    tampoco lo delate.
+    """
+    usuario = repositorio_usuario.obtener_por_email(session, normalizar_email(email or ""))
+    hash_a_verificar = usuario.hash_contrasena if usuario else _hash_de_relleno()
+    contrasena_correcta = verificar_contrasena(contrasena or "", hash_a_verificar)
+    if usuario is None or not contrasena_correcta:
+        raise ErrorApi(401, "credenciales_invalidas", MENSAJE_CREDENCIALES_INVALIDAS)
     return usuario
