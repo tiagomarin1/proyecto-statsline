@@ -33,8 +33,8 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| AUT-001 | Registrarse en la plataforma | spec-aprobada | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
-| AUT-002 | Iniciar y cerrar sesión | spec-aprobada | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
+| AUT-001 | Registrarse en la plataforma | en testing | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
+| AUT-002 | Iniciar y cerrar sesión | en testing | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
 
 ### Módulo: Búsqueda
 
@@ -45,7 +45,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | BUS-003 | Filtrar por métricas tácticas | en testing | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
 | BUS-004 | Filtrar por presupuesto | spec-aprobada | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
 | BUS-005 | Crear, guardar y cargar el perfil de búsqueda | en testing | P1 | — | — | specs/busqueda/BUS-005.md |
-| BUS-006 | Resultados: orden, paginado, sin resultados y selección | spec-aprobada | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
+| BUS-006 | Resultados: orden, paginado, sin resultados y selección | en testing | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
 
 ### Módulo: Jugador
 
@@ -57,7 +57,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| CMP-001 | Comparar 2 o 3 candidatos | spec-aprobada | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
+| CMP-001 | Comparar 2 o 3 candidatos | en testing | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
 
 ### Módulo: Seguimiento
 
