@@ -165,7 +165,7 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | Método | Ruta | Auth | Request | 2xx | Errores |
 |---|---|---|---|---|---|
 | GET | `/seguimiento` | 🔒 | — | 200 `[JugadorResumen]`, del más reciente al más viejo | — |
-| POST | `/seguimiento` | 🔒 | `{jugador_id}` | 201 si se agregó, 200 si ya estaba (idempotente) | 404 `jugador_inexistente` |
+| POST | `/seguimiento` | 🔒 | `{jugador_id}` | 201 si se agregó, 200 si ya estaba (idempotente). Cuerpo: `{jugador_id, aviso}`, con el aviso de RN-026 | 404 `jugador_inexistente`, 422 `validacion` |
 | DELETE | `/seguimiento/{jugador_id}` | 🔒 | — | 204 (idempotente) | — |
 
 ## Salud
