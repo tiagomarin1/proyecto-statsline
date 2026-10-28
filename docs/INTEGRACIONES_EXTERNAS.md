@@ -111,9 +111,36 @@ Decisiones de implementación (28/10, validadas por Marin):
 
 **Cruce con los jugadores de API-Football:** RN-002. Al terminar se informa el resumen: X cruzados, Y sin coincidencia, Z ambiguos. Se guarda en `sincronizacion.registros_actualizados` y en el log.
 
-⚠️ **Primera tarea de DAT-002:** medir la cobertura real. Cuántos jugadores de cada liga del MVP quedan con valor. El resultado se anota en esta sección.
+**Descarga:** `https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/players.csv.gz` (unos 4,4 MB, 50.149 jugadores). El CLI lee el `.csv.gz` tal cual. No se sube al repo.
 
-**Fixture:** `backend/tests/fixtures/transfermarkt/players_muestra.csv`, con casos de una coincidencia, ninguna y dos (ambigua).
+**Formato real (verificado el 28/10):**
+
+- `date_of_birth` viene como `AAAA-MM-DD 00:00:00`;
+- `market_value_in_eur` puede venir vacío: el jugador se cruza (se guarda `id_transfermarkt`), pero queda sin valor;
+- **no hay columna con la fecha de cada valor.** `valor_mercado_fecha` es la fecha de corte del dataset, el 2026-07-06 (`FECHA_DATASET` en `app/sincronizacion/transfermarkt.py`; se puede cambiar con `--fecha`).
+
+**Cobertura medida (28/10).** Con el CSV completo y los 40 jugadores reales de los fixtures de API-Football:
+
+| Liga | Jugadores | Con valor | Cruzados sin valor | Sin coincidencia |
+|---|---|---|---|---|
+| Liga Profesional (128, 2026, página 1) | 20 | **20** | 0 | 0 |
+| Primera Nacional (129, 2025, página 1) | 20 | **4** | 1 | 15 |
+
+- El dataset solo tiene una competencia argentina: `ARG1` (Liga Profesional), con 1.261 jugadores. **No tiene ninguna liga del ascenso.**
+- En la Liga Profesional todos los jugadores de la muestra están en el dataset, pero 16 de 20 cruzan recién con el paso 2b de RN-002 **(propuesta)**: API-Football trae el nombre completo y Transfermarkt el "de uso".
+- En el ascenso solo cruzan los que jugaron antes en una liga del dataset. ⚠️ **Hay que avisarle al PO antes del Demo Day:** con el filtro de presupuesto activo, casi todo el ascenso queda excluido.
+- La medición completa por liga se hace con la primera importación contra la base de producción: el CLI imprime el resumen por liga.
+
+**Cómo correrla:**
+
+```bash
+cd backend
+python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv.gz
+```
+
+Tiene que correr **después** de la sincronización de API-Football, porque cruza los jugadores que ya están en la base. Volver a correrla no duplica nada: recalcula el valor de todos los jugadores.
+
+**Fixture:** `backend/tests/fixtures/transfermarkt/players_muestra.csv`, con filas reales del dataset (coincidencia exacta, por palabras, valor vacío y un caso ambiguo armado a mano). Ver su `README.md`.
 
 ## 3. Integraciones descartadas
 
