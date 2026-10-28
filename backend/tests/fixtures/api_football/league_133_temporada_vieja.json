@@ -1,0 +1,52 @@
+{
+  "get": "leagues",
+  "parameters": {
+    "id": "133",
+    "current": "true"
+  },
+  "errors": [],
+  "results": 1,
+  "paging": {
+    "current": 1,
+    "total": 1
+  },
+  "response": [
+    {
+      "league": {
+        "id": 133,
+        "name": "Primera D",
+        "type": "League",
+        "logo": "https://media.api-sports.io/football/leagues/133.png"
+      },
+      "country": {
+        "name": "Argentina",
+        "code": "AR",
+        "flag": "https://media.api-sports.io/flags/ar.svg"
+      },
+      "seasons": [
+        {
+          "year": 2023,
+          "start": "2023-03-18",
+          "end": "2023-11-25",
+          "current": true,
+          "coverage": {
+            "fixtures": {
+              "events": true,
+              "lineups": false,
+              "statistics_fixtures": false,
+              "statistics_players": false
+            },
+            "standings": true,
+            "players": true,
+            "top_scorers": true,
+            "top_assists": true,
+            "top_cards": true,
+            "injuries": false,
+            "predictions": true,
+            "odds": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -104,7 +104,7 @@ Números de un jugador en una liga, un equipo y una temporada. Una fila por cada
 | minutos_jugados | INT | sí | — | `games.minutes` |
 | goles | SMALLINT | sí | — | `goals.total` |
 | asistencias | SMALLINT | sí | — | `goals.assists` |
-| pases_precision_pct | DECIMAL(5,2) | sí | — | `passes.accuracy`. Hay que confirmar si la API lo da como % o como cantidad (ver `INTEGRACIONES_EXTERNAS.md`) |
+| pases_precision_pct | DECIMAL(5,2) | sí | — | `passes.accuracy`, que la API ya da como porcentaje (confirmado el 28/10) |
 | duelos_totales | SMALLINT | sí | — | `duels.total` |
 | duelos_ganados | SMALLINT | sí | — | `duels.won` |
 | rating | DECIMAL(4,2) | sí | — | `games.rating` |

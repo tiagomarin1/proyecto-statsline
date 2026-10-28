@@ -46,6 +46,7 @@ Fuente única de las reglas de cálculo y de decisión. Las specs las citan por 
 - **Filtros tácticos** (decidido): % pases, % duelos, recuperaciones por partido y minutos jugados. Así se unifican la historia de Trello y el prototipo.
 - **Se sacan:** distancia recorrida y centros.
 - **Spike:** en Primera C, Primera D y Federal A la API trae solo minutos, posición y edad.
+- **Reconocimiento del 28/10:** es peor que el Spike. Solo la Liga Profesional trae pases, duelos, recuperaciones y rating. El resto del ascenso trae a lo sumo minutos y posición, y en 2026 casi no tiene jugadores cargados (ver `INTEGRACIONES_EXTERNAS.md` y RN-027).
 
 Usada en: BUS-003, JUG-001, CMP-001.
 
@@ -257,6 +258,7 @@ Usada en: BUS-003, JUG-001, CMP-001.
 | Defender | `defensor` | Defensor |
 | Midfielder | `mediocampista` | Mediocampista |
 | Attacker | `delantero` | Delantero |
+| Forward **(propuesta, 28/10)** | `delantero` | Delantero |
 | otro o vacío | `None` | Dato no disponible |
 
 Las 10 posiciones del prototipo se reemplazan por estas 4 (decidido).
@@ -376,11 +378,43 @@ Usada en: DAT-001, DAT-002.
 
 Usada en: SEG-001.
 
+### RN-027 Temporada que se usa en cada liga (propuesta, 28/10)
+
+**Contexto:** el supuesto de "Temporada" (arriba de todo) dice que se usa la temporada actual que informa la API. Con eso, en Primera Nacional, B Metropolitana, Primera C y Federal A la base quedaría casi vacía: la temporada 2026 tiene entre 0 y 4 jugadores cargados. La temporada 2025 de esas ligas sí tiene los planteles, con minutos y posición.
+
+**Propuesta:** para cada liga se usa **la temporada más reciente que tenga jugadores con minutos**:
+
+```
+para cada temporada de la liga, de la más nueva a la más vieja:
+    si /players de esa temporada trae al menos un jugador con minutos_jugados > 0: se usa esa
+si ninguna cumple: la liga queda sin_datos (RN-020)
+```
+
+La ficha, el comparador y el selector de ligas muestran la temporada de cada liga ("Primera Nacional · Temporada 2025").
+
+**Ejemplo (datos del 28/10):** Liga Profesional → 2026. Primera Nacional → 2025. Primera D → ninguna temporada tiene minutos → `sin_datos`.
+
+**Pendiente de validar con el PO.** La alternativa es seguir con la temporada actual y aceptar que el ascenso quede vacío para la demo.
+
+### RN-028 Cobertura esperada de cada liga para la demo (propuesta, 28/10)
+
+Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
+
+| Liga | Cobertura | Qué se puede filtrar |
+|---|---|---|
+| Liga Profesional | `completa` | Todo: posición, edad, presupuesto y los 4 mínimos tácticos |
+| Primera Nacional, B Metropolitana y Federal A | `basica` | Posición, edad, presupuesto y minutos |
+| Primera C | `basica` si la temporada 2025 llega a tener minutos; hoy, `sin_datos` | — |
+| Primera D | `sin_datos` | Nada: "Todavía no tenemos datos de Primera D" |
+
+**Pendiente de validar con el PO:** si conviene que la demo se apoye en la Liga Profesional para el comparador y las métricas tácticas, y muestre el ascenso como ejemplo de "Datos básicos".
+
 ---
 
 ## Pendientes
 
-- **Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.
+- ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
+- **PO:** validar RN-027 y RN-028 **(propuestas)**, y el mapeo de `Forward` en RN-019.
 - **Backend:** verificar la cobertura de transfermarkt-datasets en las ligas argentinas.
 - **Diseño:** ajustar el prototipo:
   - pasar a EUR;
