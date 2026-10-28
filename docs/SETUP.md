@@ -81,13 +81,14 @@ Más detalle en `TESTING_STRATEGY.md`.
 
 ## Cargar datos reales
 
-Estos comandos existen recién cuando se cierran DAT-001 y DAT-002:
-
 ```bash
 cd backend
-python -m app.sincronizacion.api_football                  # 6 ligas, unos 300 pedidos
-python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv
+python -m app.sincronizacion.api_football                  # 6 ligas, unos 300 pedidos (DAT-001)
+python -m app.sincronizacion.api_football --liga 2 --temporada 2025   # una liga (id interno) y una temporada
+python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv   # cuando exista DAT-002
 ```
+
+La sincronización necesita `API_FOOTBALL_KEY`. Si tu red no llega a `api-sports.io`, corréla desde GitHub: *Actions → Sincronización diaria → Run workflow*, donde se pueden completar la liga y la temporada. Sale con código 1 si alguna liga falló; el detalle queda en la tabla `sincronizacion`.
 
 ## Deploy (Render + Aiven + GitHub Actions)
 
