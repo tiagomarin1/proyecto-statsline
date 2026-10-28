@@ -100,15 +100,26 @@ def test_dat001_un_jugador_sin_entradas_de_la_liga_no_se_guarda():
 
 
 def test_dat001_metricas_que_la_liga_no_publica_quedan_en_none():
-    datos = mapear_jugadores(_liga_basica(), PRIMERA_NACIONAL)
+    # En la página real casi todos traen pases, duelos y rating en null (N. Castro sí los trae):
+    # cada null queda None y cada número se conserva
+    respuesta = _liga_basica()
+    datos = mapear_jugadores(respuesta, PRIMERA_NACIONAL)
 
-    assert datos.estadisticas
-    for estadistica in datos.estadisticas:
-        assert estadistica.pases_precision_pct is None
-        assert estadistica.duelos_totales is None
-        assert estadistica.duelos_ganados is None
-        assert estadistica.intercepciones is None
-        assert estadistica.rating is None
+    nulls = 0
+    for item in respuesta:
+        for entrada in item["statistics"]:
+            mapeada = _estadistica_de(datos, item["player"]["id"], entrada["team"]["id"])
+            crudos_y_mapeados = [
+                (entrada["passes"]["accuracy"], mapeada.pases_precision_pct),
+                (entrada["duels"]["total"], mapeada.duelos_totales),
+                (entrada["duels"]["won"], mapeada.duelos_ganados),
+                (entrada["tackles"]["interceptions"], mapeada.intercepciones),
+                (entrada["games"]["rating"], mapeada.rating),
+            ]
+            for crudo, valor in crudos_y_mapeados:
+                assert (crudo is None) == (valor is None)
+                nulls += crudo is None
+    assert nulls > 50
 
 
 def test_dat001_en_una_liga_basica_minutos_null_queda_none_y_minutos_0_queda_0():

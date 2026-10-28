@@ -144,8 +144,9 @@ def test_dat001_metricas_que_la_liga_no_publica_quedan_null(session, api, client
     estadisticas = session.scalars(
         select(EstadisticaTemporada).where(EstadisticaTemporada.liga_id == primera_nacional.id)
     ).all()
-    assert estadisticas
-    assert all(e.pases_precision_pct is None for e in estadisticas)
+    assert len(estadisticas) == 22
+    # En la página real solo N. Castro trae pases; nadie trae duelos
+    assert sum(e.pases_precision_pct is not None for e in estadisticas) == 1
     assert all(e.duelos_totales is None and e.duelos_ganados is None for e in estadisticas)
     assert sincronizacion.estado == EstadoSincronizacion.ok
     assert sincronizacion.pedidos_usados == 1
