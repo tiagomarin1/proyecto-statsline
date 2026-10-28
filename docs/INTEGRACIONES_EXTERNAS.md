@@ -63,6 +63,25 @@ La respuesta de `/players` trae `response[].player` y `response[].statistics[]`.
 | `duels.total` / `duels.won` | `duelos_totales` / `duelos_ganados` | |
 | `tackles.interceptions` | `intercepciones` | |
 
+### Cómo lo implementa la sincronización (DAT-001)
+
+| Pieza | Archivo |
+|---|---|
+| Cliente HTTP (header, paginado, reintentos, cupo) | `app/integraciones/cliente_api_football.py` |
+| Mapeo de `/players` al modelo canónico | `app/sincronizacion/mapeo.py` |
+| Upserts (`INSERT ... ON CONFLICT`) y conteo para la cobertura | `app/repositorios/sincronizacion_api_football.py` |
+| Cobertura (RN-020) | `app/servicios/cobertura.py` |
+| CLI y transacción por liga | `app/sincronizacion/api_football.py` |
+
+Decisiones de implementación (28/10, validadas por Marin):
+
+- **`Forward` → `delantero`**, como propone RN-019. Si el PO decide otra cosa, se cambia en `POSICIONES_API`.
+- **Un dato que viola las invariantes del modelo queda `NULL`** en lugar de hacer fallar la liga entera: `passes.accuracy` fuera de 0-100, `duels.won` mayor que `duels.total` (quedan los dos en `NULL`) y contadores negativos.
+- **Al terminar bien, `liga.temporada_actual` pasa a ser la temporada sincronizada**, también con `--temporada`. Por defecto es la actual de la API (supuesto de "Temporada"); con `--temporada 2025` se puede cargar el ascenso mientras RN-027 siga como propuesta. La búsqueda y el comparador leen la temporada de `liga.temporada_actual`.
+- **Si la API repite el mismo equipo para un jugador en la liga**, queda la entrada con más minutos: la clave única es jugador + liga + equipo + temporada.
+- **El valor de mercado no se toca:** el upsert del jugador actualiza solo los campos que trae API-Football.
+- Cada intento HTTP, incluidos los reintentos, cuenta en `sincronizacion.pedidos_usados`.
+
 ### Ante fallos (RN-025)
 
 | Situación | Qué hace el sistema |

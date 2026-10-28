@@ -10,6 +10,13 @@ on:
   schedule:
     - cron: "0 6 * * *" # 03:00 de Argentina
   workflow_dispatch:
+    inputs:
+      liga:
+        description: "id interno de la liga (vacío = las 6)"
+        required: false
+      temporada:
+        description: "año de la temporada (vacío = la actual de API-Football)"
+        required: false
 
 concurrency:
   group: sincronizacion
@@ -46,4 +53,7 @@ jobs:
       - if: steps.dat001.outputs.lista == 'true'
         run: pip install .
       - if: steps.dat001.outputs.lista == 'true'
-        run: python -m app.sincronizacion.api_football
+        env:
+          LIGA: ${{ inputs.liga }}
+          TEMPORADA: ${{ inputs.temporada }}
+        run: python -m app.sincronizacion.api_football ${LIGA:+--liga "$LIGA"} ${TEMPORADA:+--temporada "$TEMPORADA"}
