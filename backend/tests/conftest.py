@@ -87,3 +87,20 @@ def app_test(session: Session, tmp_path: Path) -> FastAPI:
 def cliente(app_test: FastAPI) -> Iterator[TestClient]:
     with TestClient(app_test) as cliente:
         yield cliente
+
+
+@pytest.fixture
+def usuario_con_sesion(session: Session):
+    from tests.fabricas import crear_usuario
+
+    return crear_usuario(session)
+
+
+@pytest.fixture
+def cliente_con_sesion(cliente: TestClient, usuario_con_sesion) -> TestClient:
+    """Cliente con la cookie de sesión de un usuario, para los endpoints 🔒."""
+    from app.seguridad.dependencias import NOMBRE_COOKIE_SESION
+    from app.seguridad.tokens import crear_token_sesion
+
+    cliente.cookies.set(NOMBRE_COOKIE_SESION, crear_token_sesion(usuario_con_sesion.id))
+    return cliente

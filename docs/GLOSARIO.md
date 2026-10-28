@@ -18,6 +18,7 @@ Convenciones:
 | Equipo | `equipo` | Club en el que juega el jugador según API-Football. **No** es el club del usuario | team, club (para esto) | `Equipo` |
 | Club del usuario | `club` | Texto libre que carga el usuario al registrarse | equipo (para esto) | campo de `Usuario` |
 | Estadística de temporada | `estadistica_temporada` | Números de un jugador en una liga, un equipo y una temporada | stats, performance | `EstadisticaTemporada` |
+| Estadística vigente | `estadistica_vigente` | La `estadistica_temporada` que representa al jugador en la búsqueda, la ficha y el comparador: la de más minutos en la temporada actual de su liga (RN-017) | estadística principal, última estadística | — |
 | Métrica | `metrica` | Indicador de rendimiento que se muestra o se compara. Lista oficial en RN-001 | stat, KPI, indicador | — |
 | Métrica táctica | `metrica_tactica` | Métrica que se puede filtrar con un mínimo: pases, duelos, recuperaciones y minutos (RN-001) | filtro táctico | — |
 | Dato no disponible | `None` / `null` | La liga no publica esa métrica para ese jugador. **Nunca es 0** (RN-008) | 0, vacío, N/A | — |
