@@ -1,8 +1,8 @@
 """Carga las 6 ligas del MVP. Se corre con `python -m semillas.ligas` y se puede repetir.
 
-Los IDs de API-Football son los conocidos para Argentina y están **a confirmar** con
-`GET /leagues?country=Argentina` (INTEGRACIONES_EXTERNAS.md). Si alguno cambia, se corrige
-acá y se vuelve a correr: la liga se busca por nombre, así que se actualiza en lugar de duplicarse.
+Los IDs de API-Football se confirmaron el 28/10/2026 con `GET /leagues?country=Argentina`
+(INTEGRACIONES_EXTERNAS.md). Si alguno cambia, se corrige acá y se vuelve a correr: la liga se
+busca por nombre, así que se actualiza en lugar de duplicarse.
 """
 
 from dataclasses import dataclass

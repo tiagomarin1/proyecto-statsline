@@ -1,0 +1,2064 @@
+{
+  "get": "players",
+  "parameters": {
+    "league": "129",
+    "season": "2025",
+    "page": "1"
+  },
+  "errors": [],
+  "results": 20,
+  "paging": {
+    "current": 1,
+    "total": 84
+  },
+  "response": [
+    {
+      "player": {
+        "id": 1881,
+        "name": "F. Pereyra",
+        "firstname": "Facundo Abel",
+        "lastname": "Pereyra",
+        "age": 38,
+        "birth": {
+          "date": "1987-09-03",
+          "place": "Zárate",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "178 cm",
+        "weight": "70 kg",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/1881.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1067,
+            "name": "Defensores De Belgrano",
+            "logo": "https://media.api-sports.io/football/teams/1067.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": null,
+            "lineups": null,
+            "minutes": null,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": null,
+            "out": null,
+            "bench": null
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": null,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": null,
+            "yellowred": null,
+            "red": null
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 2557,
+        "name": "P. Hernández",
+        "firstname": "Pedro Pablo",
+        "lastname": "Hernández",
+        "age": 39,
+        "birth": {
+          "date": "1986-10-24",
+          "place": "San Miguel de Tucumán",
+          "country": "Argentina"
+        },
+        "nationality": "Chile",
+        "height": "184",
+        "weight": "82",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/2557.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 485,
+            "name": "San Martin Tucuman",
+            "logo": "https://media.api-sports.io/football/teams/485.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 0,
+            "lineups": 0,
+            "minutes": 0,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 0
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 0,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5162,
+        "name": "F. Castet",
+        "firstname": "Facundo",
+        "lastname": "Castet",
+        "age": 27,
+        "birth": {
+          "date": "1998-09-11",
+          "place": null,
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": null,
+        "weight": null,
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5162.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 448,
+            "name": "Colon Santa Fe",
+            "logo": "https://media.api-sports.io/football/teams/448.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 14,
+            "lineups": 11,
+            "minutes": 1032,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 3,
+            "out": 4,
+            "bench": 3
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 2,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5163,
+        "name": "M. García",
+        "firstname": "Martín",
+        "lastname": "García",
+        "age": 27,
+        "birth": {
+          "date": "1998-08-25",
+          "place": null,
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": null,
+        "weight": null,
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5163.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 3969,
+            "name": "Club Atlético Güemes",
+            "logo": "https://media.api-sports.io/football/teams/3969.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": null,
+            "lineups": null,
+            "minutes": null,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": null,
+            "out": null,
+            "bench": null
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": null,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": null,
+            "yellowred": null,
+            "red": null
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        },
+        {
+          "team": {
+            "id": 482,
+            "name": "Almagro",
+            "logo": "https://media.api-sports.io/football/teams/482.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 15,
+            "lineups": 14,
+            "minutes": 1279,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 1,
+            "out": 0,
+            "bench": 2
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 4,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5164,
+        "name": "A. Kippes",
+        "firstname": "Ariel Armando",
+        "lastname": "Kippes",
+        "age": 31,
+        "birth": {
+          "date": "1994-02-25",
+          "place": "Moreno",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": null,
+        "weight": null,
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5164.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 8379,
+            "name": "San Miguel",
+            "logo": "https://media.api-sports.io/football/teams/8379.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 13,
+            "lineups": 12,
+            "minutes": 1131,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 1,
+            "out": 1,
+            "bench": 2
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 1,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 3,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5166,
+        "name": "W. Olivera",
+        "firstname": "Wilfredo",
+        "lastname": "Olivera",
+        "age": 38,
+        "birth": {
+          "date": "1987-05-04",
+          "place": "Rafaela",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "188",
+        "weight": "82",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5166.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1957,
+            "name": "Racing Cordoba",
+            "logo": "https://media.api-sports.io/football/teams/1957.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 4,
+            "lineups": 1,
+            "minutes": 139,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 3,
+            "out": 0,
+            "bench": 6
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 1,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5167,
+        "name": "L. Puñet",
+        "firstname": "Laureano Damián",
+        "lastname": "Puñet",
+        "age": 26,
+        "birth": {
+          "date": "1999-08-20",
+          "place": "Venado Tuerto",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "170",
+        "weight": "68",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5167.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 482,
+            "name": "Almagro",
+            "logo": "https://media.api-sports.io/football/teams/482.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 0,
+            "lineups": 0,
+            "minutes": 0,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 0
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 0,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5170,
+        "name": "F. Antonini",
+        "firstname": "Fermín",
+        "lastname": "Antonini",
+        "age": 28,
+        "birth": {
+          "date": "1997-07-02",
+          "place": "General Villegas",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "179",
+        "weight": "73",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5170.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1066,
+            "name": "Gimnasia M.",
+            "logo": "https://media.api-sports.io/football/teams/1066.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 3,
+            "lineups": 2,
+            "minutes": 139,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 1,
+            "out": 2,
+            "bench": 13
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 2,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5171,
+        "name": "J. Antonini",
+        "firstname": "Juan",
+        "lastname": "Antonini",
+        "age": 26,
+        "birth": {
+          "date": "1999-03-04",
+          "place": null,
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": null,
+        "weight": null,
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5171.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 448,
+            "name": "Colon Santa Fe",
+            "logo": "https://media.api-sports.io/football/teams/448.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": null,
+            "lineups": null,
+            "minutes": null,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": null,
+            "out": null,
+            "bench": null
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": null,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": null,
+            "yellowred": null,
+            "red": null
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        },
+        {
+          "team": {
+            "id": 2424,
+            "name": "Estudiantes de Rio Cuarto",
+            "logo": "https://media.api-sports.io/football/teams/2424.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 16,
+            "lineups": 13,
+            "minutes": 1237,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 3,
+            "out": 0,
+            "bench": 3
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 2,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 4,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5172,
+        "name": "N. Castro",
+        "firstname": "Nicolás Eduardo",
+        "lastname": "Castro",
+        "age": 35,
+        "birth": {
+          "date": "1990-05-11",
+          "place": "Ranchos",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "181",
+        "weight": "79",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5172.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 485,
+            "name": "San Martin Tucuman",
+            "logo": "https://media.api-sports.io/football/teams/485.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 4,
+            "lineups": 0,
+            "minutes": 223,
+            "number": 10,
+            "position": "Midfielder",
+            "rating": "7.26",
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 0
+          },
+          "shots": {
+            "total": 5,
+            "on": 3
+          },
+          "goals": {
+            "total": 1,
+            "conceded": 3,
+            "assists": 0,
+            "saves": 0
+          },
+          "passes": {
+            "total": 58,
+            "key": 3,
+            "accuracy": 60
+          },
+          "tackles": {
+            "total": 3,
+            "blocks": 0,
+            "interceptions": 1
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": 8,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 0,
+            "yellowred": null,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5189,
+        "name": "S. Quiroga",
+        "firstname": "Sergio Alejandro",
+        "lastname": "Quiroga Gabutti",
+        "age": 31,
+        "birth": {
+          "date": "1994-06-07",
+          "place": "Charata",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "162",
+        "weight": "62",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5189.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 470,
+            "name": "Ferro Carril Oeste",
+            "logo": "https://media.api-sports.io/football/teams/470.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 9,
+            "lineups": 2,
+            "minutes": 262,
+            "number": null,
+            "position": "Attacker",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 7,
+            "out": 2,
+            "bench": 10
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 1,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5191,
+        "name": "M. Aquino",
+        "firstname": "Mauricio Hernán",
+        "lastname": "Aquino",
+        "age": 32,
+        "birth": {
+          "date": "1993-10-27",
+          "place": "Jacinto Arauz",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "186",
+        "weight": "78",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5191.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1945,
+            "name": "Defensores Unidos",
+            "logo": "https://media.api-sports.io/football/teams/1945.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 2,
+            "lineups": 2,
+            "minutes": 180,
+            "number": null,
+            "position": "Goalkeeper",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 13
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 0,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5192,
+        "name": "M. Gagliardo",
+        "firstname": "Maximiliano José",
+        "lastname": "Gagliardo",
+        "age": 42,
+        "birth": {
+          "date": "1983-04-21",
+          "place": "Chivilcoy",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "178",
+        "weight": "73",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5192.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 480,
+            "name": "Quilmes",
+            "logo": "https://media.api-sports.io/football/teams/480.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 0,
+            "lineups": 0,
+            "minutes": 0,
+            "number": null,
+            "position": "Goalkeeper",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 12
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 0,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5195,
+        "name": "U. Abreliano",
+        "firstname": "Marcos Ulises",
+        "lastname": "Abreliano",
+        "age": 27,
+        "birth": {
+          "date": "1998-04-09",
+          "place": "Berazategui",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "171",
+        "weight": "69",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5195.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 8375,
+            "name": "Almirante Brown",
+            "logo": "https://media.api-sports.io/football/teams/8375.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 2,
+            "lineups": 2,
+            "minutes": 180,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 0,
+            "bench": 1
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 1,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5204,
+        "name": "A. Antilef",
+        "firstname": "Alejo",
+        "lastname": "Antilef",
+        "age": 27,
+        "birth": {
+          "date": "1998-07-20",
+          "place": "Puerto Pirámides",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "169 cm",
+        "weight": "66 kg",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5204.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 466,
+            "name": "Atletico Mitre",
+            "logo": "https://media.api-sports.io/football/teams/466.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": null,
+            "lineups": null,
+            "minutes": null,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": null,
+            "out": null,
+            "bench": null
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": null,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": null,
+            "yellowred": null,
+            "red": null
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5209,
+        "name": "E. Méndez",
+        "firstname": "Emiliano Jorge Rubén",
+        "lastname": "Méndez",
+        "age": 36,
+        "birth": {
+          "date": "1989-02-15",
+          "place": "La Plata",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "184",
+        "weight": "93",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5209.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 484,
+            "name": "Nueva Chicago",
+            "logo": "https://media.api-sports.io/football/teams/484.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 5,
+            "lineups": 3,
+            "minutes": 280,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 2,
+            "out": 1,
+            "bench": 2
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 0,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 2,
+            "yellowred": 1,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5212,
+        "name": "J. Soraire",
+        "firstname": "Jesús Miguel",
+        "lastname": "Soraire",
+        "age": 37,
+        "birth": {
+          "date": "1988-12-03",
+          "place": "Lules",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "175",
+        "weight": "75",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5212.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 485,
+            "name": "San Martin Tucuman",
+            "logo": "https://media.api-sports.io/football/teams/485.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 8,
+            "lineups": 4,
+            "minutes": 415,
+            "number": null,
+            "position": "Midfielder",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 4,
+            "out": 4,
+            "bench": 6
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 1,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 3,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5213,
+        "name": "F. Torrent",
+        "firstname": "Fernando",
+        "lastname": "Torrent Guidi",
+        "age": 34,
+        "birth": {
+          "date": "1991-10-02",
+          "place": "Arrecifes",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "173",
+        "weight": "72",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5213.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 480,
+            "name": "Quilmes",
+            "logo": "https://media.api-sports.io/football/teams/480.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 13,
+            "lineups": 13,
+            "minutes": 1109,
+            "number": null,
+            "position": "Defender",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 5,
+            "bench": 1
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 1,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 3,
+            "yellowred": 0,
+            "red": 0
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5217,
+        "name": "G. Gómez",
+        "firstname": "Gonzalo Ariel",
+        "lastname": "Gómez",
+        "age": 27,
+        "birth": {
+          "date": "1998-02-23",
+          "place": "Rosario",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": null,
+        "weight": null,
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5217.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1954,
+            "name": "Deportivo Maipu",
+            "logo": "https://media.api-sports.io/football/teams/1954.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": null,
+            "lineups": null,
+            "minutes": null,
+            "number": null,
+            "position": "Attacker",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": null,
+            "out": null,
+            "bench": null
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": null,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": null,
+            "yellowred": null,
+            "red": null
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 5220,
+        "name": "F. Pons",
+        "firstname": "Facundo Eduardo",
+        "lastname": "Pons",
+        "age": 30,
+        "birth": {
+          "date": "1995-11-22",
+          "place": "Venado Tuerto",
+          "country": "Argentina"
+        },
+        "nationality": "Argentina",
+        "height": "195",
+        "weight": "85",
+        "injured": false,
+        "photo": "https://media.api-sports.io/football/players/5220.png"
+      },
+      "statistics": [
+        {
+          "team": {
+            "id": 1067,
+            "name": "Defensores De Belgrano",
+            "logo": "https://media.api-sports.io/football/teams/1067.png"
+          },
+          "league": {
+            "id": 129,
+            "name": "Primera Nacional",
+            "country": "Argentina",
+            "logo": "https://media.api-sports.io/football/leagues/129.png",
+            "flag": "https://media.api-sports.io/flags/ar.svg",
+            "season": 2025
+          },
+          "games": {
+            "appearences": 10,
+            "lineups": 10,
+            "minutes": 765,
+            "number": null,
+            "position": "Attacker",
+            "rating": null,
+            "captain": false
+          },
+          "substitutes": {
+            "in": 0,
+            "out": 6,
+            "bench": 0
+          },
+          "shots": {
+            "total": null,
+            "on": null
+          },
+          "goals": {
+            "total": 5,
+            "conceded": null,
+            "assists": null,
+            "saves": null
+          },
+          "passes": {
+            "total": null,
+            "key": null,
+            "accuracy": null
+          },
+          "tackles": {
+            "total": null,
+            "blocks": null,
+            "interceptions": null
+          },
+          "duels": {
+            "total": null,
+            "won": null
+          },
+          "dribbles": {
+            "attempts": null,
+            "success": null,
+            "past": null
+          },
+          "fouls": {
+            "drawn": null,
+            "committed": null
+          },
+          "cards": {
+            "yellow": 2,
+            "yellowred": 0,
+            "red": 2
+          },
+          "penalty": {
+            "won": null,
+            "commited": null,
+            "scored": null,
+            "missed": null,
+            "saved": null
+          }
+        }
+      ]
+    }
+  ]
+}

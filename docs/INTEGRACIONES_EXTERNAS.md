@@ -21,16 +21,26 @@
 
 **Presupuesto de pedidos:** unos 50 pedidos por liga (hasta 1.000 jugadores) × 6 ligas ≈ 300 por corrida, bien por debajo del cupo. El cliente lee los headers `x-ratelimit-requests-remaining` y frena si quedan menos de 100.
 
-### IDs de liga (a confirmar con `/leagues?country=Argentina`)
+### IDs de liga y cobertura real (reconocimiento del 28/10/2026)
 
-| Liga | `id_api_football` | Cobertura esperada según el Spike |
-|---|---|---|
-| Liga Profesional Argentina | 128 (a confirmar) | completa |
-| Primera Nacional | a confirmar | completa (a confirmar) |
-| Primera B Metropolitana | a confirmar | completa (a confirmar) |
-| Primera C | a confirmar | básica |
-| Primera D | a confirmar | básica |
-| Torneo Federal A | a confirmar | básica |
+Medido con el plan Pro, con 23 pedidos. Las respuestas están grabadas en `backend/tests/fixtures/api_football/`.
+
+| Liga | `id_api_football` | Temporada "actual" de la API | Qué trae `/players` en esa temporada | Última temporada con datos |
+|---|---|---|---|---|
+| Liga Profesional Argentina | **128** ✅ | 2026 | **Completa:** 60 páginas (unos 1.200 jugadores) con minutos, pases %, duelos, intercepciones y rating | 2026 |
+| Primera Nacional | **129** ✅ | 2026 | Casi vacía: 4 jugadores, sin minutos ni métricas | 2025: 84 páginas, **solo minutos** (en unos 3 de cada 4 jugadores) y posición |
+| Primera B Metropolitana | **131** ✅ | 2026 | Casi vacía: 1 jugador, sin métricas | 2025: 52 páginas, solo minutos y posición |
+| Primera C | **132** ✅ | 2026 | Vacía (0 jugadores; la API marca `coverage.players = false`) | 2025: 33 páginas, solo posición, **sin minutos** |
+| Primera D | **133** ✅ | **2023** (la API no tiene temporadas más nuevas) | 8 páginas, solo posición, sin minutos | 2023 |
+| Torneo Federal A | **134** ✅ | 2026 | Casi vacía: 4 jugadores, sin métricas | 2025: 82 páginas, solo minutos y posición |
+
+**Conclusiones:**
+- **Solo la Liga Profesional tiene métricas de rendimiento.** En el ascenso, la API trae a lo sumo minutos, posición y edad, y en la temporada 2026 casi no hay jugadores cargados. El Spike suponía que Primera Nacional y B Metropolitana tenían cobertura completa: no es así.
+- Los flags `coverage.players` de `/leagues` no son confiables: dicen `true` para Primera Nacional 2026, que tiene 4 jugadores.
+- Las temporadas de `statistics[]` en `/players` traen otras ligas del mismo jugador. En la página de la Liga Profesional solo vino la 128, pero el filtro por liga tiene que estar igual.
+- El mismo jugador puede aparecer dos veces en la misma liga y temporada, con equipos distintos (por ejemplo, "M. Rojo" en la página 1 de la 128). Es el caso de RN-017.
+
+**Decisiones que necesita el PO** (propuestas en `REGLAS_DE_NEGOCIO.md`): qué temporada usar en el ascenso y cómo mostrar Primera C y D. Ver RN-027 y RN-028 **(propuestas)**.
 
 ### Mapeo de campos
 
@@ -44,12 +54,12 @@ La respuesta de `/players` trae `response[].player` y `response[].statistics[]`.
 | `player.nationality` | `jugador.nacionalidad` | |
 | `statistics[].team.id` / `team.name` | `equipo.id_api_football` / `equipo.nombre` | |
 | `statistics[].league.id` | `liga` (por `id_api_football`) | Las entradas de otras ligas (copas, etc.) **se ignoran** |
-| `statistics[].games.position` | `estadistica_temporada.posicion` | Mapeo según RN-019 |
+| `statistics[].games.position` | `estadistica_temporada.posicion` | Mapeo según RN-019. En 2026 apareció `Forward` además de `Attacker` (ver RN-019) |
 | `games.appearences` | `partidos_jugados` | La API lo escribe así, con esa ortografía |
 | `games.minutes` | `minutos_jugados` | |
 | `games.rating` | `rating` | Viene como string, por ejemplo `"7.123456"`. Se convierte a decimal |
 | `goals.total` / `goals.assists` | `goles` / `asistencias` | |
-| `passes.accuracy` | `pases_precision_pct` | ⚠️ **A confirmar:** en algunas respuestas es la cantidad de pases precisos y no un %. Si es cantidad, se calcula `accuracy / passes.total * 100` y se actualiza RN-018 |
+| `passes.accuracy` | `pases_precision_pct` | ✅ **Confirmado el 28/10: es un porcentaje** (entero de 0 a 100; por ejemplo 74 con `passes.total` = 664). Se guarda tal cual |
 | `duels.total` / `duels.won` | `duelos_totales` / `duelos_ganados` | |
 | `tackles.interceptions` | `intercepciones` | |
 
