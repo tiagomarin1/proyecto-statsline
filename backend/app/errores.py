@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+DETALLE_VALIDACION = "Hay datos inválidos en el pedido."
 CODIGOS_HTTP = {404: "no_encontrado", 405: "metodo_no_permitido"}
 DETALLES_HTTP = {
     404: "No existe el recurso pedido.",
@@ -15,11 +16,25 @@ DETALLES_HTTP = {
 class ErrorApi(Exception):
     """Error de negocio con un mensaje para el usuario y un código para la máquina."""
 
-    def __init__(self, status_code: int, codigo: str, detalle: str) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        codigo: str,
+        detalle: str,
+        errores: list[dict[str, str]] | None = None,
+    ) -> None:
         super().__init__(detalle)
         self.status_code = status_code
         self.codigo = codigo
         self.detalle = detalle
+        self.errores = errores
+
+
+class ErrorValidacion(ErrorApi):
+    """422 con un mensaje por campo: {"detalle", "codigo": "validacion", "errores"}."""
+
+    def __init__(self, errores: list[dict[str, str]]) -> None:
+        super().__init__(422, "validacion", DETALLE_VALIDACION, errores)
 
 
 def _campo(ubicacion: tuple) -> str:
@@ -28,10 +43,10 @@ def _campo(ubicacion: tuple) -> str:
 
 
 async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
-    return JSONResponse(
-        status_code=error.status_code,
-        content={"detalle": error.detalle, "codigo": error.codigo},
-    )
+    contenido: dict = {"detalle": error.detalle, "codigo": error.codigo}
+    if error.errores is not None:
+        contenido["errores"] = error.errores
+    return JSONResponse(status_code=error.status_code, content=contenido)
 
 
 async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSONResponse:
@@ -39,7 +54,7 @@ async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSON
     return JSONResponse(
         status_code=422,
         content={
-            "detalle": "Hay datos inválidos en el pedido.",
+            "detalle": DETALLE_VALIDACION,
             "codigo": "validacion",
             "errores": errores,
         },
