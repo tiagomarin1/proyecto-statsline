@@ -2,6 +2,8 @@
 
 **Estado:** Aceptada (2026-10-27). Reemplaza a ADR-0006.
 
+> **Actualización (2026-10-28, ADR-0010):** la base pasó de MySQL a PostgreSQL. En producción se usa **Aiven for PostgreSQL** (plan Free) y el bloqueo al arrancar es `pg_try_advisory_lock`. El resto de esta ADR sigue igual.
+
 ## Contexto
 ADR-0006 eligió Railway. Al ir a crear el proyecto, la prueba gratis ya había vencido: Railway no deja crear proyectos sin un plan pago, que arranca en unos USD 5 por mes más el uso. El equipo decidió no pagar hosting en el MVP.
 
@@ -30,10 +32,10 @@ Opción 1, con tres piezas:
 | Pieza | Servicio | Configuración en el repo |
 |---|---|---|
 | App (FastAPI + build de React, ADR-0003) | Render, web service gratis, Docker | `render.yaml` (Blueprint) y `Dockerfile` |
-| Base de datos | Aiven for MySQL, plan gratis | `DATABASE_URL` + `DATABASE_SSL_CA` |
+| Base de datos | Aiven for PostgreSQL, plan gratis (era Aiven for MySQL, ver ADR-0010) | `DATABASE_URL` + `DATABASE_SSL_CA` |
 | Sincronización diaria | GitHub Actions con `schedule` | `.github/workflows/sincronizacion.yml` |
 
-- **Migraciones y semillas.** El plan gratis de Render no tiene comando de pre-deploy, así que corren al arrancar el contenedor (`python -m app.preparar_base`). Durante un deploy, Render mantiene vivo el contenedor viejo hasta que el nuevo pasa el healthcheck, y dos deploys seguidos (o un reinicio en medio de uno) pueden hacer que dos contenedores arranquen a la vez. Para que no migren al mismo tiempo, la preparación toma un bloqueo de MySQL (`GET_LOCK`): el segundo espera y, cuando entra, ya no tiene nada que migrar. Además, el contenedor viejo atiende con el código anterior contra el esquema nuevo durante unos segundos, así que las migraciones tienen que ser compatibles hacia atrás (agregar antes de borrar).
+- **Migraciones y semillas.** El plan gratis de Render no tiene comando de pre-deploy, así que corren al arrancar el contenedor (`python -m app.preparar_base`). Durante un deploy, Render mantiene vivo el contenedor viejo hasta que el nuevo pasa el healthcheck, y dos deploys seguidos (o un reinicio en medio de uno) pueden hacer que dos contenedores arranquen a la vez. Para que no migren al mismo tiempo, la preparación toma un bloqueo de la base (`pg_try_advisory_lock` desde ADR-0010; antes era `GET_LOCK` de MySQL): el segundo espera y, cuando entra, ya no tiene nada que migrar. Además, el contenedor viejo atiende con el código anterior contra el esquema nuevo durante unos segundos, así que las migraciones tienen que ser compatibles hacia atrás (agregar antes de borrar).
 - **TLS obligatorio.** Aiven exige TLS. La app verifica el certificado del servidor con el CA de Aiven, que viaja en la variable `DATABASE_SSL_CA` (el contenido del PEM).
 - **Además, CI.** GitHub Actions corre los tests de backend y frontend en cada PR, que en INF-001 figuraba como deseable.
 

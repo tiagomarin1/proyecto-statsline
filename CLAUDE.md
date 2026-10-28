@@ -7,7 +7,7 @@ Leé este archivo antes de cada tarea. Es el acuerdo de trabajo con la IA (el `A
 - StatsLine (antes ScoutIAndo) es una plataforma web para clubes de fútbol chicos y medianos de Argentina.
 - Sirve para buscar candidatos con filtros tácticos y de presupuesto, compararlos (2 o 3) y ver la ficha de cada uno.
 - Los datos de rendimiento salen de **API-Football**. El valor de mercado sale del dataset público **transfermarkt-datasets**, en EUR.
-- Stack: **FastAPI + MySQL + React (Vite)**.
+- Stack: **FastAPI + PostgreSQL + React (Vite)** (ADR-0010).
 - Hitos: **Demo Day el 9/11/2026** y **MVP v2 el 16/11/2026**.
 
 Para el contexto completo, leé `docs/VISION.md` y `docs/contexto/INVESTIGACION.md`.

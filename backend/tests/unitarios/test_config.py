@@ -1,7 +1,8 @@
-"""INF-001: configuración por variables de entorno y conexión a MySQL (ADR-0009)."""
+"""INF-001: configuración por variables de entorno y conexión a PostgreSQL (ADR-0009 y 0010)."""
 
 import ssl
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from cryptography import x509
@@ -37,60 +38,65 @@ def ca_pem() -> str:
     return certificado.public_bytes(serialization.Encoding.PEM).decode()
 
 
-def test_inf001_la_url_mysql_pasa_a_usar_pymysql():
-    configuracion = _configuracion("mysql://usuario:clave@host:3306/defaultdb")
+@pytest.mark.parametrize("prefijo", ["postgres://", "postgresql://"])
+def test_inf001_la_url_postgresql_pasa_a_usar_psycopg(prefijo: str):
+    configuracion = _configuracion(f"{prefijo}usuario:clave@host:5432/defaultdb")
 
-    assert configuracion.database_url == "mysql+pymysql://usuario:clave@host:3306/defaultdb"
+    assert configuracion.database_url == "postgresql+psycopg://usuario:clave@host:5432/defaultdb"
 
 
-def test_inf001_la_url_de_aiven_pierde_ssl_mode_y_conserva_la_clave():
+def test_inf001_la_url_de_aiven_conserva_sslmode_y_la_clave():
     configuracion = _configuracion(
-        "mysql://avnadmin:cl%40ve@mysql-x.aivencloud.com:12345/defaultdb?ssl-mode=REQUIRED"
+        "postgres://avnadmin:cl%40ve@pg-x.aivencloud.com:12345/defaultdb?sslmode=require"
     )
 
     assert (
         configuracion.database_url
-        == "mysql+pymysql://avnadmin:cl%40ve@mysql-x.aivencloud.com:12345/defaultdb"
+        == "postgresql+psycopg://avnadmin:cl%40ve@pg-x.aivencloud.com:12345/defaultdb?sslmode=require"
     )
 
 
-def test_inf001_la_url_con_pymysql_no_se_modifica():
-    url = "mysql+pymysql://statsline:statsline@localhost:3306/statsline_dev"
+def test_inf001_la_url_con_psycopg_no_se_modifica():
+    url = "postgresql+psycopg://statsline:statsline@localhost:5432/statsline_dev"
 
     assert _configuracion(url).database_url == url
 
 
-def test_inf001_sin_ca_la_conexion_no_usa_tls():
-    assert argumentos_de_conexion(None) == {"charset": "utf8mb4"}
+def test_inf001_sin_ca_la_conexion_no_usa_tls_y_trabaja_en_utc():
+    assert argumentos_de_conexion(None) == {"options": "-c timezone=UTC"}
 
 
 def test_inf001_con_ca_la_conexion_usa_tls_y_verifica_el_servidor(ca_pem: str):
-    contexto = argumentos_de_conexion(ca_pem)["ssl"]
+    argumentos = argumentos_de_conexion(ca_pem)
 
-    assert isinstance(contexto, ssl.SSLContext)
-    assert contexto.verify_mode == ssl.CERT_REQUIRED
-    assert contexto.check_hostname is True
-    assert contexto.get_ca_certs()[0]["subject"] == ((("commonName", "CA de prueba"),),)
+    assert argumentos["sslmode"] == "verify-full"
+    assert argumentos["options"] == "-c timezone=UTC"
+    assert Path(argumentos["sslrootcert"]).read_text() == ca_pem
 
 
 def test_inf001_el_ca_en_una_sola_linea_con_barra_n_tambien_sirve(ca_pem: str):
-    contexto = argumentos_de_conexion(ca_pem.replace("\n", "\\n"))["ssl"]
+    argumentos = argumentos_de_conexion(ca_pem.replace("\n", "\\n"))
 
-    assert len(contexto.get_ca_certs()) == 1
+    assert Path(argumentos["sslrootcert"]).read_text() == ca_pem
+
+
+def test_inf001_un_ca_invalido_falla_antes_de_conectarse():
+    with pytest.raises(ssl.SSLError):
+        argumentos_de_conexion("esto no es un certificado")
 
 
 def test_inf001_en_produccion_se_rechaza_una_secret_key_corta():
     with pytest.raises(ValueError, match="al menos 32 caracteres"):
-        Configuracion(database_url="mysql://u:c@h/db", secret_key="corta", entorno="produccion")
+        Configuracion(database_url="postgres://u:c@h/db", secret_key="corta", entorno="produccion")
 
 
 def test_inf001_en_produccion_se_acepta_una_secret_key_de_32_caracteres():
     configuracion = Configuracion(
-        database_url="mysql://u:c@h/db", secret_key="x" * 32, entorno="produccion"
+        database_url="postgres://u:c@h/db", secret_key="x" * 32, entorno="produccion"
     )
 
     assert configuracion.entorno == "produccion"
 
 
 def test_inf001_en_desarrollo_una_secret_key_corta_se_permite():
-    assert Configuracion(database_url="mysql://u:c@h/db", secret_key="x").secret_key == "x"
+    assert Configuracion(database_url="postgres://u:c@h/db", secret_key="x").secret_key == "x"

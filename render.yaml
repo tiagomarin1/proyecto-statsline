@@ -5,7 +5,7 @@ services:
     name: statsline
     runtime: docker
     plan: free
-    # Cerca de Argentina y de la región de Aiven en el este de EE. UU.
+    # Cerca de Argentina y de la región de Aiven en el este de EE. UU. (ADR-0009)
     region: virginia
     branch: main
     dockerfilePath: ./Dockerfile
@@ -15,7 +15,7 @@ services:
     autoDeployTrigger: checksPass
     envVars:
       - key: DATABASE_URL
-        sync: false # Service URI de Aiven (mysql://...?ssl-mode=REQUIRED)
+        sync: false # Service URI de Aiven for PostgreSQL (postgres://...?sslmode=require)
       - key: DATABASE_SSL_CA
         sync: false # Contenido del "CA certificate" de Aiven (PEM)
       - key: SECRET_KEY

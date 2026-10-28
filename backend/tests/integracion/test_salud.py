@@ -19,7 +19,7 @@ def test_inf001_salud_responde_ok_con_la_base_disponible(cliente: TestClient):
 
 def test_inf001_salud_responde_503_si_la_base_no_responde(app_test: FastAPI):
     # Puerto 1: nadie escucha, la conexión falla en el acto
-    engine_caido = crear_engine("mysql+pymysql://nadie:nada@127.0.0.1:1/no_existe")
+    engine_caido = crear_engine("postgresql+psycopg://nadie:nada@127.0.0.1:1/no_existe")
 
     def session_caida():
         with Session(bind=engine_caido) as session:

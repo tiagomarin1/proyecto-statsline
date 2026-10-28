@@ -10,27 +10,27 @@ FastAPI  ── sirve /api/v1/* y además el build estático de React (ADR-0003)
    │
    ├─ routers/       HTTP: validación de entrada/salida, sin lógica de negocio
    ├─ servicios/     lógica de negocio pura (reglas RN-XXX), testeable sin DB
-   ├─ repositorios/  acceso a MySQL con SQLAlchemy 2
+   ├─ repositorios/  acceso a PostgreSQL con SQLAlchemy 2
    └─ integraciones/ clientes de API-Football y lector del CSV de Transfermarkt
                          │
-MySQL 8 ◄──── sincronizacion/ (CLI batch, NO corre en cada pedido del usuario, ADR-0008)
+PostgreSQL 16 ◄─ sincronizacion/ (CLI batch, NO corre en cada pedido del usuario, ADR-0008)
                          │
               API-Football v3   +   transfermarkt-datasets (CSV)
 ```
 
-**Regla clave:** las pantallas **nunca** llaman a API-Football en vivo. Todo sale de MySQL, que se llena con la sincronización batch. Así se respeta el cupo de 7.500 pedidos por día y la demo no depende de que la API externa responda.
+**Regla clave:** las pantallas **nunca** llaman a API-Football en vivo. Todo sale de PostgreSQL, que se llena con la sincronización batch. Así se respeta el cupo de 7.500 pedidos por día y la demo no depende de que la API externa responda.
 
 ## Stack
 
 | Capa | Tecnología | ADR |
 |---|---|---|
 | Backend | Python 3.12, FastAPI, Pydantic v2 | ADR-0001 |
-| Datos | MySQL 8, SQLAlchemy 2 (sync), Alembic, PyMySQL | ADR-0002 |
+| Datos | PostgreSQL 16, SQLAlchemy 2 (sync), Alembic, psycopg 3 | ADR-0002 y ADR-0010 |
 | Frontend | React 18, Vite, TypeScript, React Router | ADR-0003 |
 | Autenticación | JWT en cookie httpOnly, hash Argon2 (`pwdlib`) | ADR-0005 |
-| Deploy | Render (servicio web gratis), MySQL en Aiven y cron de sincronización en GitHub Actions | ADR-0009 (reemplaza a ADR-0006) |
+| Deploy | Render (servicio web gratis), PostgreSQL en Aiven y cron de sincronización en GitHub Actions | ADR-0009 (reemplaza a ADR-0006) |
 | Idioma del código | Español | ADR-0007 |
-| Datos externos | Sincronización batch a MySQL | ADR-0008 |
+| Datos externos | Sincronización batch a PostgreSQL | ADR-0008 |
 | Valor de mercado | transfermarkt-datasets (CSV, CC0) | ADR-0004 |
 | Tests | pytest, httpx (TestClient), Vitest, Testing Library, Playwright para el recorrido de la demo | `TESTING_STRATEGY.md` |
 
@@ -56,7 +56,7 @@ MySQL 8 ◄──── sincronizacion/ (CLI batch, NO corre en cada pedido del 
   /semillas               ligas.py, usuario_demo.py
   /tests
     /unitarios            servicios y reglas, sin DB
-    /integracion          routers y repositorios contra MySQL de test
+    /integracion          routers y repositorios contra PostgreSQL de test
     /fixtures/api_football  respuestas JSON reales grabadas
     /fixtures/transfermarkt players_muestra.csv
   pyproject.toml
@@ -87,10 +87,10 @@ MySQL 8 ◄──── sincronizacion/ (CLI batch, NO corre en cada pedido del 
 ```
 sincronizacion/api_football.py ──GET /leagues, /players?league&season&page──► API-Football v3
         │                                         (x-apisports-key en el header)
-        └──► MySQL: liga, equipo, jugador, estadistica_temporada, sincronizacion
+        └──► PostgreSQL: liga, equipo, jugador, estadistica_temporada, sincronizacion
 
 sincronizacion/transfermarkt.py ──lee players.csv──► transfermarkt-datasets
-        └──► MySQL: jugador.valor_mercado_eur, id_transfermarkt (cruce RN-002)
+        └──► PostgreSQL: jugador.valor_mercado_eur, id_transfermarkt (cruce RN-002)
 ```
 
 El detalle está en `INTEGRACIONES_EXTERNAS.md`.

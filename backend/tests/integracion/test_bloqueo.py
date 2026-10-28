@@ -1,4 +1,4 @@
-"""INF-001: el bloqueo de MySQL que serializa migraciones y semillas al arrancar (ADR-0009)."""
+"""INF-001: el bloqueo de PostgreSQL que serializa migraciones y semillas al arrancar (ADR-0009)."""
 
 import pytest
 from sqlalchemy import Engine

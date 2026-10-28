@@ -1,9 +1,9 @@
 """Prepara la base al arrancar el contenedor: migraciones y semillas (ADR-0009).
 
 El plan gratis de Render no tiene comando de pre-deploy, así que esto corre en el CMD del
-Dockerfile, antes de uvicorn. Un bloqueo de MySQL evita que dos contenedores que arrancan a la vez
-(por ejemplo, dos deploys seguidos o un reinicio durante un deploy) migren al mismo tiempo: el
-segundo espera y, cuando entra, ya no tiene nada que migrar.
+Dockerfile, antes de uvicorn. Un bloqueo consultivo de PostgreSQL evita que dos contenedores que
+arrancan a la vez (por ejemplo, dos deploys seguidos o un reinicio durante un deploy) migren al
+mismo tiempo: el segundo espera y, cuando entra, ya no tiene nada que migrar.
 """
 
 from pathlib import Path

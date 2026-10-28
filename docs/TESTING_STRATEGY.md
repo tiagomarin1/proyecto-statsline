@@ -5,7 +5,7 @@
 | Nivel | Proporción | Herramienta | Qué cubre |
 |---|---|---|---|
 | Unitarios | Alrededor del 70% | pytest | Servicios y reglas RN-XXX como funciones puras: métricas derivadas, Mejor/Peor, presupuesto, coincidencia, sugerencia, cruce de Transfermarkt, mapeo de posiciones |
-| Integración | Alrededor del 25% | pytest + TestClient de FastAPI + MySQL de test (Docker) | Endpoints con DB real, auth, repositorios y sincronización con fixtures |
+| Integración | Alrededor del 25% | pytest + TestClient de FastAPI + PostgreSQL de test (Docker) | Endpoints con DB real, auth, repositorios y sincronización con fixtures |
 | Frontend | — | Vitest + Testing Library | Componentes con estados: Dato no disponible, sin resultados, selección de comparación |
 | E2E | Alrededor del 5% | Playwright | **Un** test del recorrido de la demo: ingresar → filtrar → ficha → comparar → seguimiento |
 

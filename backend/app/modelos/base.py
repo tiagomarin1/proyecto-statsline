@@ -2,8 +2,7 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, MetaData, func, text
-from sqlalchemy.dialects.mysql import BIGINT
+from sqlalchemy import BigInteger, DateTime, MetaData, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Nombres fijos para índices y restricciones: así la migración y los modelos coinciden
@@ -18,8 +17,8 @@ CONVENCION_DE_NOMBRES = {
 # Default de las columnas de auditoría (la sesión corre en UTC, ver db.py)
 AHORA = text("CURRENT_TIMESTAMP")
 
-# Claves primarias y foráneas: BIGINT UNSIGNED
-Id = BIGINT(unsigned=True)
+# Claves primarias y foráneas: BIGINT (las PK son BIGSERIAL en PostgreSQL)
+Id = BigInteger
 
 
 class Base(DeclarativeBase):
@@ -27,7 +26,7 @@ class Base(DeclarativeBase):
 
 
 def ahora_utc() -> datetime:
-    """Fecha y hora actual en UTC, sin zona: así se guarda en las columnas DATETIME."""
+    """Fecha y hora actual en UTC, sin zona: así se guarda en las columnas TIMESTAMP."""
     return datetime.now(UTC).replace(tzinfo=None)
 
 

@@ -18,20 +18,19 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     services:
-      mysql:
-        image: mysql:8.4
+      postgres:
+        image: postgres:16
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: statsline_test
-          MYSQL_USER: statsline
-          MYSQL_PASSWORD: statsline
-        ports: ["3306:3306"]
+          POSTGRES_DB: statsline_test
+          POSTGRES_USER: statsline
+          POSTGRES_PASSWORD: statsline
+        ports: ["5432:5432"]
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-cmd="pg_isready -U statsline -d statsline_test"
           --health-interval=5s --health-timeout=3s --health-retries=30
     env:
-      DATABASE_URL: mysql+pymysql://statsline:statsline@127.0.0.1:3306/statsline_test
-      DATABASE_URL_TEST: mysql+pymysql://statsline:statsline@127.0.0.1:3306/statsline_test
+      DATABASE_URL: postgresql+psycopg://statsline:statsline@127.0.0.1:5432/statsline_test
+      DATABASE_URL_TEST: postgresql+psycopg://statsline:statsline@127.0.0.1:5432/statsline_test
       SECRET_KEY: clave-solo-para-el-ci
     defaults:
       run:
@@ -67,19 +66,18 @@ jobs:
       - run: npm run build
 
   imagen:
-    # Construye el Dockerfile que usa Render y lo levanta contra un MySQL limpio
+    # Construye el Dockerfile que usa Render y lo levanta contra un PostgreSQL limpio
     runs-on: ubuntu-latest
     services:
-      mysql:
-        image: mysql:8.4
+      postgres:
+        image: postgres:16
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: statsline
-          MYSQL_USER: statsline
-          MYSQL_PASSWORD: statsline
-        ports: ["3306:3306"]
+          POSTGRES_DB: statsline
+          POSTGRES_USER: statsline
+          POSTGRES_PASSWORD: statsline
+        ports: ["5432:5432"]
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-cmd="pg_isready -U statsline -d statsline"
           --health-interval=5s --health-timeout=3s --health-retries=30
     steps:
       - uses: actions/checkout@v4
@@ -88,7 +86,7 @@ jobs:
         run: |
           docker run -d --name statsline --network host \
             -e PORT=8000 \
-            -e DATABASE_URL=mysql://statsline:statsline@127.0.0.1:3306/statsline \
+            -e DATABASE_URL=postgres://statsline:statsline@127.0.0.1:5432/statsline \
             -e SECRET_KEY=clave-solo-para-el-ci-de-mas-de-32-caracteres \
             -e DEMO_CONTRASENA=contrasena-del-ci \
             statsline

@@ -43,13 +43,14 @@ def _recrear_base(url: str) -> None:
         nombre = validar_nombre_base_de_test(url_test.database)
     except ValueError as error:
         pytest.fail(str(error))
-    servidor = crear_engine(url_test.set(database=""))
-    with servidor.begin() as conexion:
-        conexion.execute(text(f"DROP DATABASE IF EXISTS `{nombre}`"))
-        conexion.execute(
-            text(f"CREATE DATABASE `{nombre}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci")
-        )
-    servidor.dispose()
+    # CREATE/DROP DATABASE no pueden ir dentro de una transacción: se usa la base "postgres"
+    servidor = crear_engine(url_test.set(database="postgres")).execution_options(
+        isolation_level="AUTOCOMMIT"
+    )
+    with servidor.connect() as conexion:
+        conexion.execute(text(f'DROP DATABASE IF EXISTS "{nombre}" WITH (FORCE)'))
+        conexion.execute(text(f"CREATE DATABASE \"{nombre}\" ENCODING 'UTF8' TEMPLATE template0"))
+    servidor.engine.dispose()
 
 
 @pytest.fixture(scope="session")

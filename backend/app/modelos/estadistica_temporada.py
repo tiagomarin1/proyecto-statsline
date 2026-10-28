@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.modelos.base import AHORA, Base, Id
 from app.modelos.enums import Posicion
-from app.modelos.tipos import enum_mysql
+from app.modelos.tipos import tipo_enum
 
 
 class EstadisticaTemporada(Base):
@@ -47,7 +47,7 @@ class EstadisticaTemporada(Base):
     liga_id: Mapped[int] = mapped_column(Id, ForeignKey("liga.id"))
     equipo_id: Mapped[int] = mapped_column(Id, ForeignKey("equipo.id"))
     temporada: Mapped[int] = mapped_column(SmallInteger)
-    posicion: Mapped[Posicion | None] = mapped_column(enum_mysql(Posicion, "posicion"))
+    posicion: Mapped[Posicion | None] = mapped_column(tipo_enum(Posicion, "posicion"))
     partidos_jugados: Mapped[int | None] = mapped_column(SmallInteger)  # games.appearences
     minutos_jugados: Mapped[int | None] = mapped_column(Integer)
     goles: Mapped[int | None] = mapped_column(SmallInteger)

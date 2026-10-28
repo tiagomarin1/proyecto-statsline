@@ -1,15 +1,14 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "API de StatsLine: FastAPI + MySQL"
+description = "API de StatsLine: FastAPI + PostgreSQL"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "sqlalchemy>=2.0.36",
     "alembic>=1.14",
-    "pymysql>=1.1.1",
-    "cryptography>=43",  # PyMySQL la necesita para el login caching_sha2_password de MySQL 8
+    "psycopg[binary]>=3.2",
     "pydantic-settings>=2.6",
     "pwdlib[argon2]>=0.2.1",
     "pyjwt>=2.10",
@@ -21,6 +20,7 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "ruff>=0.8",
+    "cryptography>=43",  # genera un CA de prueba en los tests de TLS
 ]
 
 [build-system]
@@ -33,7 +33,7 @@ include = ["app*", "semillas*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-markers = ["integracion: necesita la base MySQL de test (DATABASE_URL_TEST)"]
+markers = ["integracion: necesita la base PostgreSQL de test (DATABASE_URL_TEST)"]
 
 [tool.ruff]
 line-length = 100

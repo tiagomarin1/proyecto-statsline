@@ -3,7 +3,7 @@
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from sqlalchemy import Engine, inspect
+from sqlalchemy import Engine, inspect, text
 
 from app.modelos import Base
 
@@ -35,7 +35,18 @@ def test_inf001_la_migracion_coincide_con_los_modelos(engine_test: Engine):
     assert diferencias == []
 
 
-def test_inf001_las_tablas_usan_utf8mb4(engine_test: Engine):
-    inspector = inspect(engine_test)
-    for tabla in TABLAS_DEL_MODELO_CANONICO:
-        assert inspector.get_table_options(tabla)["mysql_default charset"] == "utf8mb4"
+def test_inf001_la_base_usa_utf8(engine_test: Engine):
+    with engine_test.connect() as conexion:
+        codificacion = conexion.execute(
+            text(
+                "SELECT pg_encoding_to_char(encoding) FROM pg_database"
+                " WHERE datname = current_database()"
+            )
+        ).scalar()
+
+    assert codificacion == "UTF8"
+
+
+def test_inf001_cada_conexion_trabaja_en_utc(engine_test: Engine):
+    with engine_test.connect() as conexion:
+        assert conexion.execute(text("SHOW timezone")).scalar() == "UTC"
