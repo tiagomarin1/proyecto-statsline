@@ -174,7 +174,8 @@ def elegir_sugerencia(cantidades: dict[str, int]) -> Sugerencia | None:
     return Sugerencia(filtro=filtro, etiqueta=FILTROS_PARA_RELAJAR[filtro], cantidad=cantidad)
 
 
-def _a_resumen(fila: RowMapping, hoy: date) -> JugadorResumen:
+def a_jugador_resumen(fila: RowMapping, hoy: date) -> JugadorResumen:
+    """Fila de consulta_base → JugadorResumen. También la usa la lista de seguimiento."""
     return JugadorResumen(
         id=fila["id"],
         nombre=fila["nombre"],
@@ -217,7 +218,7 @@ def buscar_jugadores(
     excluidos = con_dato_faltante(sin_minimos, filtros)
 
     return RespuestaBusqueda(
-        resultados=[_a_resumen(fila, hoy) for fila in filas],
+        resultados=[a_jugador_resumen(fila, hoy) for fila in filas],
         total=total,
         pagina=filtros.pagina,
         tamano=filtros.tamano,

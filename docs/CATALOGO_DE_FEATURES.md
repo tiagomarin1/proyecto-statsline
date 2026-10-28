@@ -63,7 +63,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| SEG-001 | Lista de seguimiento | spec-aprobada | P1 | — | — | specs/seguimiento/SEG-001.md |
+| SEG-001 | Lista de seguimiento | en testing | P1 | — | — | specs/seguimiento/SEG-001.md |
 
 ### Mapeo con las tarjetas de Trello
 

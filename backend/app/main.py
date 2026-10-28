@@ -7,7 +7,15 @@ from fastapi import FastAPI
 from app.config import obtener_configuracion
 from app.errores import registrar_manejadores_de_errores
 from app.frontend import montar_frontend
-from app.routers import auth, comparaciones, jugadores, ligas, perfil_busqueda, salud
+from app.routers import (
+    auth,
+    comparaciones,
+    jugadores,
+    ligas,
+    perfil_busqueda,
+    salud,
+    seguimiento,
+)
 
 PREFIJO_API = "/api/v1"
 
@@ -23,6 +31,7 @@ def crear_app(directorio_frontend: Path | None = None) -> FastAPI:
     app.include_router(jugadores.router, prefix=PREFIJO_API)
     app.include_router(comparaciones.router, prefix=PREFIJO_API)
     app.include_router(perfil_busqueda.router, prefix=PREFIJO_API)
+    app.include_router(seguimiento.router, prefix=PREFIJO_API)
 
     # Va al final: la ruta comodín del SPA no tiene que tapar a la API
     montar_frontend(app, directorio_frontend or obtener_configuracion().directorio_frontend)
