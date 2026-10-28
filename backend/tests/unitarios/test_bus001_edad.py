@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from app.servicios.edad import calcular_edad, rango_fechas_de_nacimiento
+from app.servicios.edad import calcular_edad, obtener_hoy, rango_fechas_de_nacimiento
 
 HOY = date(2026, 10, 27)
 
@@ -45,3 +45,15 @@ def test_bus001_el_29_de_febrero_no_rompe_el_rango():
 
     assert calcular_edad(hasta, date(2028, 2, 29)) == 20
     assert calcular_edad(desde, date(2028, 2, 29)) == 27
+
+
+def test_bus001_el_29_de_febrero_contra_un_anio_no_bisiesto():
+    # 29/2/2028 menos 21 años cae en 2007, que no es bisiesto: se usa el 28/2
+    hasta = rango_fechas_de_nacimiento(21, None, date(2028, 2, 29))[1]
+
+    assert hasta == date(2007, 2, 28)
+    assert calcular_edad(hasta, date(2028, 2, 29)) == 21
+
+
+def test_bus001_hoy_es_la_fecha_de_argentina():
+    assert abs((obtener_hoy() - date.today()).days) <= 1

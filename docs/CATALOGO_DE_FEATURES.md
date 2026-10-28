@@ -40,9 +40,9 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| BUS-001 | Filtrar por posición y edad | spec-aprobada | P0 | 2/11 | — | specs/busqueda/BUS-001.md |
-| BUS-002 | Filtrar por liga o competición | spec-aprobada | P0 | 2/11 | Garrido + Cilento | specs/busqueda/BUS-002.md |
-| BUS-003 | Filtrar por métricas tácticas | spec-aprobada | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
+| BUS-001 | Filtrar por posición y edad | en testing | P0 | 2/11 | — | specs/busqueda/BUS-001.md |
+| BUS-002 | Filtrar por liga o competición | en testing | P0 | 2/11 | Garrido + Cilento | specs/busqueda/BUS-002.md |
+| BUS-003 | Filtrar por métricas tácticas | en testing | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
 | BUS-004 | Filtrar por presupuesto | spec-aprobada | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
 | BUS-005 | Crear, guardar y cargar el perfil de búsqueda | spec-aprobada | P1 | — | — | specs/busqueda/BUS-005.md |
 | BUS-006 | Resultados: orden, paginado, sin resultados y selección | spec-aprobada | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |

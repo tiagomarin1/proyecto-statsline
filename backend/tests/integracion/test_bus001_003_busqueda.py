@@ -49,7 +49,7 @@ def test_bus001_posicion_y_rango_de_edad_incluyen_los_extremos(
 ):
     liga = crear_liga(session)
     _jugador_con(session, "Cumple 20 hoy", nacimiento=date(2006, 10, 27), liga=liga)
-    _jugador_con(session, "Tiene 27", nacimiento=date(1999, 10, 28), liga=liga)
+    _jugador_con(session, "Tiene 27", nacimiento=date(1998, 10, 28), liga=liga)
     _jugador_con(session, "Cumple 28 hoy", nacimiento=date(1998, 10, 27), liga=liga)
     _jugador_con(session, "Tiene 19", nacimiento=date(2006, 10, 28), liga=liga)
     _jugador_con(session, "Delantero de 24", posicion=Posicion.delantero, liga=liga)
