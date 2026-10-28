@@ -2,10 +2,11 @@
 
 import pytest
 
+from app.esquemas.auth import PedidoRegistro
 from app.modelos.enums import Rol
-from app.servicios.auth import DatosRegistro, normalizar_email, validar_registro
+from app.servicios.auth import normalizar_email, validar_registro
 
-DATOS_VALIDOS = DatosRegistro(
+DATOS_VALIDOS = PedidoRegistro(
     nombre="Javier Ledesma",
     email="javier@deportivonorte.com",
     rol="director_tecnico",

@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.modelos import Usuario
+from app.repositorios import usuario as repositorio_usuario
 from app.seguridad.contrasenas import verificar_contrasena
 from tests.fabricas import crear_usuario
 
@@ -144,3 +145,16 @@ def test_aut001_un_cuerpo_que_no_es_json_responde_422(cliente: TestClient):
 
     assert respuesta.status_code == 422
     assert respuesta.json()["codigo"] == "validacion"
+
+
+def test_aut001_dos_registros_simultaneos_con_el_mismo_email_dan_409(
+    cliente: TestClient, session: Session, monkeypatch: pytest.MonkeyPatch
+):
+    # Simula la carrera: el chequeo previo no ve al otro usuario, pero la base sí lo rechaza
+    crear_usuario(session, email="javier@deportivonorte.com")
+    monkeypatch.setattr(repositorio_usuario, "obtener_por_email", lambda *_: None)
+
+    respuesta = cliente.post(URL, json=_pedido())
+
+    assert respuesta.status_code == 409
+    assert respuesta.json()["codigo"] == "email_registrado"
