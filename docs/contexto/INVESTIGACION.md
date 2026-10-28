@@ -128,6 +128,6 @@ StatsLine apunta al segmento que queda afuera: clubes chicos y medianos sin anal
 | Equipo | USD 0 (trabajo curricular) |
 | API-Football Pro | USD 19 por mes, unos USD 57 en total |
 | GitHub | Gratis |
-| Hosting de MySQL (Railway, ver ADR-0006) | A definir |
+| Hosting: app en Render y MySQL en Aiven (ADR-0009) | USD 0 (planes gratis) |
 | Dominio | A definir |
 | Marketing | Unos USD 20 por mes desde Optimización |

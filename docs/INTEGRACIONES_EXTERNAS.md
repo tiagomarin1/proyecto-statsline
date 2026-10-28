@@ -9,7 +9,7 @@
 | URL base | `https://v3.football.api-sports.io` |
 | Autenticación | Header `x-apisports-key: ${API_FOOTBALL_KEY}`. La clave vive **solo** en la variable de entorno, nunca en el repo |
 | Uso | Solo desde el CLI de sincronización (ADR-0008). Las pantallas nunca llaman a la API |
-| Frecuencia | Una vez por día por cron en Railway **(supuesto)**, más corridas manuales |
+| Frecuencia | Una vez por día con GitHub Actions (`.github/workflows/sincronizacion.yml`, ADR-0009) **(supuesto)**, más corridas manuales desde la pestaña Actions |
 
 ### Endpoints que se consumen
 

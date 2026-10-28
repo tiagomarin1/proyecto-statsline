@@ -1,0 +1,63 @@
+"""Formato único de errores de la API: {"detalle", "codigo"} (CONTRATO_DE_API.md)."""
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+CODIGOS_HTTP = {404: "no_encontrado", 405: "metodo_no_permitido"}
+DETALLES_HTTP = {
+    404: "No existe el recurso pedido.",
+    405: "El método no está permitido en esta ruta.",
+}
+
+
+class ErrorApi(Exception):
+    """Error de negocio con un mensaje para el usuario y un código para la máquina."""
+
+    def __init__(self, status_code: int, codigo: str, detalle: str) -> None:
+        super().__init__(detalle)
+        self.status_code = status_code
+        self.codigo = codigo
+        self.detalle = detalle
+
+
+def _campo(ubicacion: tuple) -> str:
+    # Se saca el origen ("body", "query", ...) para devolver solo el nombre del campo
+    return ".".join(str(parte) for parte in ubicacion[1:]) or str(ubicacion[0])
+
+
+async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
+    return JSONResponse(
+        status_code=error.status_code,
+        content={"detalle": error.detalle, "codigo": error.codigo},
+    )
+
+
+async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSONResponse:
+    errores = [{"campo": _campo(tuple(e["loc"])), "mensaje": e["msg"]} for e in error.errors()]
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detalle": "Hay datos inválidos en el pedido.",
+            "codigo": "validacion",
+            "errores": errores,
+        },
+    )
+
+
+async def _manejar_http(_: Request, error: StarletteHTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=error.status_code,
+        content={
+            "detalle": DETALLES_HTTP.get(error.status_code, str(error.detail)),
+            "codigo": CODIGOS_HTTP.get(error.status_code, "error_http"),
+        },
+        headers=getattr(error, "headers", None),
+    )
+
+
+def registrar_manejadores_de_errores(app: FastAPI) -> None:
+    app.add_exception_handler(ErrorApi, _manejar_error_api)
+    app.add_exception_handler(RequestValidationError, _manejar_validacion)
+    app.add_exception_handler(StarletteHTTPException, _manejar_http)

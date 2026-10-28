@@ -20,7 +20,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| INF-001 | Repo, stack, entorno y deploy | spec-aprobada | P0 | 27/10 | Cilento + Marin | specs/infraestructura/INF-001.md |
+| INF-001 | Repo, stack, entorno y deploy | en desarrollo | P0 | 27/10 | Cilento + Marin | specs/infraestructura/INF-001.md |
 
 ### Módulo: Datos
 

@@ -1,0 +1,49 @@
+# Sincronización diaria con API-Football (ADR-0008 y ADR-0009). Reemplaza al cron de Railway.
+# Los secrets DATABASE_URL, DATABASE_SSL_CA y API_FOOTBALL_KEY los carga el dueño del repo.
+name: Sincronización diaria
+
+# Solo lee el repo: escribe en Aiven, no en GitHub
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 03:00 de Argentina
+  workflow_dispatch:
+
+concurrency:
+  group: sincronizacion
+  cancel-in-progress: false
+
+jobs:
+  api_football:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_SSL_CA: ${{ secrets.DATABASE_SSL_CA }}
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      # La sincronización no firma sesiones, pero la configuración lo pide
+      SECRET_KEY: no-se-usa-en-la-sincronizacion
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: ¿Ya existe la sincronización (DAT-001)?
+        id: dat001
+        run: |
+          if [ -f app/sincronizacion/api_football.py ]; then
+            echo "lista=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Todavía no existe app/sincronizacion/api_football.py (DAT-001). No se sincroniza nada."
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.dat001.outputs.lista == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - if: steps.dat001.outputs.lista == 'true'
+        run: pip install .
+      - if: steps.dat001.outputs.lista == 'true'
+        run: python -m app.sincronizacion.api_football

@@ -23,7 +23,7 @@ Se hace en pareja porque todo depende de esto:
 - [ ] `tests/fabricas.py` con `crear_usuario`, `crear_liga`, `crear_jugador` y `crear_estadistica`.
 - [ ] La dependencia `usuario_actual` (`seguridad/`), porque todos los endpoints 🔒 la usan.
 - [ ] `GET /api/v1/salud`.
-- [ ] Deploy inicial en Railway (servicio web + MySQL).
+- [ ] Deploy inicial en Render (servicio web) con MySQL en Aiven (ADR-0009).
 
 ## Fases 1 a 4 — En paralelo
 
@@ -34,7 +34,7 @@ Se hace en pareja porque todo depende de esto:
 | 2-3/11 | **BUS-006**: orden, paginado y sugerencia sin resultados (RN-016) | **BUS-004**: filtro de presupuesto, que se suma a la consulta de búsqueda |
 | 3-5/11 | **CMP-001**: comparador | **JUG-001**: ficha con promedios de la posición y coincidencia con el perfil |
 | 5-6/11 | **BUS-005**: perfil de búsqueda | **SEG-001**: lista de seguimiento |
-| 6-8/11 | Juntos: integración con el front (Garrido), test E2E del recorrido de la demo, sincronización con datos reales en Railway y margen para imprevistos | (lo mismo) |
+| 6-8/11 | Juntos: integración con el front (Garrido), test E2E del recorrido de la demo, sincronización con datos reales en producción y margen para imprevistos | (lo mismo) |
 
 Las fechas siguen los vencimientos de Trello (AUT 6/11, CMP 5/11, JUG 4/11, BUS-003/004 3/11, BUS-001/002 2/11, DAT-001 29/10). AUT se adelanta porque todos los endpoints la necesitan.
 
