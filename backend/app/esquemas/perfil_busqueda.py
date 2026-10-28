@@ -2,18 +2,17 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator
 
-from app.esquemas.busqueda import Edad, Minutos, Porcentaje, Recuperaciones, SinFiltroSiVacio
-from app.modelos.enums import Posicion
-
-PRESUPUESTO_MINIMO_EUR = 20_000  # RN-003
-PRESUPUESTO_MAXIMO_EUR = 400_000
-
-Presupuesto = Annotated[
-    Annotated[int, Field(ge=PRESUPUESTO_MINIMO_EUR, le=PRESUPUESTO_MAXIMO_EUR)] | None,
+from app.esquemas.busqueda import (
+    Edad,
+    Minutos,
+    Porcentaje,
+    Presupuesto,
+    Recuperaciones,
     SinFiltroSiVacio,
-]
+)
+from app.modelos.enums import Posicion
 
 
 class PerfilBusquedaBase(BaseModel):
