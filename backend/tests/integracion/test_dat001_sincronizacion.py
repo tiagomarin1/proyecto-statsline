@@ -135,8 +135,9 @@ def test_dat001_la_sincronizacion_no_pisa_el_valor_de_mercado(
 
 def test_dat001_metricas_que_la_liga_no_publica_quedan_null(session, api, cliente_api):
     primera_nacional = crear_liga(session, nombre="Primera Nacional", id_api_football=129)
-    basica = cargar_fixture("players_liga_basica_129_2025_p1")
-    api.responder_jugadores(129, 2025, [basica])
+    # La página real dice paging.total = 84: se sirve como única página
+    basica = partir_en_paginas(cargar_fixture("players_liga_basica_129_2025_p1"), 1)
+    api.responder_jugadores(129, 2025, basica)
 
     sincronizacion = sincronizar_liga(session, cliente_api, primera_nacional, temporada=2025)
 
