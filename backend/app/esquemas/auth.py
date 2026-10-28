@@ -18,6 +18,13 @@ class PedidoRegistro(BaseModel):
     acepta_terminos: bool = False
 
 
+class PedidoIngreso(BaseModel):
+    """Email y contraseña. Si falta alguno, el ingreso responde el mismo 401 genérico."""
+
+    email: str | None = None
+    contrasena: str | None = None
+
+
 class RespuestaUsuario(BaseModel):
     """`Usuario` del contrato: nunca incluye el hash de la contraseña."""
 
