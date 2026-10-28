@@ -62,5 +62,6 @@ Recién después de esto se escribe el primer test (rojo), después el código (
 
 Ver la sección "Pendientes" de `docs/REGLAS_DE_NEGOCIO.md`. Los más importantes:
 
-- Confirmar los campos y los IDs de liga de API-Football.
-- Verificar la cobertura de transfermarkt-datasets en las ligas argentinas.
+- RN-027 **(propuesta)**: qué temporada se usa en las ligas del ascenso. Mientras no se decida, el cron diario sincroniza la temporada actual de la API.
+- RN-002, paso 2b **(propuesta)**: el cruce por palabras con Transfermarkt.
+- El valor de mercado casi no cubre el ascenso (el dataset solo tiene la Liga Profesional). Ver RN-002.

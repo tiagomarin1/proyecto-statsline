@@ -42,6 +42,8 @@ Las fechas siguen los vencimientos de Trello (AUT 6/11, CMP 5/11, JUG 4/11, BUS-
 
 ### 1. `servicios/metricas.py` — de Marin hacia Cilento
 
+> **Actualización 28/10:** `servicios/metricas.py` no se creó. RN-017 y RN-018 quedaron en `servicios/estadistica_vigente.py` (Cilento), como expresiones SQL que usan la búsqueda, el comparador y la ficha. Así la regla está en un solo lugar.
+
 Es la función que devuelve la **estadística vigente de cada jugador** (RN-017), con las métricas derivadas ya calculadas (RN-018). La usan la búsqueda, la ficha y el comparador.
 
 - Marin la entrega **primero** (28-29/10), con una firma acordada en la fase 0.

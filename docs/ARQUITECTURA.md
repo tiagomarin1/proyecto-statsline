@@ -46,11 +46,13 @@ PostgreSQL 16 ◄─ sincronizacion/ (CLI batch, NO corre en cada pedido del usu
     /esquemas             esquemas Pydantic de request y response
     /routers              auth.py, ligas.py, jugadores.py, comparaciones.py,
                           perfil_busqueda.py, seguimiento.py
-    /servicios            busqueda.py, comparacion.py, ficha.py, metricas.py,
-                          presupuesto.py, coincidencia.py, auth.py
+    /servicios            busqueda.py, estadistica_vigente.py (RN-017 y RN-018),
+                          comparacion.py, ficha.py, coincidencia.py, presupuesto.py,
+                          perfil_busqueda.py, seguimiento.py, cobertura.py,
+                          valor_mercado.py, edad.py, auth.py
     /repositorios         un archivo por entidad
     /integraciones        cliente_api_football.py, lector_transfermarkt.py
-    /sincronizacion       api_football.py, transfermarkt.py (se corren con python -m)
+    /sincronizacion       api_football.py, transfermarkt.py (se corren con python -m), mapeo.py
     /seguridad            hash de contraseñas, JWT, dependencia usuario_actual
   /migraciones            Alembic
   /semillas               ligas.py, usuario_demo.py

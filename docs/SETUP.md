@@ -85,7 +85,7 @@ Más detalle en `TESTING_STRATEGY.md`.
 cd backend
 python -m app.sincronizacion.api_football                  # 6 ligas, unos 300 pedidos (DAT-001)
 python -m app.sincronizacion.api_football --liga 2 --temporada 2025   # una liga (id interno) y una temporada
-python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv   # cuando exista DAT-002
+python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv.gz   # DAT-002, después de la de API-Football
 ```
 
 La sincronización necesita `API_FOOTBALL_KEY`. Si tu red no llega a `api-sports.io`, corréla desde GitHub: *Actions → Sincronización diaria → Run workflow*, donde se pueden completar la liga y la temporada. Sale con código 1 si alguna liga falló; el detalle queda en la tabla `sincronizacion`.
@@ -99,7 +99,7 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 | App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de PostgreSQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
 | PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Si pasa en `main`, el job `desplegar` llama al deploy hook de Render |
-| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina. Hasta que exista DAT-001, no hace nada |
+| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina, las 6 ligas con la temporada actual de la API. A mano: *Actions → Sincronización diaria → Run workflow*, con liga y temporada opcionales |
 
 ### 1. Base en Aiven
 

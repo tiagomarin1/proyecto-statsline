@@ -89,7 +89,7 @@ En esta fase también se acuerdan la firma de `servicios/metricas.py` y quién c
 
 ### Puntos de contacto
 
-1. **`servicios/metricas.py`, de Marin a Cilento.** Devuelve la estadística vigente de cada jugador (RN-017) con las métricas derivadas ya calculadas (RN-018). La usan la búsqueda, la ficha y el comparador. Marin la entrega primero (28-29/10). Mientras tanto, Cilento testea con datos de `tests/fabricas.py`.
+1. **`servicios/metricas.py`, de Marin a Cilento** (al final no se creó: RN-017 y RN-018 quedaron en `servicios/estadistica_vigente.py`). Devuelve la estadística vigente de cada jugador (RN-017) con las métricas derivadas ya calculadas (RN-018). La usan la búsqueda, la ficha y el comparador. Marin la entrega primero (28-29/10). Mientras tanto, Cilento testea con datos de `tests/fabricas.py`.
 2. **Filtro de presupuesto, de Cilento a Marin.** En `servicios/busqueda.py` cada filtro es una función aparte que recibe y devuelve la consulta. Marin escribe `filtrar_por_presupuesto` y el conteo de `excluidos_sin_valor` en `servicios/presupuesto.py`, y en `busqueda.py` se agrega una sola línea para engancharlo.
 3. **`GET /jugadores/{id}`.** El router `jugadores.py` es de Cilento, pero el handler de la ficha y sus servicios (`ficha.py`, `coincidencia.py`) son de Marin.
 

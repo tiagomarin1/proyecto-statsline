@@ -36,6 +36,10 @@ Convenciones:
 | Métricas ganadas | `metricas_ganadas` | Cantidad de métricas en las que un jugador es "Mejor" | — | — |
 | Diferencia de valor | `diferencia_valor_eur` | Valor más alto menos valor más bajo de una comparación | — | — |
 | Coincidencia con el perfil | `coincidencia` | Criterios del perfil que el jugador cumple, no cumple o no se pueden evaluar (RN-012) | match, % de coincidencia | — |
+| Estado de un criterio | `cumple` / `no_cumple` / `no_disponible` | Resultado de cada criterio de la coincidencia. `no_disponible` = falta el dato del jugador (RN-012) | ✓ / ✗ en el código | enum |
+| Excluidos sin valor | `excluidos_sin_valor` | Jugadores que cumplen todos los demás filtros y quedan afuera del presupuesto solo por no tener valor de mercado (RN-005) | — | campo de la respuesta |
+| Cruce con Transfermarkt | `cruce` | Búsqueda de la fila de transfermarkt-datasets de un jugador (RN-002). Resultado: `cruzado`, `sin_coincidencia`, `ambiguo` o `sin_fecha` | match, matcheo | — |
+| Aviso | `aviso` | Mensaje para el usuario que confirma una acción, por ejemplo al guardar en la lista de seguimiento (RN-026) | mensaje (para esto), toast | campo |
 | Promedio de la posición | `promedio_posicion` | Promedio de una métrica entre los jugadores de la misma posición (RN-015) | — | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Rol | `rol` | `director_tecnico`, `director_deportivo`, `dirigente` u `ojeador` | perfil (para esto), cargo | enum |
