@@ -33,7 +33,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| AUT-001 | Registrarse en la plataforma | spec-aprobada | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
+| AUT-001 | Registrarse en la plataforma | en testing | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
 | AUT-002 | Iniciar y cerrar sesión | spec-aprobada | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
 
 ### Módulo: Búsqueda
