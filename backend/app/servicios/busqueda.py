@@ -1,4 +1,5 @@
-"""Búsqueda de jugadores: BUS-001 (posición y edad), BUS-002 (liga) y BUS-003 (métricas).
+"""Búsqueda de jugadores: BUS-001 (posición y edad), BUS-002 (liga), BUS-003 (métricas) y
+BUS-006 (orden, paginado y sugerencia sin resultados).
 
 Cada filtro es una función que recibe la consulta y la devuelve filtrada (PLAN_BACKEND.md), así
 BUS-004 (presupuesto) se engancha con una sola línea en buscar_jugadores.
@@ -10,7 +11,14 @@ from sqlalchemy import RowMapping, Select, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
 from app.errores import ErrorApi
-from app.esquemas.busqueda import FiltrosBusqueda, JugadorResumen, LigaResumen, RespuestaBusqueda
+from app.esquemas.busqueda import (
+    FiltrosBusqueda,
+    JugadorResumen,
+    LigaResumen,
+    OrdenBusqueda,
+    RespuestaBusqueda,
+    Sugerencia,
+)
 from app.modelos import Equipo, Jugador, Liga, Seguimiento
 from app.modelos.enums import Cobertura, Posicion
 from app.repositorios import jugador as repositorio_jugador
@@ -32,6 +40,27 @@ METRICAS_TACTICAS = {
     "duelos_min": "duelos_ganados_pct",
     "recuperaciones_min": "recuperaciones_por_partido",
     "minutos_min": "minutos_jugados",
+}
+
+# RN-016: filtros que se prueban relajar, en orden de prioridad, con su texto para la UI
+FILTROS_PARA_RELAJAR = {
+    "posicion": "la posición",
+    "liga_id": "la liga",
+    "presupuesto_max_eur": "el presupuesto",
+    "pases_min": "el mínimo de pases",
+    "duelos_min": "el mínimo de duelos",
+    "recuperaciones_min": "el mínimo de recuperaciones",
+    "minutos_min": "el mínimo de minutos",
+}
+
+# RN-021: columna de cada orden y si va de mayor a menor. "Edad, menor primero" es la fecha de
+# nacimiento más reciente primero.
+ORDENES = {
+    OrdenBusqueda.minutos: ("minutos_jugados", True),
+    OrdenBusqueda.valor: ("valor_mercado_eur", False),
+    OrdenBusqueda.edad: ("fecha_nacimiento", True),
+    OrdenBusqueda.pases: ("pases_precision_pct", True),
+    OrdenBusqueda.rating: ("rating", True),
 }
 
 
@@ -122,12 +151,27 @@ def con_dato_faltante(consulta: Select, filtros: FiltrosBusqueda) -> Select | No
     )
 
 
-def ordenar(consulta: Select) -> Select:
-    """RN-021, orden por defecto: minutos jugados de mayor a menor, nulos al final, y nombre."""
+def ordenar(consulta: Select, orden: OrdenBusqueda) -> Select:
+    """RN-021: los nulos siempre al final y, con empate, por nombre."""
     columnas = consulta.selected_columns
-    return consulta.order_by(
-        columnas.minutos_jugados.desc().nulls_last(), columnas.nombre, columnas.id
-    )
+    nombre_columna, descendente = ORDENES[orden]
+    columna = columnas[nombre_columna]
+    criterio = columna.desc() if descendente else columna.asc()
+    return consulta.order_by(criterio.nulls_last(), columnas.nombre, columnas.id)
+
+
+def elegir_sugerencia(cantidades: dict[str, int]) -> Sugerencia | None:
+    """RN-016: el filtro cuya eliminación da más resultados; con empate, el primero del orden.
+    Si ninguno da resultados, no se sugiere nada."""
+    mejor: tuple[str, int] | None = None
+    for filtro in FILTROS_PARA_RELAJAR:
+        cantidad = cantidades.get(filtro, 0)
+        if cantidad > 0 and (mejor is None or cantidad > mejor[1]):
+            mejor = (filtro, cantidad)
+    if mejor is None:
+        return None
+    filtro, cantidad = mejor
+    return Sugerencia(filtro=filtro, etiqueta=FILTROS_PARA_RELAJAR[filtro], cantidad=cantidad)
 
 
 def _a_resumen(fila: RowMapping, hoy: date) -> JugadorResumen:
@@ -162,17 +206,13 @@ def buscar_jugadores(
         if liga is None:
             raise ErrorApi(404, "liga_inexistente", "No existe esa liga.")
 
-    consulta = consulta_base(usuario_id)
-    consulta = filtrar_por_posicion(consulta, filtros.posicion)
-    consulta = filtrar_por_liga(consulta, filtros.liga_id)
-    consulta = filtrar_por_edad(consulta, filtros.edad_min, filtros.edad_max, hoy)
-    # BUS-004: acá se engancha filtrar_por_presupuesto (servicios/presupuesto.py)
-    sin_minimos = consulta
-    consulta = filtrar_por_metricas(consulta, filtros)
-
+    consulta, sin_minimos = _aplicar_filtros(filtros, usuario_id, hoy)
     total = repositorio_jugador.contar(session, consulta)
     filas = repositorio_jugador.listar(
-        session, ordenar(consulta), filtros.tamano, (filtros.pagina - 1) * filtros.tamano
+        session,
+        ordenar(consulta, filtros.orden),
+        filtros.tamano,
+        (filtros.pagina - 1) * filtros.tamano,
     )
     excluidos = con_dato_faltante(sin_minimos, filtros)
 
@@ -186,5 +226,29 @@ def buscar_jugadores(
         ),
         excluidos_sin_valor=0,
         liga_sin_datos=liga is not None and liga.cobertura == Cobertura.sin_datos,
-        sugerencia=None,
+        sugerencia=_sugerir(session, filtros, usuario_id, hoy) if total == 0 else None,
     )
+
+
+def _aplicar_filtros(filtros: FiltrosBusqueda, usuario_id: int, hoy: date) -> tuple[Select, Select]:
+    """Devuelve la consulta con todos los filtros y la misma sin los mínimos tácticos."""
+    consulta = consulta_base(usuario_id)
+    consulta = filtrar_por_posicion(consulta, filtros.posicion)
+    consulta = filtrar_por_liga(consulta, filtros.liga_id)
+    consulta = filtrar_por_edad(consulta, filtros.edad_min, filtros.edad_max, hoy)
+    # BUS-004: acá se engancha filtrar_por_presupuesto (servicios/presupuesto.py)
+    return filtrar_por_metricas(consulta, filtros), consulta
+
+
+def _sugerir(
+    session: Session, filtros: FiltrosBusqueda, usuario_id: int, hoy: date
+) -> Sugerencia | None:
+    """RN-016: prueba sacar de a uno cada filtro activo y cuenta cuántos aparecerían."""
+    cantidades = {}
+    for filtro in FILTROS_PARA_RELAJAR:
+        if getattr(filtros, filtro, None) is None:
+            continue
+        relajados = filtros.model_copy(update={filtro: None})
+        consulta, _ = _aplicar_filtros(relajados, usuario_id, hoy)
+        cantidades[filtro] = repositorio_jugador.contar(session, consulta)
+    return elegir_sugerencia(cantidades)

@@ -1,5 +1,6 @@
 """Filtros y respuesta de GET /jugadores (CONTRATO_DE_API.md). Rangos de RN-024."""
 
+from enum import StrEnum
 from typing import Annotated, Any
 
 from pydantic import BaseModel, BeforeValidator, Field, model_validator
@@ -13,6 +14,16 @@ RECUPERACIONES_MAXIMAS = 15
 MINUTOS_MAXIMOS = 5000
 TAMANO_PAGINA_POR_DEFECTO = 6  # RN-021
 TAMANO_PAGINA_MAXIMO = 50
+
+
+class OrdenBusqueda(StrEnum):
+    """RN-021: opciones de orden de los resultados."""
+
+    minutos = "minutos"
+    valor = "valor"
+    edad = "edad"
+    pases = "pases"
+    rating = "rating"
 
 
 def _vacio_a_none(valor: Any) -> Any:
@@ -39,6 +50,9 @@ class FiltrosBusqueda(BaseModel):
     duelos_min: Porcentaje = None
     recuperaciones_min: Recuperaciones = None
     minutos_min: Minutos = None
+    orden: Annotated[
+        OrdenBusqueda, BeforeValidator(lambda valor: valor or OrdenBusqueda.minutos)
+    ] = OrdenBusqueda.minutos
     pagina: Annotated[int, Field(ge=1)] = 1
     tamano: Annotated[int, Field(ge=1, le=TAMANO_PAGINA_MAXIMO)] = TAMANO_PAGINA_POR_DEFECTO
 
@@ -79,6 +93,14 @@ class JugadorResumen(BaseModel):
     en_seguimiento: bool
 
 
+class Sugerencia(BaseModel):
+    """RN-016: qué filtro relajar cuando no hay resultados y cuántos aparecerían."""
+
+    filtro: str
+    etiqueta: str
+    cantidad: int
+
+
 class RespuestaBusqueda(BaseModel):
     resultados: list[JugadorResumen]
     total: int
@@ -87,4 +109,4 @@ class RespuestaBusqueda(BaseModel):
     excluidos_por_dato_faltante: int  # RN-008
     excluidos_sin_valor: int  # RN-005 (BUS-004)
     liga_sin_datos: bool  # BUS-002
-    sugerencia: dict | None  # RN-016 (BUS-006)
+    sugerencia: Sugerencia | None  # RN-016
