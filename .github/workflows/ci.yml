@@ -1,4 +1,4 @@
-# Tests y lint en cada PR y en cada push a main. Render despliega solo si esto pasa (ADR-0009).
+# Tests y lint en cada PR y en cada push a main. Si todo pasa en main, el job desplegar avisa a Render (ADR-0009).
 name: CI
 
 # El workflow solo lee el repo
@@ -102,3 +102,20 @@ jobs:
       - name: Logs del contenedor
         if: always()
         run: docker logs statsline
+
+  desplegar:
+    # Render no recibe los push del repo, así que el deploy lo dispara el CI con el deploy hook del servicio
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend, imagen]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al deploy hook de Render
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::warning::Falta el secret RENDER_DEPLOY_HOOK: no se despliega (ver SETUP.md)"
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK&ref=$GITHUB_SHA" -o /dev/null
+          echo "Deploy de $GITHUB_SHA pedido a Render"
