@@ -51,7 +51,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| JUG-001 | Ver ficha individual de un jugador | spec-aprobada | P0 | 4/11 | Garrido + Marin | specs/jugador/JUG-001.md |
+| JUG-001 | Ver ficha individual de un jugador | en testing | P0 | 4/11 | Garrido + Marin | specs/jugador/JUG-001.md |
 
 ### Módulo: Comparación
 
