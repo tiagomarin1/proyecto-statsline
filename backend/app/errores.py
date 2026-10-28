@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DataError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 DETALLE_VALIDACION = "Hay datos inválidos en el pedido."
@@ -61,6 +62,14 @@ async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSON
     )
 
 
+async def _manejar_dato_rechazado(_: Request, __: DataError) -> JSONResponse:
+    """La base rechazó un dato que pasó la validación (un id fuera de rango de BIGINT, un texto
+    más largo que la columna): es un pedido inválido, no un error del servidor."""
+    return JSONResponse(
+        status_code=422, content={"detalle": DETALLE_VALIDACION, "codigo": "validacion"}
+    )
+
+
 async def _manejar_http(_: Request, error: StarletteHTTPException) -> JSONResponse:
     return JSONResponse(
         status_code=error.status_code,
@@ -76,3 +85,4 @@ def registrar_manejadores_de_errores(app: FastAPI) -> None:
     app.add_exception_handler(ErrorApi, _manejar_error_api)
     app.add_exception_handler(RequestValidationError, _manejar_validacion)
     app.add_exception_handler(StarletteHTTPException, _manejar_http)
+    app.add_exception_handler(DataError, _manejar_dato_rechazado)
