@@ -27,7 +27,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | DAT-001 | Sincronizar jugadores desde API-Football | spec-aprobada | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
-| DAT-002 | Importar valores de mercado de transfermarkt-datasets | spec-aprobada | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
+| DAT-002 | Importar valores de mercado de transfermarkt-datasets | en testing | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
 
 ### Módulo: Autenticación
 

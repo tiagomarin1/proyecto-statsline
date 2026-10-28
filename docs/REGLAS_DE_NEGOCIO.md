@@ -64,7 +64,28 @@ Usada en: BUS-003, JUG-001, CMP-001.
 
 **Ejemplo:** API-Football trae "Nahuel Ferreyra", nacido el 2003-04-12. En el CSV hay una sola fila "Nahuel Ferreyra" con esa fecha y valor 85000. Resultado: `valor_mercado_eur = 85000`.
 
-**Riesgo:** la cobertura del dataset en las ligas argentinas no está verificada.
+**Paso 2b: cruce por palabras (propuesta, 28/10).** Si el paso 2 no encuentra ninguna fila:
+
+- se buscan las filas con `date_of_birth` igual a `jugador.fecha_nacimiento`;
+- cuyo nombre normalizado tenga **al menos 2 palabras**;
+- y **todas** sus palabras estén en `normalizar(nombre_pila + " " + apellido)`.
+
+Se aplica el paso 3 igual: solo vale si queda exactamente una fila. Si dos jugadores cruzan con la misma fila, los dos quedan sin valor, porque `id_transfermarkt` es único.
+
+**Por qué:** API-Football trae todos los nombres y los dos apellidos, y Transfermarkt el nombre "de uso". Con el paso 2 solo, en la página 1 de la Liga Profesional cruzan 4 de 20 jugadores.
+
+**Ejemplo:** API-Football trae "Néstor Fernando" + "Muslera Micol", nacido el 1986-06-16. En el CSV hay una sola fila con esa fecha y nombre "Fernando Muslera", valor 700000. {fernando, muslera} ⊆ {nestor, fernando, muslera, micol} → `valor_mercado_eur = 700000`. "Perez" sola (una palabra) no alcanza para cruzar.
+
+**Pendiente de validar con el PO.** Implementado en DAT-002 (`servicios/valor_mercado.py`).
+
+**Cobertura medida (28/10)** con los jugadores reales de los fixtures de API-Football y el `players.csv` completo (detalle en `INTEGRACIONES_EXTERNAS.md`):
+
+| Muestra | Solo paso 2 | Con el paso 2b |
+|---|---|---|
+| Liga Profesional, 20 jugadores | 4 con valor (20%) | 20 con valor (100%) |
+| Primera Nacional, 20 jugadores | 2 con valor (10%) | 4 con valor (20%) |
+
+**Riesgo para la demo:** el dataset solo tiene clubes de la Liga Profesional (`ARG1`). En el ascenso solo hay valor para quienes jugaron antes en otra liga del dataset, así que con el filtro de presupuesto activo casi todo el ascenso queda excluido (RN-005).
 
 Usada en: DAT-002, BUS-004, JUG-001, CMP-001.
 
@@ -414,8 +435,9 @@ Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 ## Pendientes
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
-- **PO:** validar RN-027 y RN-028 **(propuestas)**, y el mapeo de `Forward` en RN-019.
-- **Backend:** verificar la cobertura de transfermarkt-datasets en las ligas argentinas.
+- **PO:** validar RN-027 y RN-028 **(propuestas)**, el mapeo de `Forward` en RN-019 y el cruce por palabras de RN-002 (paso 2b).
+- **PO, antes del Demo Day:** el valor de mercado casi no cubre el ascenso (RN-002, cobertura medida). Decidir si la demo del presupuesto se apoya en la Liga Profesional.
+- ~~**Backend:** verificar la cobertura de transfermarkt-datasets en las ligas argentinas.~~ Medida el 28/10 en DAT-002 (ver RN-002).
 - **Diseño:** ajustar el prototipo:
   - pasar a EUR;
   - sacar el Score, la distancia y los centros;
