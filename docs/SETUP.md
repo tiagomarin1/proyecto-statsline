@@ -97,7 +97,7 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 |---|---|---|
 | App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de PostgreSQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
 | PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
-| CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Render despliega `main` solo si pasa |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Si pasa en `main`, el job `desplegar` llama al deploy hook de Render |
 | Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina. Hasta que exista DAT-001, no hace nada |
 
 ### 1. Base en Aiven
@@ -120,7 +120,7 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
    `SECRET_KEY` la genera Render.
 4. El primer deploy crea las tablas y carga las ligas y el usuario demo. Para verificar, abrir `https://<servicio>.onrender.com/api/v1/salud`.
 
-Render despliega solo `main` y solo con el CI en verde (`autoDeployTrigger: checksPass`). Si el servicio pasa 15 minutos sin tráfico, se apaga, y la primera visita tarda alrededor de un minuto. Antes de una demo, abrí la página unos minutos antes.
+Render despliega solo `main` y solo con el CI en verde: el auto-deploy de Render está apagado (`autoDeployTrigger: off`) porque Render no recibe los push del repo, y el deploy lo pide el job `desplegar` del CI con el deploy hook (paso 3). Para desplegar a mano: *Manual Deploy → Deploy latest commit* en el panel del servicio. Si el servicio pasa 15 minutos sin tráfico, se apaga, y la primera visita tarda alrededor de un minuto. Antes de una demo, abrí la página unos minutos antes.
 
 ### 3. Secrets del cron en GitHub
 
@@ -131,6 +131,7 @@ En el repo: *Settings → Secrets and variables → Actions*. Los carga el dueñ
 | `DATABASE_URL` | La misma Service URI de Aiven |
 | `DATABASE_SSL_CA` | El mismo contenido de `ca.pem` |
 | `API_FOOTBALL_KEY` | La clave de API-Football |
+| `RENDER_DEPLOY_HOOK` | El deploy hook del servicio: en Render, *Settings → Deploy Hook*. Es secreto: con esa URL cualquiera puede desplegar. Si falta, el CI no despliega y deja un aviso |
 
 Para correrla a mano: pestaña *Actions → Sincronización diaria → Run workflow*. GitHub desactiva los workflows programados si el repo pasa 60 días sin actividad.
 

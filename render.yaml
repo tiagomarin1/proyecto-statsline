@@ -11,8 +11,9 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/salud
-    # Despliega solo si pasan los tests del CI (.github/workflows/ci.yml)
-    autoDeployTrigger: checksPass
+    # Render no recibe los push del repo: el deploy lo pide el job desplegar del CI con el deploy hook,
+    # solo cuando main pasa los tests (.github/workflows/ci.yml)
+    autoDeployTrigger: "off"
     envVars:
       - key: DATABASE_URL
         sync: false # Service URI de Aiven for PostgreSQL (postgres://...?sslmode=require)
