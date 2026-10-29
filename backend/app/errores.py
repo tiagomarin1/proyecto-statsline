@@ -45,8 +45,12 @@ MENSAJES_VALIDACION = {
     "dict_type": MENSAJE_FORMATO_CUERPO,
 }
 MENSAJE_VALIDACION_GENERICO = "El valor no es válido."
-# Campo de los errores del cuerpo entero (un JSON roto, un cuerpo que no es un objeto)
+# Campo de los errores de todo el pedido, según de dónde venga (un JSON roto, un cuerpo que no
+# es un objeto, una regla de todo el esquema de la consulta)
 CAMPO_CUERPO = "cuerpo"
+CAMPOS_DE_ORIGEN = {"body": CAMPO_CUERPO, "query": "consulta"}
+# 20,000.5 → 20.000,5
+SEPARADORES_UI = str.maketrans(",.", ".,")
 
 
 class ErrorApi(Exception):
@@ -68,7 +72,14 @@ class ErrorApi(Exception):
 
 class ValorInvalido(ValueError):
     """ValueError de un validador propio: su mensaje ya está en español y llega tal cual al
-    usuario. Un ValueError común (de una librería, de un int()) usa el mensaje genérico."""
+    usuario. Un ValueError común (de una librería, de un int()) usa el mensaje genérico.
+
+    `campo` marca en qué campo se muestra el error de una regla de todo el esquema
+    (model_validator), que Pydantic ubica en el esquema y no en un campo."""
+
+    def __init__(self, mensaje: str, campo: str | None = None) -> None:
+        super().__init__(mensaje)
+        self.campo = campo
 
 
 class ErrorValidacion(ErrorApi):
@@ -79,12 +90,17 @@ class ErrorValidacion(ErrorApi):
 
 
 def _campo(error: dict) -> str:
-    ubicacion = tuple(error["loc"])
+    origen, *partes = error["loc"]
     # Un JSON roto trae la posición del carácter en lugar de un campo
-    if error["type"] == "json_invalid" or len(ubicacion) == 1:
+    if error["type"] == "json_invalid":
         return CAMPO_CUERPO
+    error_propio = (error.get("ctx") or {}).get("error")
+    if isinstance(error_propio, ValorInvalido) and error_propio.campo is not None:
+        partes = [*partes, error_propio.campo]
+    if not partes:
+        return CAMPOS_DE_ORIGEN.get(origen, str(origen))
     # Se saca el origen ("body", "query", ...) para devolver solo el nombre del campo
-    return ".".join(str(parte) for parte in ubicacion[1:])
+    return ".".join(str(parte) for parte in partes)
 
 
 async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
@@ -102,7 +118,7 @@ def _formatear_contexto(clave: str, valor: object) -> str:
     if isinstance(valor, int | float | Decimal):
         # normalize saca los ceros de más y "f" evita la notación científica (1e-05)
         texto = f"{Decimal(str(valor)).normalize():,f}"
-        return texto.translate(str.maketrans(",.", ".,"))
+        return texto.translate(SEPARADORES_UI)
     if clave == "expected":
         return str(valor).replace("'", "").replace(" or ", " o ")
     return str(valor)

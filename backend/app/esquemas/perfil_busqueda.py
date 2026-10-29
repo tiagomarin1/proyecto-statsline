@@ -2,16 +2,16 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.esquemas.busqueda import (
     Edad,
-    EdadMaxima,
     Minutos,
     Porcentaje,
     Presupuesto,
     Recuperaciones,
     SinFiltroSiVacio,
+    validar_rango_de_edad,
 )
 from app.modelos.enums import Posicion
 
@@ -33,7 +33,12 @@ class PedidoPerfilBusqueda(PerfilBusquedaBase):
     posicion: Annotated[Posicion | None, SinFiltroSiVacio] = None
     liga_id: Annotated[int | None, SinFiltroSiVacio] = None
     edad_min: Edad = None
-    edad_max: EdadMaxima = None
+    edad_max: Edad = None
+
+    @model_validator(mode="after")
+    def edad_min_hasta_edad_max(self) -> "PedidoPerfilBusqueda":
+        validar_rango_de_edad(self.edad_min, self.edad_max)
+        return self
 
 
 class RespuestaPerfilBusqueda(PerfilBusquedaBase):

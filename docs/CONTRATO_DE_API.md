@@ -8,7 +8,7 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 - **Formato:** JSON en `snake_case` y en español.
 - **Autenticación:** cookie `sesion` (ADR-0005). Los endpoints marcados 🔒 responden 401 sin sesión.
 - **Formato de error:** `{"detalle": "mensaje para el usuario", "codigo": "codigo_maquina"}`.
-- **Validación:** los errores de validación de Pydantic devuelven 422 con `codigo: "validacion"` y `errores: [{campo, mensaje}]`.
+- **Validación:** los errores de validación de Pydantic devuelven 422 con `codigo: "validacion"` y `errores: [{campo, mensaje}]`. El `mensaje` va en español. `campo` es el nombre del campo (`edad_max`, `jugador_ids.0`). Un error de todo el pedido se marca en `"cuerpo"` (un JSON roto, un cuerpo que no es un objeto) o en `"consulta"` (una regla de todos los parámetros de la URL).
 - **Dato no disponible:** se devuelve `null`, nunca `0`.
 
 ## Tipos comunes
