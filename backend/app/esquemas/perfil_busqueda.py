@@ -2,10 +2,11 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 from app.esquemas.busqueda import (
     Edad,
+    EdadMaxima,
     Minutos,
     Porcentaje,
     Presupuesto,
@@ -32,14 +33,7 @@ class PedidoPerfilBusqueda(PerfilBusquedaBase):
     posicion: Annotated[Posicion | None, SinFiltroSiVacio] = None
     liga_id: Annotated[int | None, SinFiltroSiVacio] = None
     edad_min: Edad = None
-    edad_max: Edad = None
-
-    @model_validator(mode="after")
-    def edad_min_hasta_edad_max(self) -> "PedidoPerfilBusqueda":
-        ambas = self.edad_min is not None and self.edad_max is not None
-        if ambas and self.edad_min > self.edad_max:
-            raise ValueError("La edad mínima no puede ser mayor que la edad máxima.")
-        return self
+    edad_max: EdadMaxima = None
 
 
 class RespuestaPerfilBusqueda(PerfilBusquedaBase):

@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Annotated, Any
 
-from pydantic import BaseModel, BeforeValidator, Field, model_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, ValidationInfo
 
 from app.modelos.enums import Cobertura, Posicion
 
@@ -36,6 +36,19 @@ def _vacio_a_none(valor: Any) -> Any:
 SinFiltroSiVacio = BeforeValidator(_vacio_a_none)
 # Los rangos van dentro del Optional: así "" → None no choca con ge/le
 Edad = Annotated[Annotated[int, Field(ge=EDAD_MINIMA, le=EDAD_MAXIMA)] | None, SinFiltroSiVacio]
+MENSAJE_EDAD_INVERTIDA = "La edad mínima no puede ser mayor que la edad máxima."
+
+
+def _edad_max_desde_edad_min(edad_max: int | None, info: ValidationInfo) -> int | None:
+    """RN-024: edad_min <= edad_max. El error se marca en edad_max, que se valida después."""
+    edad_min = info.data.get("edad_min")
+    if edad_max is not None and edad_min is not None and edad_min > edad_max:
+        raise ValueError(MENSAJE_EDAD_INVERTIDA)
+    return edad_max
+
+
+# Va declarado después de edad_min: así info.data ya lo tiene
+EdadMaxima = Annotated[Edad, AfterValidator(_edad_max_desde_edad_min)]
 Porcentaje = Annotated[Annotated[float, Field(ge=0, le=PORCENTAJE_MAXIMO)] | None, SinFiltroSiVacio]
 Recuperaciones = Annotated[
     Annotated[float, Field(ge=0, le=RECUPERACIONES_MAXIMAS)] | None, SinFiltroSiVacio
@@ -50,7 +63,7 @@ Presupuesto = Annotated[
 class FiltrosBusqueda(BaseModel):
     posicion: Annotated[Posicion | None, SinFiltroSiVacio] = None
     edad_min: Edad = None
-    edad_max: Edad = None
+    edad_max: EdadMaxima = None
     liga_id: Annotated[int | None, SinFiltroSiVacio] = None
     # BUS-004: apagado por defecto (RN-003, supuesto)
     presupuesto_max_eur: Presupuesto = None
@@ -63,13 +76,6 @@ class FiltrosBusqueda(BaseModel):
     ] = OrdenBusqueda.minutos
     pagina: Annotated[int, Field(ge=1)] = 1
     tamano: Annotated[int, Field(ge=1, le=TAMANO_PAGINA_MAXIMO)] = TAMANO_PAGINA_POR_DEFECTO
-
-    @model_validator(mode="after")
-    def edad_min_hasta_edad_max(self) -> "FiltrosBusqueda":
-        ambas = self.edad_min is not None and self.edad_max is not None
-        if ambas and self.edad_min > self.edad_max:
-            raise ValueError("La edad mínima no puede ser mayor que la edad máxima.")
-        return self
 
 
 class LigaResumen(BaseModel):
