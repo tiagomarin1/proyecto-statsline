@@ -13,6 +13,37 @@ DETALLES_HTTP = {
     405: "El método no está permitido en esta ruta.",
 }
 
+# Mensaje en español por cada tipo de error de Pydantic que puede mandar el frontend. Los {…}
+# salen del "ctx" del error. Un tipo que no está acá usa MENSAJE_VALIDACION_GENERICO.
+MENSAJE_ENTERO = "Tiene que ser un número entero."
+MENSAJE_NUMERO = "Tiene que ser un número."
+MENSAJE_BOOLEANO = "Tiene que ser verdadero o falso."
+MENSAJE_OPCIONES = "Tiene que ser uno de estos valores: {expected}."
+MENSAJE_FORMATO_CUERPO = "El cuerpo del pedido no tiene el formato esperado."
+MENSAJES_VALIDACION = {
+    "missing": "Falta este dato.",
+    "greater_than_equal": "Tiene que ser mayor o igual a {ge}.",
+    "greater_than": "Tiene que ser mayor que {gt}.",
+    "less_than_equal": "Tiene que ser menor o igual a {le}.",
+    "less_than": "Tiene que ser menor que {lt}.",
+    "int_parsing": MENSAJE_ENTERO,
+    "int_type": MENSAJE_ENTERO,
+    "int_from_float": MENSAJE_ENTERO,
+    "float_parsing": MENSAJE_NUMERO,
+    "float_type": MENSAJE_NUMERO,
+    "bool_parsing": MENSAJE_BOOLEANO,
+    "bool_type": MENSAJE_BOOLEANO,
+    "string_type": "Tiene que ser un texto.",
+    "string_too_long": "Puede tener hasta {max_length} caracteres.",
+    "list_type": "Tiene que ser una lista.",
+    "enum": MENSAJE_OPCIONES,
+    "literal_error": MENSAJE_OPCIONES,
+    "json_invalid": "El cuerpo del pedido no es un JSON válido.",
+    "model_attributes_type": MENSAJE_FORMATO_CUERPO,
+    "dict_type": MENSAJE_FORMATO_CUERPO,
+}
+MENSAJE_VALIDACION_GENERICO = "El valor no es válido."
+
 
 class ErrorApi(Exception):
     """Error de negocio con un mensaje para el usuario y un código para la máquina."""
@@ -50,8 +81,32 @@ async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
     return JSONResponse(status_code=error.status_code, content=contenido)
 
 
+def _formatear_contexto(valor: object) -> str:
+    """Números como en la UI (20.000, 1,5) y opciones sin comillas ("a, b o c")."""
+    if isinstance(valor, float) and valor.is_integer():
+        valor = int(valor)
+    if isinstance(valor, int):
+        return f"{valor:,}".replace(",", ".")
+    if isinstance(valor, float):
+        return str(valor).replace(".", ",")
+    return str(valor).replace("'", "").replace(" or ", " o ")
+
+
+def _mensaje(error: dict) -> str:
+    """El mensaje en español de un error de Pydantic. Los ValueError de los validadores propios
+    ya están en español: se usa su texto sin el prefijo "Value error, "."""
+    contexto = error.get("ctx") or {}
+    if error["type"] == "value_error" and "error" in contexto:
+        return str(contexto["error"])
+    plantilla = MENSAJES_VALIDACION.get(error["type"], MENSAJE_VALIDACION_GENERICO)
+    try:
+        return plantilla.format(**{k: _formatear_contexto(v) for k, v in contexto.items()})
+    except KeyError:
+        return MENSAJE_VALIDACION_GENERICO
+
+
 async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSONResponse:
-    errores = [{"campo": _campo(tuple(e["loc"])), "mensaje": e["msg"]} for e in error.errors()]
+    errores = [{"campo": _campo(tuple(e["loc"])), "mensaje": _mensaje(e)} for e in error.errors()]
     return JSONResponse(
         status_code=422,
         content={
