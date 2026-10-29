@@ -106,6 +106,11 @@ def mapear_jugadores(respuesta: list[dict[str, Any]], id_liga_api: int) -> Datos
     )
 
 
+def contar_jugadores_con_minutos(datos: DatosDeLiga) -> int:
+    """Jugadores distintos con minutos_jugados > 0 en alguna de sus filas (RN-027)."""
+    return len({e.id_jugador_api for e in datos.estadisticas if (e.minutos_jugados or 0) > 0})
+
+
 def mapear_posicion(posicion: str | None) -> Posicion | None:
     """RN-019: las 4 posiciones de API-Football. Otra o vacía → None (dato no disponible)."""
     return POSICIONES_API.get(posicion or "")

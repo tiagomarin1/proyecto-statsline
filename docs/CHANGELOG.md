@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-10-29
+- Decisión con el PO: RN-027 aprobada. Cada liga usa la temporada más reciente con al menos 100 jugadores con minutos; el ascenso queda en 2025 hasta que 2026 tenga el plantel cargado, y se pueden mezclar temporadas mostrando la de cada jugador. Implementada en la sincronización (DAT-001).
+
 ## 2026-10-28
 - INF-001 hecho: monorepo con FastAPI, React y PostgreSQL, CI en GitHub Actions y deploy en Render + Aiven. App publicada en https://statsline-4dyy.onrender.com (`/api/v1/salud` responde ok con la base de Aiven).
 - Decisión: la base pasa de MySQL 8 a PostgreSQL 16 (ADR-0010, que reemplaza el motor de ADR-0002). En producción, Aiven for PostgreSQL. La migración `0001` se regeneró para PostgreSQL antes de aplicarse en una base compartida.

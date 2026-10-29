@@ -16,7 +16,7 @@
 | Endpoint | Para qué |
 |---|---|
 | `GET /leagues?country=Argentina` | Confirmar los IDs de liga y la temporada actual (una vez, para el seed) |
-| `GET /leagues?id={id}&current=true` | Temporada actual de cada liga, al inicio de la sincronización |
+| `GET /leagues?id={id}` | Temporadas de cada liga, al inicio de la sincronización, para elegir la de RN-027 |
 | `GET /players?league={id}&season={temporada}&page={n}` | Jugadores con estadísticas, 20 por página, paginado con `paging.total` |
 
 **Presupuesto de pedidos:** unos 50 pedidos por liga (hasta 1.000 jugadores) × 6 ligas ≈ 300 por corrida, bien por debajo del cupo. El cliente lee los headers `x-ratelimit-requests-remaining` y frena si quedan menos de 100.
@@ -40,7 +40,7 @@ Medido con el plan Pro, con 23 pedidos. Las respuestas están grabadas en `backe
 - Las temporadas de `statistics[]` en `/players` traen otras ligas del mismo jugador. En la página de la Liga Profesional solo vino la 128, pero el filtro por liga tiene que estar igual.
 - El mismo jugador puede aparecer dos veces en la misma liga y temporada, con equipos distintos (por ejemplo, "M. Rojo" en la página 1 de la 128). Es el caso de RN-017.
 
-**Decisiones que necesita el PO** (propuestas en `REGLAS_DE_NEGOCIO.md`): qué temporada usar en el ascenso y cómo mostrar Primera C y D. Ver RN-027 y RN-028 **(propuestas)**.
+**Decisiones del PO:** qué temporada usar en el ascenso quedó decidido el 29/10 (RN-027: 2025 hasta que 2026 tenga 100 jugadores con minutos). Falta cómo mostrar Primera C y D (RN-028, **propuesta**).
 
 ### Mapeo de campos
 
@@ -77,7 +77,7 @@ Decisiones de implementación (28/10, validadas por Marin):
 
 - **`Forward` → `delantero`**, como propone RN-019. Si el PO decide otra cosa, se cambia en `POSICIONES_API`.
 - **Un dato que viola las invariantes del modelo queda `NULL`** en lugar de hacer fallar la liga entera: `passes.accuracy` fuera de 0-100, `duels.won` mayor que `duels.total` (quedan los dos en `NULL`) y contadores negativos.
-- **Al terminar bien, `liga.temporada_actual` pasa a ser la temporada sincronizada**, también con `--temporada`. Por defecto es la actual de la API (supuesto de "Temporada"); con `--temporada 2025` se puede cargar el ascenso mientras RN-027 siga como propuesta. La búsqueda y el comparador leen la temporada de `liga.temporada_actual`.
+- **Al terminar bien, `liga.temporada_actual` pasa a ser la temporada sincronizada**, también con `--temporada`. Por defecto la elige RN-027: se piden `/leagues?id=X` (un pedido) y las páginas de cada temporada que se prueba, como máximo 3. La búsqueda y el comparador leen la temporada de `liga.temporada_actual`.
 - **Si la API repite el mismo equipo para un jugador en la liga**, queda la entrada con más minutos: la clave única es jugador + liga + equipo + temporada.
 - **El valor de mercado no se toca:** el upsert del jugador actualiza solo los campos que trae API-Football.
 - Cada intento HTTP, incluidos los reintentos, cuenta en `sincronizacion.pedidos_usados`.

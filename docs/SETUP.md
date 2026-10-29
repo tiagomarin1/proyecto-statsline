@@ -99,7 +99,7 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 | App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de PostgreSQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
 | PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Si pasa en `main`, el job `desplegar` llama al deploy hook de Render |
-| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina, las 6 ligas con la temporada actual de la API. A mano: *Actions → Sincronización diaria → Run workflow*, con liga y temporada opcionales |
+| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina, las 6 ligas con la temporada que elige RN-027. A mano: *Actions → Sincronización diaria → Run workflow*, con liga y temporada opcionales |
 
 ### 1. Base en Aiven
 

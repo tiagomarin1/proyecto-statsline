@@ -15,7 +15,7 @@ on:
         description: "id interno de la liga (vacío = las 6)"
         required: false
       temporada:
-        description: "año de la temporada (vacío = la actual de API-Football)"
+        description: "año de la temporada (vacío = la que elige RN-027)"
         required: false
 
 concurrency:

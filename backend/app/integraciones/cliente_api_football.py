@@ -48,20 +48,18 @@ class ClienteApiFootball:
     def __exit__(self, *_excepcion) -> None:
         self._http.close()
 
-    def temporada_actual(self, id_liga: int) -> int:
-        """Año de la temporada que la API marca como actual (`/leagues?id=X&current=true`)."""
-        datos = self.obtener("/leagues", {"id": id_liga, "current": "true"})
-        temporadas = [
+    def temporadas(self, id_liga: int) -> list[int]:
+        """Años de las temporadas de la liga (`/leagues?id=X`), de la más nueva a la más vieja."""
+        datos = self.obtener("/leagues", {"id": id_liga})
+        temporadas = {
             temporada["year"]
             for liga in datos["response"]
             for temporada in liga.get("seasons", [])
-            if temporada.get("current")
-        ]
+            if isinstance(temporada.get("year"), int)
+        }
         if not temporadas:
-            raise ErrorApiFootball(
-                f"API-Football no informa la temporada actual de la liga {id_liga}."
-            )
-        return max(temporadas)
+            raise ErrorApiFootball(f"API-Football no informa temporadas de la liga {id_liga}.")
+        return sorted(temporadas, reverse=True)
 
     def jugadores(self, id_liga: int, temporada: int) -> list[dict[str, Any]]:
         """Todas las páginas de `/players` de una liga y temporada (RN-025: antes de escribir)."""
