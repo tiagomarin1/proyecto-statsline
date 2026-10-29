@@ -4,10 +4,12 @@ from pathlib import Path
 from typing import Annotated
 
 import pytest
-from fastapi import Query
+from fastapi import Body, Query
 from fastapi.testclient import TestClient
+from pydantic import AfterValidator
 from sqlalchemy.exc import DataError
 
+from app.errores import _formatear_contexto
 from app.esquemas.auth import PedidoRegistro
 from app.esquemas.busqueda import FiltrosBusqueda
 from app.esquemas.comparacion import PedidoComparacion
@@ -70,6 +72,24 @@ def _app_con_rutas_de_prueba(tmp_path: Path) -> TestClient:
 
     @app.get("/api/v1/prueba-patron")
     def prueba_patron(codigo: Annotated[str, Query(pattern="^[a-z]+$")]) -> dict:
+        return {}
+
+    @app.get("/api/v1/prueba-decimales")
+    def prueba_decimales(valor: Annotated[float, Query(ge=1234.5)]) -> dict:
+        return {}
+
+    def _convertir_con_int(valor: str) -> str:
+        int(valor)  # ValueError en inglés: "invalid literal for int() ..."
+        return valor
+
+    @app.get("/api/v1/prueba-value-error")
+    def prueba_value_error(
+        codigo: Annotated[str, AfterValidator(_convertir_con_int), Query()],
+    ) -> dict:
+        return {}
+
+    @app.put("/api/v1/prueba-cuerpo")
+    def prueba_cuerpo(pedido: Annotated[PedidoPerfilBusqueda, Body()]) -> dict:
         return {}
 
     return TestClient(app)
@@ -153,3 +173,55 @@ def test_inf001_un_error_sin_mensaje_propio_usa_uno_generico_en_espanol(tmp_path
     )
 
     assert respuesta.json()["errores"] == [{"campo": "codigo", "mensaje": "El valor no es válido."}]
+
+
+def test_inf001_un_value_error_que_no_es_propio_no_muestra_su_texto_en_ingles(tmp_path: Path):
+    respuesta = _app_con_rutas_de_prueba(tmp_path).get(
+        "/api/v1/prueba-value-error", params={"codigo": "abc"}
+    )
+
+    assert respuesta.json()["errores"] == [{"campo": "codigo", "mensaje": "El valor no es válido."}]
+
+
+def test_inf001_un_limite_con_decimales_se_escribe_como_en_la_ui(tmp_path: Path):
+    respuesta = _app_con_rutas_de_prueba(tmp_path).get(
+        "/api/v1/prueba-decimales", params={"valor": 1}
+    )
+
+    assert respuesta.json()["errores"] == [
+        {"campo": "valor", "mensaje": "Tiene que ser mayor o igual a 1.234,5."}
+    ]
+
+
+@pytest.mark.parametrize(
+    ("contenido", "mensaje"),
+    [
+        ('{"edad_min": 20,', "El cuerpo del pedido no es un JSON válido."),
+        ("[1, 2]", "El cuerpo del pedido no tiene el formato esperado."),
+    ],
+)
+def test_inf001_un_error_de_todo_el_cuerpo_se_marca_en_el_campo_cuerpo(
+    tmp_path: Path, contenido: str, mensaje: str
+):
+    respuesta = _app_con_rutas_de_prueba(tmp_path).put(
+        "/api/v1/prueba-cuerpo", content=contenido, headers={"Content-Type": "application/json"}
+    )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["errores"] == [{"campo": "cuerpo", "mensaje": mensaje}]
+
+
+@pytest.mark.parametrize(
+    ("clave", "valor", "texto"),
+    [
+        ("ge", 20_000, "20.000"),
+        ("ge", 20_000.0, "20.000"),
+        ("ge", 1234.5, "1.234,5"),
+        ("gt", 0.00001, "0,00001"),
+        ("ge", True, "verdadero"),
+        ("expected", "'minutos', 'valor' or 'edad'", "minutos, valor o edad"),
+        ("pattern", "'a' or 'b'", "'a' or 'b'"),
+    ],
+)
+def test_inf001_los_datos_del_mensaje_se_escriben_como_en_la_ui(clave: str, valor, texto: str):
+    assert _formatear_contexto(clave, valor) == texto

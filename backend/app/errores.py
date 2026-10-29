@@ -1,5 +1,7 @@
 """Formato único de errores de la API: {"detalle", "codigo"} (CONTRATO_DE_API.md)."""
 
+from decimal import Decimal
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -43,6 +45,8 @@ MENSAJES_VALIDACION = {
     "dict_type": MENSAJE_FORMATO_CUERPO,
 }
 MENSAJE_VALIDACION_GENERICO = "El valor no es válido."
+# Campo de los errores del cuerpo entero (un JSON roto, un cuerpo que no es un objeto)
+CAMPO_CUERPO = "cuerpo"
 
 
 class ErrorApi(Exception):
@@ -62,6 +66,11 @@ class ErrorApi(Exception):
         self.errores = errores
 
 
+class ValorInvalido(ValueError):
+    """ValueError de un validador propio: su mensaje ya está en español y llega tal cual al
+    usuario. Un ValueError común (de una librería, de un int()) usa el mensaje genérico."""
+
+
 class ErrorValidacion(ErrorApi):
     """422 con un mensaje por campo: {"detalle", "codigo": "validacion", "errores"}."""
 
@@ -69,9 +78,13 @@ class ErrorValidacion(ErrorApi):
         super().__init__(422, "validacion", DETALLE_VALIDACION, errores)
 
 
-def _campo(ubicacion: tuple) -> str:
+def _campo(error: dict) -> str:
+    ubicacion = tuple(error["loc"])
+    # Un JSON roto trae la posición del carácter en lugar de un campo
+    if error["type"] == "json_invalid" or len(ubicacion) == 1:
+        return CAMPO_CUERPO
     # Se saca el origen ("body", "query", ...) para devolver solo el nombre del campo
-    return ".".join(str(parte) for parte in ubicacion[1:]) or str(ubicacion[0])
+    return ".".join(str(parte) for parte in ubicacion[1:])
 
 
 async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
@@ -81,32 +94,35 @@ async def _manejar_error_api(_: Request, error: ErrorApi) -> JSONResponse:
     return JSONResponse(status_code=error.status_code, content=contenido)
 
 
-def _formatear_contexto(valor: object) -> str:
-    """Números como en la UI (20.000, 1,5) y opciones sin comillas ("a, b o c")."""
-    if isinstance(valor, float) and valor.is_integer():
-        valor = int(valor)
-    if isinstance(valor, int):
-        return f"{valor:,}".replace(",", ".")
-    if isinstance(valor, float):
-        return str(valor).replace(".", ",")
-    return str(valor).replace("'", "").replace(" or ", " o ")
+def _formatear_contexto(clave: str, valor: object) -> str:
+    """Números como en la UI (20.000, 1.234,5) y las opciones de `expected` sin comillas
+    ("a, b o c")."""
+    if isinstance(valor, bool):
+        return "verdadero" if valor else "falso"
+    if isinstance(valor, int | float | Decimal):
+        # normalize saca los ceros de más y "f" evita la notación científica (1e-05)
+        texto = f"{Decimal(str(valor)).normalize():,f}"
+        return texto.translate(str.maketrans(",.", ".,"))
+    if clave == "expected":
+        return str(valor).replace("'", "").replace(" or ", " o ")
+    return str(valor)
 
 
 def _mensaje(error: dict) -> str:
-    """El mensaje en español de un error de Pydantic. Los ValueError de los validadores propios
+    """El mensaje en español de un error de Pydantic. Los ValorInvalido de los validadores propios
     ya están en español: se usa su texto sin el prefijo "Value error, "."""
     contexto = error.get("ctx") or {}
-    if error["type"] == "value_error" and "error" in contexto:
+    if isinstance(contexto.get("error"), ValorInvalido):
         return str(contexto["error"])
     plantilla = MENSAJES_VALIDACION.get(error["type"], MENSAJE_VALIDACION_GENERICO)
     try:
-        return plantilla.format(**{k: _formatear_contexto(v) for k, v in contexto.items()})
+        return plantilla.format(**{k: _formatear_contexto(k, v) for k, v in contexto.items()})
     except KeyError:
         return MENSAJE_VALIDACION_GENERICO
 
 
 async def _manejar_validacion(_: Request, error: RequestValidationError) -> JSONResponse:
-    errores = [{"campo": _campo(tuple(e["loc"])), "mensaje": _mensaje(e)} for e in error.errors()]
+    errores = [{"campo": _campo(e), "mensaje": _mensaje(e)} for e in error.errors()]
     return JSONResponse(
         status_code=422,
         content={

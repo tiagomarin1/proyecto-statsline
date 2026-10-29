@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, ValidationInfo
 
+from app.errores import ValorInvalido
 from app.modelos.enums import Cobertura, Posicion
 
 EDAD_MINIMA = 15
@@ -43,11 +44,12 @@ def _edad_max_desde_edad_min(edad_max: int | None, info: ValidationInfo) -> int 
     """RN-024: edad_min <= edad_max. El error se marca en edad_max, que se valida después."""
     edad_min = info.data.get("edad_min")
     if edad_max is not None and edad_min is not None and edad_min > edad_max:
-        raise ValueError(MENSAJE_EDAD_INVERTIDA)
+        raise ValorInvalido(MENSAJE_EDAD_INVERTIDA)
     return edad_max
 
 
-# Va declarado después de edad_min: así info.data ya lo tiene
+# Va declarado después de edad_min: así info.data ya lo tiene. Lo controla
+# test_bus001_edad_max_se_declara_despues_de_edad_min.
 EdadMaxima = Annotated[Edad, AfterValidator(_edad_max_desde_edad_min)]
 Porcentaje = Annotated[Annotated[float, Field(ge=0, le=PORCENTAJE_MAXIMO)] | None, SinFiltroSiVacio]
 Recuperaciones = Annotated[
