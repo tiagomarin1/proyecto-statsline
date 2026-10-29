@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, BeforeValidator, Field, model_validator
 
+from app.errores import ValorInvalido
 from app.modelos.enums import Cobertura, Posicion
 
 EDAD_MINIMA = 15
@@ -36,6 +37,15 @@ def _vacio_a_none(valor: Any) -> Any:
 SinFiltroSiVacio = BeforeValidator(_vacio_a_none)
 # Los rangos van dentro del Optional: así "" → None no choca con ge/le
 Edad = Annotated[Annotated[int, Field(ge=EDAD_MINIMA, le=EDAD_MAXIMA)] | None, SinFiltroSiVacio]
+MENSAJE_EDAD_INVERTIDA = "La edad mínima no puede ser mayor que la edad máxima."
+
+
+def validar_rango_de_edad(edad_min: int | None, edad_max: int | None) -> None:
+    """RN-024: edad_min <= edad_max. El error se marca en edad_max."""
+    if edad_min is not None and edad_max is not None and edad_min > edad_max:
+        raise ValorInvalido(MENSAJE_EDAD_INVERTIDA, campo="edad_max")
+
+
 Porcentaje = Annotated[Annotated[float, Field(ge=0, le=PORCENTAJE_MAXIMO)] | None, SinFiltroSiVacio]
 Recuperaciones = Annotated[
     Annotated[float, Field(ge=0, le=RECUPERACIONES_MAXIMAS)] | None, SinFiltroSiVacio
@@ -66,9 +76,7 @@ class FiltrosBusqueda(BaseModel):
 
     @model_validator(mode="after")
     def edad_min_hasta_edad_max(self) -> "FiltrosBusqueda":
-        ambas = self.edad_min is not None and self.edad_max is not None
-        if ambas and self.edad_min > self.edad_max:
-            raise ValueError("La edad mínima no puede ser mayor que la edad máxima.")
+        validar_rango_de_edad(self.edad_min, self.edad_max)
         return self
 
 

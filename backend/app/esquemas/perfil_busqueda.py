@@ -11,6 +11,7 @@ from app.esquemas.busqueda import (
     Presupuesto,
     Recuperaciones,
     SinFiltroSiVacio,
+    validar_rango_de_edad,
 )
 from app.modelos.enums import Posicion
 
@@ -36,9 +37,7 @@ class PedidoPerfilBusqueda(PerfilBusquedaBase):
 
     @model_validator(mode="after")
     def edad_min_hasta_edad_max(self) -> "PedidoPerfilBusqueda":
-        ambas = self.edad_min is not None and self.edad_max is not None
-        if ambas and self.edad_min > self.edad_max:
-            raise ValueError("La edad mínima no puede ser mayor que la edad máxima.")
+        validar_rango_de_edad(self.edad_min, self.edad_max)
         return self
 
 
