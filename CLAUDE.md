@@ -62,6 +62,6 @@ Recién después de esto se escribe el primer test (rojo), después el código (
 
 Ver la sección "Pendientes" de `docs/REGLAS_DE_NEGOCIO.md`. Los más importantes:
 
-- RN-027 **(propuesta)**: qué temporada se usa en las ligas del ascenso. Mientras no se decida, el cron diario sincroniza la temporada actual de la API.
+- RN-028 **(propuesta)**: cómo se muestran Primera C y Primera D, que no tienen datos en ninguna temporada.
 - RN-002, paso 2b **(propuesta)**: el cruce por palabras con Transfermarkt.
 - El valor de mercado casi no cubre el ascenso (el dataset solo tiene la Liga Profesional). Ver RN-002.

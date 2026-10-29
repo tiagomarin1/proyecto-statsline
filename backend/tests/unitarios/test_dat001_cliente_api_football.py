@@ -4,11 +4,16 @@ import httpx
 import pytest
 
 from app.integraciones.cliente_api_football import ClienteApiFootball, ErrorApiFootball
-from tests.api_football_falsa import ApiFootballFalsa, cargar_fixture, partir_en_paginas
+from tests.api_football_falsa import (
+    ApiFootballFalsa,
+    cargar_fixture,
+    partir_en_paginas,
+    respuesta_liga,
+)
 
 CLAVE = "clave-secreta-de-prueba"
 LIGA_PROFESIONAL = 128
-PRIMERA_D = 133
+PRIMERA_NACIONAL = 129
 TEMPORADA = 2026
 
 
@@ -138,20 +143,19 @@ def test_dat001_se_frena_si_quedan_menos_de_100_pedidos(api, cliente_api):
     assert cliente_api.pedidos_usados == 1
 
 
-def test_dat001_temporada_actual_sale_de_leagues_current(api, cliente_api):
-    api.responder(
-        "/leagues",
-        {"id": PRIMERA_D, "current": "true"},
-        cargar_fixture("league_133_temporada_vieja"),
-    )
+def test_dat001_temporadas_de_una_liga_de_la_mas_nueva_a_la_mas_vieja(api, cliente_api):
+    api.responder("/leagues", {"id": PRIMERA_NACIONAL}, respuesta_liga(PRIMERA_NACIONAL))
 
-    assert cliente_api.temporada_actual(PRIMERA_D) == 2023
+    temporadas = cliente_api.temporadas(PRIMERA_NACIONAL)
+
+    assert temporadas[:3] == [2026, 2025, 2024]
+    assert temporadas == sorted(set(temporadas), reverse=True)
 
 
-def test_dat001_sin_temporada_actual_es_error(api, cliente_api):
-    sin_temporadas = cargar_fixture("league_133_temporada_vieja")
+def test_dat001_una_liga_sin_temporadas_es_error(api, cliente_api):
+    sin_temporadas = respuesta_liga(PRIMERA_NACIONAL)
     sin_temporadas["response"] = []
-    api.responder("/leagues", {"id": PRIMERA_D, "current": "true"}, sin_temporadas)
+    api.responder("/leagues", {"id": PRIMERA_NACIONAL}, sin_temporadas)
 
-    with pytest.raises(ErrorApiFootball, match="temporada actual"):
-        cliente_api.temporada_actual(PRIMERA_D)
+    with pytest.raises(ErrorApiFootball, match="temporadas"):
+        cliente_api.temporadas(PRIMERA_NACIONAL)

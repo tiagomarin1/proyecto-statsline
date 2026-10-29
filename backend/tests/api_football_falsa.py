@@ -19,17 +19,12 @@ def cargar_fixture(nombre: str) -> dict:
     return json.loads((DIRECTORIO_FIXTURES / f"{nombre}.json").read_text(encoding="utf-8"))
 
 
-def respuesta_liga_actual(id_liga: int) -> dict:
-    """Respuesta de /leagues?id=X&current=true armada con la liga real de leagues_argentina."""
+def respuesta_liga(id_liga: int) -> dict:
+    """Respuesta de /leagues?id=X (con todas sus temporadas), armada con la liga real de
+    leagues_argentina."""
     argentina = cargar_fixture("leagues_argentina")
     liga = next(r for r in argentina["response"] if r["league"]["id"] == id_liga)
-    liga = {**liga, "seasons": [s for s in liga["seasons"] if s["current"]]}
-    return {
-        **argentina,
-        "parameters": {"id": str(id_liga), "current": "true"},
-        "results": 1,
-        "response": [liga],
-    }
+    return {**argentina, "parameters": {"id": str(id_liga)}, "results": 1, "response": [liga]}
 
 
 def partir_en_paginas(fixture: dict, cantidad: int) -> list[dict]:

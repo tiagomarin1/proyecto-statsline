@@ -19,7 +19,7 @@ Fuente única de las reglas de cálculo y de decisión. Las specs las citan por 
 
 **Ligas del MVP:** Liga Profesional, Primera Nacional, Primera B Metropolitana, Primera C, Primera D y Torneo Federal A.
 
-**Temporada (supuesto):** para cada liga se usa la temporada actual que informa API-Football (`/leagues?id=X&current=true`). Se guarda en `liga.temporada_actual`, y la ficha y el comparador la muestran.
+**Temporada:** cada liga usa la temporada que elige RN-027 (decidida el 29/10). Se guarda en `liga.temporada_actual`, y la ficha y el comparador la muestran.
 
 ---
 
@@ -399,23 +399,25 @@ Usada en: DAT-001, DAT-002.
 
 Usada en: SEG-001.
 
-### RN-027 Temporada que se usa en cada liga (propuesta, 28/10)
+### RN-027 Temporada que se usa en cada liga (decidida con el PO, 29/10)
 
-**Contexto:** el supuesto de "Temporada" (arriba de todo) dice que se usa la temporada actual que informa la API. Con eso, en Primera Nacional, B Metropolitana, Primera C y Federal A la base quedaría casi vacía: la temporada 2026 tiene entre 0 y 4 jugadores cargados. La temporada 2025 de esas ligas sí tiene los planteles, con minutos y posición.
+**Contexto:** con la temporada "actual" de la API, en Primera Nacional, B Metropolitana, Primera C y Federal A la base quedaba casi vacía: la temporada 2026 tiene entre 0 y 4 jugadores cargados. La temporada 2025 de esas ligas sí tiene los planteles, con minutos y posición. El PO eligió mostrar el ascenso con datos de 2025 en lugar de dejarlo sin datos.
 
-**Propuesta:** para cada liga se usa **la temporada más reciente que tenga jugadores con minutos**:
+**Regla:** para cada liga se usa **la temporada más reciente que tenga al menos 100 jugadores con minutos jugados**:
 
 ```
-para cada temporada de la liga, de la más nueva a la más vieja:
-    si /players de esa temporada trae al menos un jugador con minutos_jugados > 0: se usa esa
-si ninguna cumple: la liga queda sin_datos (RN-020)
+para cada una de las 3 temporadas más nuevas de la liga (/leagues?id=X), de la más nueva a la más vieja:
+    si /players de esa temporada trae al menos 100 jugadores distintos con minutos_jugados > 0: se usa esa
+si ninguna cumple: se usa la más nueva y la liga queda sin_datos o basica según RN-020
 ```
 
-La ficha, el comparador y el selector de ligas muestran la temporada de cada liga ("Primera Nacional · Temporada 2025").
+- **El umbral de 100** evita que, al arrancar una temporada, la liga pase a una temporada con 2 o 3 jugadores cargados. Hasta que la nueva tenga el plantel, la liga sigue en la anterior.
+- **Se mezclan temporadas:** la búsqueda en todas las ligas, el comparador y el promedio de la posición (RN-015) pueden juntar jugadores de temporadas distintas. Cada jugador muestra su temporada ("Primera Nacional · Temporada 2025").
+- Con `--temporada` (corrida manual) no se aplica la regla: se usa la temporada pedida.
 
-**Ejemplo (datos del 28/10):** Liga Profesional → 2026. Primera Nacional → 2025. Primera D → ninguna temporada tiene minutos → `sin_datos`.
+**Ejemplo (datos del 29/10):** Liga Profesional → 2026 (unos 1.200 jugadores con minutos). Primera Nacional → 2026 tiene 4 jugadores y ninguno con minutos, así que no alcanza → 2025. Primera C → ni 2026, ni 2025, ni 2024 llegan a 100 → queda en 2026, `sin_datos`.
 
-**Pendiente de validar con el PO.** La alternativa es seguir con la temporada actual y aceptar que el ascenso quede vacío para la demo.
+Implementada en DAT-001 (`servicios/temporada.py` y `elegir_temporada` en `sincronizacion/api_football.py`).
 
 ### RN-028 Cobertura esperada de cada liga para la demo (propuesta, 28/10)
 
@@ -435,7 +437,8 @@ Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 ## Pendientes
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
-- **PO:** validar RN-027 y RN-028 **(propuestas)**, el mapeo de `Forward` en RN-019 y el cruce por palabras de RN-002 (paso 2b).
+- ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.
+- **PO:** validar RN-028 **(propuesta)**, el mapeo de `Forward` en RN-019 y el cruce por palabras de RN-002 (paso 2b).
 - **PO, antes del Demo Day:** el valor de mercado casi no cubre el ascenso (RN-002, cobertura medida). Decidir si la demo del presupuesto se apoya en la Liga Profesional.
 - ~~**Backend:** verificar la cobertura de transfermarkt-datasets en las ligas argentinas.~~ Medida el 28/10 en DAT-002 (ver RN-002).
 - **Diseño:** ajustar el prototipo:
