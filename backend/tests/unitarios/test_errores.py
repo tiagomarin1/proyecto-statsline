@@ -6,7 +6,7 @@ from typing import Annotated
 import pytest
 from fastapi import Body, Query
 from fastapi.testclient import TestClient
-from pydantic import AfterValidator
+from pydantic import AfterValidator, BaseModel, model_validator
 from sqlalchemy.exc import DataError
 
 from app.errores import _formatear_contexto
@@ -90,6 +90,17 @@ def _app_con_rutas_de_prueba(tmp_path: Path) -> TestClient:
 
     @app.put("/api/v1/prueba-cuerpo")
     def prueba_cuerpo(pedido: Annotated[PedidoPerfilBusqueda, Body()]) -> dict:
+        return {}
+
+    class ConsultaConReglaDelModelo(BaseModel):
+        codigo: str = ""
+
+        @model_validator(mode="after")
+        def falla_siempre(self) -> "ConsultaConReglaDelModelo":
+            raise ValueError("model error")
+
+    @app.get("/api/v1/prueba-consulta-modelo")
+    def prueba_consulta_modelo(consulta: Annotated[ConsultaConReglaDelModelo, Query()]) -> dict:
         return {}
 
     return TestClient(app)
@@ -209,6 +220,14 @@ def test_inf001_un_error_de_todo_el_cuerpo_se_marca_en_el_campo_cuerpo(
 
     assert respuesta.status_code == 422
     assert respuesta.json()["errores"] == [{"campo": "cuerpo", "mensaje": mensaje}]
+
+
+def test_inf001_un_error_de_toda_la_consulta_no_se_marca_en_el_cuerpo(tmp_path: Path):
+    respuesta = _app_con_rutas_de_prueba(tmp_path).get("/api/v1/prueba-consulta-modelo")
+
+    assert respuesta.json()["errores"] == [
+        {"campo": "consulta", "mensaje": "El valor no es válido."}
+    ]
 
 
 @pytest.mark.parametrize(
