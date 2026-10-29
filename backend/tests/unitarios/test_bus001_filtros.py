@@ -1,9 +1,14 @@
 """BUS-001 a BUS-003: validación de los filtros de búsqueda (RN-024)."""
 
-import pytest
-from pydantic import ValidationError
+import importlib
+import inspect
+import pkgutil
 
-from app.esquemas.busqueda import FiltrosBusqueda
+import pytest
+from pydantic import BaseModel, ValidationError
+
+import app.esquemas
+from app.esquemas.busqueda import FiltrosBusqueda, _edad_max_desde_edad_min
 
 
 def test_bus001_un_filtro_vacio_equivale_a_sin_filtro():
@@ -20,6 +25,36 @@ def test_bus001_un_filtro_vacio_equivale_a_sin_filtro():
 def test_bus001_edad_min_mayor_que_edad_max_es_invalido():
     with pytest.raises(ValidationError, match="edad mínima"):
         FiltrosBusqueda(edad_min=30, edad_max=25)
+
+
+def _esquemas_con_edad_maxima() -> list[type[BaseModel]]:
+    modulos = [
+        importlib.import_module(f"app.esquemas.{modulo.name}")
+        for modulo in pkgutil.iter_modules(app.esquemas.__path__)
+    ]
+    return [
+        clase
+        for modulo in modulos
+        for _, clase in inspect.getmembers(modulo, inspect.isclass)
+        if issubclass(clase, BaseModel)
+        and "edad_max" in clase.model_fields
+        and any(
+            getattr(validador, "func", None) is _edad_max_desde_edad_min
+            for validador in clase.model_fields["edad_max"].metadata
+        )
+    ]
+
+
+def test_bus001_edad_max_se_declara_despues_de_edad_min():
+    """El validador de edad_max lee edad_min de info.data: si edad_min se valida después, la
+    regla deja de correr sin avisar y el CHECK de la base responde 500."""
+    esquemas = _esquemas_con_edad_maxima()
+
+    assert esquemas, "Ningún esquema usa EdadMaxima: el test no está mirando nada."
+    for esquema in esquemas:
+        campos = list(esquema.model_fields)
+        assert "edad_min" in campos, esquema.__name__
+        assert campos.index("edad_min") < campos.index("edad_max"), esquema.__name__
 
 
 @pytest.mark.parametrize(
