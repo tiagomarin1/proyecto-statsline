@@ -8,7 +8,7 @@ import threading
 import time
 
 import pytest
-from sqlalchemy import Engine, delete, func, select, text
+from sqlalchemy import Engine, delete, select, text
 from sqlalchemy.orm import Session
 
 from app.esquemas.perfil_busqueda import PedidoPerfilBusqueda
@@ -89,6 +89,8 @@ def test_bus005_dos_guardados_simultaneos_del_primer_perfil_no_fallan(
         finally:
             primera.commit()
             hilo.join(SEGUNDOS_MAXIMOS_DE_ESPERA)
+        # Si siguiera vivo, cerrar `segunda` al salir del with la cortaría a mitad del guardado
+        assert not hilo.is_alive(), "El segundo guardado no terminó."
 
     assert errores == []
     with Session(engine_test) as session:
@@ -98,4 +100,3 @@ def test_bus005_dos_guardados_simultaneos_del_primer_perfil_no_fallan(
         assert [(p.posicion, p.edad_min, p.edad_max) for p in perfiles] == [
             (Posicion.delantero, 18, 30)
         ]
-        assert session.scalar(select(func.count()).select_from(PerfilBusqueda)) == 1
