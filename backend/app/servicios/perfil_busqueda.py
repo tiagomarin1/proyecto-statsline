@@ -58,12 +58,8 @@ def guardar(session: Session, usuario_id: int, pedido: PedidoPerfilBusqueda) -> 
     if repositorio_liga.obtener_por_id(session, pedido.liga_id) is None:
         raise ErrorApi(404, "liga_inexistente", "No existe esa liga.")
 
-    perfil = repositorio_perfil.obtener_por_usuario(session, usuario_id)
-    if perfil is None:
-        perfil = PerfilBusqueda(usuario_id=usuario_id)
     # Reemplazar = pisar todos los campos, también los opcionales que ahora vienen vacíos
-    for campo in CAMPOS_GUARDABLES:
-        setattr(perfil, campo, getattr(pedido, campo))
-    repositorio_perfil.agregar(session, perfil)
+    valores = {campo: getattr(pedido, campo) for campo in CAMPOS_GUARDABLES}
+    perfil = repositorio_perfil.guardar(session, usuario_id, valores)
     session.commit()
     return perfil
