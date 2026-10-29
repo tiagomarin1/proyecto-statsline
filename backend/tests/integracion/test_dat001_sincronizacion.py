@@ -12,13 +12,15 @@ from tests.api_football_falsa import (
     ApiFootballFalsa,
     cargar_fixture,
     partir_en_paginas,
-    respuesta_liga_actual,
+    respuesta_liga,
 )
 from tests.fabricas import crear_estadistica, crear_jugador, crear_liga
 
 pytestmark = pytest.mark.integracion
 
 CLAVE = "clave-secreta-de-prueba"
+# RN-027 pide 100 jugadores con minutos; cada página real de los fixtures trae 20
+UMBRAL_DE_PRUEBA = 10
 
 
 @pytest.fixture
@@ -47,7 +49,7 @@ def _paginas_liga_completa() -> list[dict]:
 
 
 def _responder_liga_completa(api: ApiFootballFalsa) -> None:
-    api.responder("/leagues", {"id": 128, "current": "true"}, respuesta_liga_actual(128))
+    api.responder("/leagues", {"id": 128}, respuesta_liga(128))
     api.responder_jugadores(128, 2026, _paginas_liga_completa())
 
 
@@ -70,7 +72,9 @@ def _jugador(session: Session, id_api_football: int) -> Jugador:
 def test_dat001_sincronizacion_exitosa_de_una_liga(session, api, cliente_api, liga_profesional):
     _responder_liga_completa(api)
 
-    sincronizacion = sincronizar_liga(session, cliente_api, liga_profesional)
+    sincronizacion = sincronizar_liga(
+        session, cliente_api, liga_profesional, umbral_jugadores=UMBRAL_DE_PRUEBA
+    )
 
     session.expire_all()
     assert _cantidad(session, Jugador) == 20
@@ -98,12 +102,12 @@ def test_dat001_sincronizar_dos_veces_actualiza_sin_duplicar(
     session, api, cliente_api, liga_profesional
 ):
     _responder_liga_completa(api)
-    sincronizar_liga(session, cliente_api, liga_profesional)
+    sincronizar_liga(session, cliente_api, liga_profesional, umbral_jugadores=UMBRAL_DE_PRUEBA)
 
     paginas = _paginas_liga_completa()
     paginas[0]["response"][0]["statistics"][0]["games"]["minutes"] = 1600
     api.responder_jugadores(128, 2026, paginas)
-    sincronizar_liga(session, cliente_api, liga_profesional)
+    sincronizar_liga(session, cliente_api, liga_profesional, umbral_jugadores=UMBRAL_DE_PRUEBA)
 
     session.expire_all()
     assert _cantidad(session, Jugador) == 20
@@ -125,7 +129,7 @@ def test_dat001_la_sincronizacion_no_pisa_el_valor_de_mercado(
     crear_jugador(session, nombre="Viejo nombre", id_api_football=30, valor_mercado_eur=500_000)
     _responder_liga_completa(api)
 
-    sincronizar_liga(session, cliente_api, liga_profesional)
+    sincronizar_liga(session, cliente_api, liga_profesional, umbral_jugadores=UMBRAL_DE_PRUEBA)
 
     session.expire_all()
     arias = _jugador(session, 30)
@@ -155,17 +159,57 @@ def test_dat001_metricas_que_la_liga_no_publica_quedan_null(session, api, client
     assert primera_nacional.cobertura == Cobertura.basica
 
 
-def test_dat001_una_liga_sin_jugadores_queda_sin_datos(session, api, cliente_api):
+def test_dat001_rn027_si_ninguna_temporada_alcanza_queda_la_mas_nueva_sin_datos(
+    session, api, cliente_api
+):
+    # Primera C: ninguna de las 3 temporadas más nuevas tiene jugadores con minutos
     primera_c = crear_liga(
         session, nombre="Primera C", id_api_football=132, cobertura=Cobertura.basica
     )
-    api.responder("/leagues", {"id": 132, "current": "true"}, respuesta_liga_actual(132))
-    api.responder_jugadores(132, 2026, [cargar_fixture("players_liga_sin_datos_132_2026_p1")])
+    api.responder("/leagues", {"id": 132}, respuesta_liga(132))
+    sin_jugadores = cargar_fixture("players_liga_sin_datos_132_2026_p1")
+    for temporada in (2026, 2025, 2024):
+        api.responder_jugadores(132, temporada, [sin_jugadores])
 
-    sincronizacion = sincronizar_liga(session, cliente_api, primera_c)
+    sincronizacion = sincronizar_liga(
+        session, cliente_api, primera_c, umbral_jugadores=UMBRAL_DE_PRUEBA
+    )
 
     assert sincronizacion.estado == EstadoSincronizacion.ok
+    assert sincronizacion.temporada == 2026
+    # /leagues y una página por cada una de las 3 temporadas: no se prueba una cuarta
+    assert sincronizacion.pedidos_usados == 4
+    assert primera_c.temporada_actual == 2026
     assert primera_c.cobertura == Cobertura.sin_datos
+
+
+def test_dat001_rn027_si_la_temporada_nueva_no_alcanza_usa_la_anterior(session, api, cliente_api):
+    # Primera Nacional: 2026 tiene 3 jugadores y 2025 tiene el plantel (14 con minutos)
+    primera_nacional = crear_liga(session, nombre="Primera Nacional", id_api_football=129)
+    basica = cargar_fixture("players_liga_basica_129_2025_p1")
+    casi_vacia = partir_en_paginas({**basica, "response": basica["response"][:3]}, 1)
+    api.responder("/leagues", {"id": 129}, respuesta_liga(129))
+    api.responder_jugadores(129, 2026, casi_vacia)
+    api.responder_jugadores(129, 2025, partir_en_paginas(basica, 1))
+
+    sincronizacion = sincronizar_liga(
+        session, cliente_api, primera_nacional, umbral_jugadores=UMBRAL_DE_PRUEBA
+    )
+
+    session.expire_all()
+    assert sincronizacion.estado == EstadoSincronizacion.ok
+    assert sincronizacion.temporada == 2025
+    assert sincronizacion.pedidos_usados == 3
+    liga = session.get(Liga, primera_nacional.id)
+    assert liga.temporada_actual == 2025
+    assert liga.cobertura == Cobertura.basica
+    # Solo se guarda la temporada elegida
+    temporadas = session.scalars(
+        select(EstadisticaTemporada.temporada)
+        .where(EstadisticaTemporada.liga_id == liga.id)
+        .distinct()
+    ).all()
+    assert temporadas == [2025]
 
 
 def test_dat001_si_la_api_falla_a_mitad_de_camino_los_datos_anteriores_quedan_intactos(
@@ -180,11 +224,13 @@ def test_dat001_si_la_api_falla_a_mitad_de_camino_los_datos_anteriores_quedan_in
     )
     session.commit()
     pagina1, _ = _paginas_liga_completa()
-    api.responder("/leagues", {"id": 128, "current": "true"}, respuesta_liga_actual(128))
+    api.responder("/leagues", {"id": 128}, respuesta_liga(128))
     api.responder("/players", {"league": 128, "season": 2026, "page": 1}, pagina1)
     api.responder("/players", {"league": 128, "season": 2026, "page": 2}, 500)
 
-    sincronizacion = sincronizar_liga(session, cliente_api, liga_profesional)
+    sincronizacion = sincronizar_liga(
+        session, cliente_api, liga_profesional, umbral_jugadores=UMBRAL_DE_PRUEBA
+    )
 
     session.expire_all()
     assert _cantidad(session, Jugador) == 1
@@ -223,10 +269,10 @@ def test_dat001_sin_liga_se_sincronizan_todas_y_si_una_falla_las_demas_siguen(
 ):
     primera_c = crear_liga(session, nombre="Primera C", id_api_football=132, orden=1)
     liga_profesional.orden = 2
-    api.responder("/leagues", {"id": 132, "current": "true"}, 500)
+    api.responder("/leagues", {"id": 132}, 500)
     _responder_liga_completa(api)
 
-    codigo_de_salida = ejecutar(session, cliente_api)
+    codigo_de_salida = ejecutar(session, cliente_api, umbral_jugadores=UMBRAL_DE_PRUEBA)
 
     session.expire_all()
     assert codigo_de_salida == 1
@@ -241,7 +287,9 @@ def test_dat001_con_liga_se_sincroniza_solo_esa_y_sale_con_0(
     otra = crear_liga(session, nombre="Primera C", id_api_football=132)
     _responder_liga_completa(api)
 
-    codigo_de_salida = ejecutar(session, cliente_api, liga_id=liga_profesional.id)
+    codigo_de_salida = ejecutar(
+        session, cliente_api, liga_id=liga_profesional.id, umbral_jugadores=UMBRAL_DE_PRUEBA
+    )
 
     assert codigo_de_salida == 0
     assert _ultima_sincronizacion(session, otra) is None
