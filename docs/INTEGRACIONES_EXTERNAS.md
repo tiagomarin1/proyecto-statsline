@@ -119,17 +119,23 @@ Decisiones de implementación (28/10, validadas por Marin):
 - `market_value_in_eur` puede venir vacío: el jugador se cruza (se guarda `id_transfermarkt`), pero queda sin valor;
 - **no hay columna con la fecha de cada valor.** `valor_mercado_fecha` es la fecha de corte del dataset, el 2026-07-06 (`FECHA_DATASET` en `app/sincronizacion/transfermarkt.py`; se puede cambiar con `--fecha`).
 
-**Cobertura medida (28/10).** Con el CSV completo y los 40 jugadores reales de los fixtures de API-Football:
+**Cobertura real (30/10).** Primera importación contra la base de producción, con el `players.csv.gz` completo (50.149 filas) y los 5.297 jugadores sincronizados de API-Football. Es el resumen por liga que imprime el CLI (corrida 19 de `sincronizacion`, estado `ok`):
 
-| Liga | Jugadores | Con valor | Cruzados sin valor | Sin coincidencia |
-|---|---|---|---|---|
-| Liga Profesional (128, 2026, página 1) | 20 | **20** | 0 | 0 |
-| Primera Nacional (129, 2025, página 1) | 20 | **4** | 1 | 15 |
+| Liga | Jugadores | Con valor | Cruzados sin valor | Sin coincidencia | Ambiguos | Sin fecha |
+|---|---|---|---|---|---|---|
+| Liga Profesional | 1.199 | **860 (71,7%)** | 58 | 111 | 0 | 170 |
+| Primera Nacional | 1.673 | **136 (8,1%)** | 48 | 1.484 | 0 | 5 |
+| Primera B Metropolitana | 1.021 | **13 (1,3%)** | 4 | 1.002 | 0 | 2 |
+| Torneo Federal A | 1.625 | **10 (0,6%)** | 1 | 1.603 | 0 | 11 |
+| Primera D | 142 | **1 (0,7%)** | 0 | 141 | 0 | 0 |
+| Sin liga | 6 | 1 | 0 | 5 | 0 | 0 |
+| **Total (jugadores distintos)** | **5.297** | **931 (17,6%)** | 107 | 4.071 | 0 | 188 |
 
-- El dataset solo tiene una competencia argentina: `ARG1` (Liga Profesional), con 1.261 jugadores. **No tiene ninguna liga del ascenso.**
-- En la Liga Profesional todos los jugadores de la muestra están en el dataset, pero 16 de 20 cruzan recién con el paso 2b de RN-002 **(propuesta)**: API-Football trae el nombre completo y Transfermarkt el "de uso".
-- En el ascenso solo cruzan los que jugaron antes en una liga del dataset. ⚠️ **Hay que avisarle al PO antes del Demo Day:** con el filtro de presupuesto activo, casi todo el ascenso queda excluido.
-- La medición completa por liga se hace con la primera importación contra la base de producción: el CLI imprime el resumen por liga.
+- Un jugador que está en dos ligas cuenta en las dos: por eso las filas suman 5.666 y no 5.297. El total sale de la base (`jugador.valor_mercado_eur` e `id_transfermarkt`).
+- Jugadores cruzados: **1.038** (`sincronizacion.registros_actualizados`); 931 con valor y 107 sin valor en el CSV.
+- El dataset solo tiene una competencia argentina: `ARG1` (Liga Profesional), con 1.261 jugadores. **No tiene ninguna liga del ascenso.** En el ascenso solo cruzan los que jugaron antes en una liga del dataset.
+- En la Liga Profesional, 170 jugadores (14%) no tienen `fecha_nacimiento` en API-Football y no se cruzan (RN-002, punto 4).
+- ⚠️ **Hay que avisarle al PO antes del Demo Day:** con el filtro de presupuesto activo, se excluye al 92% de la Primera Nacional y a más del 98% del resto del ascenso.
 
 **Cómo correrla:**
 
