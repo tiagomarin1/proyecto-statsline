@@ -3,7 +3,13 @@ import { Link } from 'react-router-dom';
 
 import { useSesion } from '../contexto/SesionContext';
 
-const LIGAS = ['Liga Profesional', 'Primera Nacional', 'B Metropolitana', 'Primera C y D', 'Federal A'];
+const LIGAS = [
+  'Liga Profesional',
+  'Primera Nacional',
+  'B Metropolitana',
+  'Primera C y D',
+  'Federal A',
+];
 
 // Filas de la maqueta: nombre, posición, valor y puntaje (ilustrativo, no son datos reales).
 const FILAS = [
@@ -100,7 +106,11 @@ export default function Inicio() {
                   <span className="shot__val" />
                 </div>
                 {FILAS.map((f, i) => (
-                  <div className="shot__row shot__row--in" key={f.n} style={{ animationDelay: `${i * 70}ms` }}>
+                  <div
+                    className="shot__row shot__row--in"
+                    key={f.n}
+                    style={{ animationDelay: `${i * 70}ms` }}
+                  >
                     <span className="shot__txt">{f.n}</span>
                     <span className="shot__txt shot__txt--m">{f.v}</span>
                     <span className="shot__score">{f.s}</span>

@@ -128,7 +128,11 @@ export default function Comparar() {
                 </span>
                 <br />
                 <b className="num">
-                  {j.valor_mercado_eur !== null ? formatearEur(j.valor_mercado_eur) : <Dato valor={null} />}
+                  {j.valor_mercado_eur !== null ? (
+                    formatearEur(j.valor_mercado_eur)
+                  ) : (
+                    <Dato valor={null} />
+                  )}
                 </b>
               </div>
               <div>
@@ -208,7 +212,9 @@ export default function Comparar() {
           <article className="card vcard">
             <span>Métricas ganadas</span>
             <b className="num">
-              {jugadores.map((j, i) => `${LETRAS[i]} ${metricas_ganadas[String(j.id)] ?? 0}`).join(' · ')}
+              {jugadores
+                .map((j, i) => `${LETRAS[i]} ${metricas_ganadas[String(j.id)] ?? 0}`)
+                .join(' · ')}
             </b>
             <p>Sobre {filas.length} métricas comparadas.</p>
           </article>
@@ -218,7 +224,9 @@ export default function Comparar() {
               <>
                 <b className="num">{formatearEur(diferencia_valor_eur)}</b>
                 <p>
-                  {masBarato ? `${masBarato.nombre} es el más barato de la comparación.` : 'Entre el más caro y el más barato.'}
+                  {masBarato
+                    ? `${masBarato.nombre} es el más barato de la comparación.`
+                    : 'Entre el más caro y el más barato.'}
                 </p>
               </>
             ) : (

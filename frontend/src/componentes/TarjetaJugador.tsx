@@ -85,7 +85,13 @@ export default function TarjetaJugador({
       <div className="pcard__foot">
         {onAlternarSeleccion && (
           <label
-            style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 14, cursor: 'pointer' }}
+            style={{
+              display: 'inline-flex',
+              gap: 8,
+              alignItems: 'center',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
           >
             <input
               type="checkbox"

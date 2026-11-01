@@ -14,12 +14,42 @@ function liga() {
 
 const RESPUESTA: RespuestaComparacion = {
   jugadores: [
-    { id: 1, nombre: 'Ana Gómez', posicion: 'defensor', edad: 24, equipo: 'Club A', liga: liga(), temporada: 2026, valor_mercado_eur: 1_500_000 },
-    { id: 2, nombre: 'Beto Ruiz', posicion: 'defensor', edad: 23, equipo: 'Club B', liga: liga(), temporada: 2026, valor_mercado_eur: 900_000 },
+    {
+      id: 1,
+      nombre: 'Ana Gómez',
+      posicion: 'defensor',
+      edad: 24,
+      equipo: 'Club A',
+      liga: liga(),
+      temporada: 2026,
+      valor_mercado_eur: 1_500_000,
+    },
+    {
+      id: 2,
+      nombre: 'Beto Ruiz',
+      posicion: 'defensor',
+      edad: 23,
+      equipo: 'Club B',
+      liga: liga(),
+      temporada: 2026,
+      valor_mercado_eur: 900_000,
+    },
   ],
   filas: [
-    { metrica: 'pases_precision_pct', etiqueta: '% pases completados', valores: [87, 83], mejor: [1], peor: [2] },
-    { metrica: 'duelos_ganados_pct', etiqueta: '% duelos ganados', valores: [61, null], mejor: [1], peor: [] },
+    {
+      metrica: 'pases_precision_pct',
+      etiqueta: '% pases completados',
+      valores: [87, 83],
+      mejor: [1],
+      peor: [2],
+    },
+    {
+      metrica: 'duelos_ganados_pct',
+      etiqueta: '% duelos ganados',
+      valores: [61, null],
+      mejor: [1],
+      peor: [],
+    },
   ],
   metricas_ganadas: { '1': 2, '2': 0 },
   diferencia_valor_eur: 600_000,

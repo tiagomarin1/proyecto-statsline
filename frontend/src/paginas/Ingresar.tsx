@@ -65,7 +65,12 @@ export default function Ingresar() {
               required
             />
           </div>
-          <button className="btn btn--primary btn--block" type="submit" aria-busy={enviando} disabled={enviando}>
+          <button
+            className="btn btn--primary btn--block"
+            type="submit"
+            aria-busy={enviando}
+            disabled={enviando}
+          >
             {enviando && <span className="spin" aria-hidden="true" />}
             {enviando ? 'Ingresando…' : 'Ingresar'}
           </button>

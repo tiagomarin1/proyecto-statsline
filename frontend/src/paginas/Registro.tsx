@@ -122,7 +122,12 @@ export default function Registro() {
             <input type="checkbox" name="acepta_terminos" required />
             <span>Acepto los términos y condiciones</span>
           </label>
-          <button className="btn btn--primary btn--block" type="submit" aria-busy={enviando} disabled={enviando}>
+          <button
+            className="btn btn--primary btn--block"
+            type="submit"
+            aria-busy={enviando}
+            disabled={enviando}
+          >
             {enviando && <span className="spin" aria-hidden="true" />}
             {enviando ? 'Creando…' : 'Crear cuenta'}
           </button>

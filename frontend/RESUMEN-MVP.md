@@ -4,39 +4,39 @@ Entregable para revisión (Garrido). Sin commit. Código en `frontend/`.
 
 ## Stack (qué es y por qué)
 
-| Pieza | Definición | Por qué |
-|---|---|---|
-| **React 18** | Librería para armar la UI con componentes | ADR-0003 del repo; mismo mental model que tu e‑commerce |
-| **TypeScript** | JavaScript con tipos estáticos | Tipar el contrato API; errores al compilar, no en la demo |
-| **Vite** | Bundler y servidor de desarrollo | Arranque rápido; proxy `/api` → `localhost:8000` (cookies/CORS) |
-| **react-router-dom 6** | Rutas en el cliente | Layout compartido, rutas protegidas, filtros en la URL |
-| **Context (React)** | Estado global liviano | Solo sesión y toasts; **sin Redux** (sobra para este MVP) |
-| **`pedirApi` + `fetch`** | Cliente HTTP del scaffold | Cookie `sesion` con `credentials: 'include'`; **sin axios** |
-| **Vitest + Testing Library** | Tests unitarios/UI | Ya venían en el scaffold |
-| **ESLint + Prettier** | Lint y formato | Ya venían; sin dependencias nuevas |
+| Pieza                        | Definición                                | Por qué                                                         |
+| ---------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
+| **React 18**                 | Librería para armar la UI con componentes | ADR-0003 del repo; mismo mental model que tu e‑commerce         |
+| **TypeScript**               | JavaScript con tipos estáticos            | Tipar el contrato API; errores al compilar, no en la demo       |
+| **Vite**                     | Bundler y servidor de desarrollo          | Arranque rápido; proxy `/api` → `localhost:8000` (cookies/CORS) |
+| **react-router-dom 6**       | Rutas en el cliente                       | Layout compartido, rutas protegidas, filtros en la URL          |
+| **Context (React)**          | Estado global liviano                     | Solo sesión y toasts; **sin Redux** (sobra para este MVP)       |
+| **`pedirApi` + `fetch`**     | Cliente HTTP del scaffold                 | Cookie `sesion` con `credentials: 'include'`; **sin axios**     |
+| **Vitest + Testing Library** | Tests unitarios/UI                        | Ya venían en el scaffold                                        |
+| **ESLint + Prettier**        | Lint y formato                            | Ya venían; sin dependencias nuevas                              |
 
 ## Páginas (`src/paginas/`)
 
-| Página | Para qué |
-|---|---|
-| **Inicio** | Portada/hero. Con sesión el CTA va a buscar; sin sesión a registro |
-| **Ingresar** | Login; muestra error del backend; vuelve a la ruta que querías abrir |
-| **Registro** | Alta con validación 422 por campo y email duplicado |
-| **Buscar** | Filtros del contrato, orden, tarjetas, paginado, avisos RN (excluidos, liga sin datos, relajar filtro) |
-| **Ficha** (`/ficha/:id`) | Detalle, valor de mercado, métricas vs promedio de posición, coincidencia, seguir/dejar |
-| **Seguimiento** | Lista del usuario; quitar; vacío → buscar |
+| Página                   | Para qué                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Inicio**               | Portada/hero. Con sesión el CTA va a buscar; sin sesión a registro                                     |
+| **Ingresar**             | Login; muestra error del backend; vuelve a la ruta que querías abrir                                   |
+| **Registro**             | Alta con validación 422 por campo y email duplicado                                                    |
+| **Buscar**               | Filtros del contrato, orden, tarjetas, paginado, avisos RN (excluidos, liga sin datos, relajar filtro) |
+| **Ficha** (`/ficha/:id`) | Detalle, valor de mercado, métricas vs promedio de posición, coincidencia, seguir/dejar                |
+| **Seguimiento**          | Lista del usuario; quitar; vacío → buscar                                                              |
 
 ## Componentes (`src/componentes/`)
 
 Solo los que se reutilizan o simplifican algo:
 
-| Componente | Para qué |
-|---|---|
-| **LayoutApp** | Topbar Stats*Line*, nav según sesión, footer |
-| **RutaProtegida** | Sin sesión → `/ingresar` (guarda destino); loading mientras chequea |
-| **Dato** | `null` → “Dato no disponible” (nunca mostrar 0 por dato faltante) |
-| **TarjetaJugador** | Card + estrella de seguimiento (Buscar y Seguimiento) |
-| **Paginacion** | Anterior/números/siguiente; oculta si hay una sola página |
+| Componente         | Para qué                                                            |
+| ------------------ | ------------------------------------------------------------------- |
+| **LayoutApp**      | Topbar Stats*Line*, nav según sesión, footer                        |
+| **RutaProtegida**  | Sin sesión → `/ingresar` (guarda destino); loading mientras chequea |
+| **Dato**           | `null` → “Dato no disponible” (nunca mostrar 0 por dato faltante)   |
+| **TarjetaJugador** | Card + estrella de seguimiento (Buscar y Seguimiento)               |
+| **Paginacion**     | Anterior/números/siguiente; oculta si hay una sola página           |
 
 ## Contextos, servicios y utilidades
 
