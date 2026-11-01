@@ -18,8 +18,8 @@ const buscarMock = vi.mocked(buscarJugadores);
 const ligasMock = vi.mocked(listarLigas);
 
 const LIGAS: Liga[] = [
-  { id: 1, nombre: 'Liga Profesional', cobertura: 'completa' },
-  { id: 2, nombre: 'Primera Nacional', cobertura: 'basica' },
+  { id: 1, nombre: 'Liga Profesional', cobertura: 'completa', temporada_actual: 2026 },
+  { id: 2, nombre: 'Primera Nacional', cobertura: 'basica', temporada_actual: 2025 },
 ];
 
 function jugador(id: number): JugadorResumen {
@@ -148,7 +148,8 @@ describe('BUS-004: presupuesto (RN-003)', () => {
     expect(campo).toHaveAttribute('min', '20000');
     expect(campo).toHaveAttribute('max', '400000');
     expect(campo).toHaveAttribute('step', '5000');
-    expect(screen.getByText(/De € 20\.000 a € 400\.000/)).toBeInTheDocument();
+    // Mismo formato que el valor de las tarjetas (formatearEur); \s acepta el espacio duro de Intl
+    expect(screen.getByText(/De EUR\s20\.000 a EUR\s400\.000/)).toBeInTheDocument();
   });
 
   it('un 422 muestra el mensaje del campo y no deja los resultados viejos', async () => {
