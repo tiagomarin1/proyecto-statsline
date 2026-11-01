@@ -23,6 +23,20 @@ const METRICAS: { clave: keyof Metricas; label: string; sufijo?: string }[] = [
 const ICONO = { cumple: '✓', no_cumple: '×', sin_dato: '?' } as const;
 const CLASE = { cumple: 'ok', no_cumple: 'no', sin_dato: 'na' } as const;
 
+/** Escala de la barra de cada métrica: los % a 100, el rating a 10, el resto relativo al
+ * valor y al promedio para que ambos entren y se note si está por encima o por debajo. */
+function topeMetrica(
+  clave: keyof Metricas,
+  sufijo: string | undefined,
+  valor: number,
+  promedio: number | null,
+): number {
+  if (sufijo === '%') return 100;
+  if (clave === 'rating') return 10;
+  const base = Math.max(valor, promedio ?? 0);
+  return base > 0 ? base * 1.25 : 1;
+}
+
 export default function Ficha() {
   const { id = '' } = useParams();
   const [filtros] = useSearchParams();
@@ -115,20 +129,56 @@ export default function Ficha() {
 
         <div className="ficha__grid">
           <section className="card mlist">
-            <h2>Métricas de rendimiento</h2>
-            {METRICAS.map((m) => (
-              <div key={m.clave} className="mitem">
-                <div className="mitem__top">
-                  <span>{m.label}</span>
-                  <b>
-                    <Dato valor={metricas[m.clave]} sufijo={m.sufijo} />
-                  </b>
+            <div style={{ padding: '16px 18px 10px' }}>
+              <h2>Métricas de rendimiento</h2>
+              <p className="muted" style={{ fontSize: 13.5, marginTop: 4 }}>
+                La barra es el valor del jugador; la marca vertical, el promedio de la posición.
+              </p>
+            </div>
+            {METRICAS.map((m) => {
+              const valor = metricas[m.clave];
+              const promedio = promedios[m.clave];
+              if (valor === null) {
+                return (
+                  <div key={m.clave} className="mitem">
+                    <div className="mitem__top">
+                      <span>{m.label}</span>
+                      <b>
+                        <Dato valor={null} />
+                      </b>
+                    </div>
+                    <p className="mitem__foot">{ficha.liga.nombre} no publica esta métrica.</p>
+                  </div>
+                );
+              }
+              const tope = topeMetrica(m.clave, m.sufijo, valor, promedio);
+              return (
+                <div key={m.clave} className="mitem">
+                  <div className="mitem__top">
+                    <span>{m.label}</span>
+                    <b className="num">
+                      {valor}
+                      {m.sufijo ?? ''}
+                    </b>
+                  </div>
+                  <div className="mitem__bar">
+                    <div
+                      className="mitem__fill"
+                      style={{ width: `${Math.min(100, (valor / tope) * 100)}%` }}
+                    />
+                    {promedio !== null && (
+                      <span
+                        className="mitem__avg"
+                        style={{ left: `${Math.min(99, (promedio / tope) * 100)}%` }}
+                      />
+                    )}
+                  </div>
+                  <p className="mitem__foot">
+                    Promedio de la posición: <Dato valor={promedio} sufijo={m.sufijo} />
+                  </p>
                 </div>
-                <p className="mitem__foot">
-                  Promedio de la posición: <Dato valor={promedios[m.clave]} sufijo={m.sufijo} />
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </section>
 
           {coincidencia && (
