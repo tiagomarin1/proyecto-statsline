@@ -1,5 +1,4 @@
 // Tipos alineados a docs/CONTRATO_DE_API.md
-// Pegar en frontend/src/tipos/api.ts (reemplaza lo actual)
 
 /** Formato único de error: {"detalle", "codigo"}. Los 422 suman "errores". */
 export interface RespuestaError {

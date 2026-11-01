@@ -608,6 +608,7 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
 }
 .pager__btns button[aria-current="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
 .pager__btns button[disabled] { opacity: .45; cursor: not-allowed; }
+.pager__gap { min-width: 24px; min-height: 40px; display: grid; place-items: center; color: var(--fg-faint); }
 
 /* Barra de selección fija al pie */
 .selbar {

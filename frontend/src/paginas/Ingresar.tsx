@@ -9,7 +9,8 @@ export default function Ingresar() {
   const { ingresar } = useSesion();
   const avisar = useAvisar();
   const navegar = useNavigate();
-  const desde = (useLocation().state as { desde?: Location } | null)?.desde?.pathname ?? '/buscar';
+  const destino = (useLocation().state as { desde?: Location } | null)?.desde;
+  const desde = destino ? `${destino.pathname}${destino.search}` : '/buscar';
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 

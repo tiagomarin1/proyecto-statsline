@@ -45,7 +45,12 @@ export default function Ficha() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    obtenerFicha(id, filtros)
+    // La coincidencia se calcula con los filtros, no con el orden ni el paginado: esos quedan en
+    // la URL solo para que "Volver a resultados" devuelva a la misma página y orden.
+    const paraCoincidencia = new URLSearchParams(filtros);
+    paraCoincidencia.delete('pagina');
+    paraCoincidencia.delete('orden');
+    obtenerFicha(id, paraCoincidencia)
       .then(setFicha)
       .catch((e) =>
         setError(e instanceof ErrorApi ? e.message : 'No pudimos conectar con el servidor.'),

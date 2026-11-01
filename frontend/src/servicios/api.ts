@@ -25,10 +25,16 @@ export async function pedirApi<T>(ruta: string, opciones: RequestInit = {}): Pro
   });
   if (!respuesta.ok) {
     const cuerpo = (await respuesta.json().catch(() => null)) as RespuestaError | null;
-    throw new ErrorApi(
+    const error = new ErrorApi(
       respuesta.status,
       cuerpo ?? { detalle: 'Error inesperado.', codigo: 'desconocido' },
     );
+    // Sesión vencida en cualquier pantalla: se avisa una sola vez para limpiar la sesión y que
+    // RutaProtegida mande a /ingresar, en vez de que cada página muestre su propio error.
+    if (error.status === 401 && error.codigo === 'sin_sesion') {
+      window.dispatchEvent(new Event('sesion-expirada'));
+    }
+    throw error;
   }
   if (respuesta.status === 204) {
     return undefined as T;

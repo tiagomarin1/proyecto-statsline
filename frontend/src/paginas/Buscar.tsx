@@ -128,9 +128,10 @@ export default function Buscar() {
         </div>
       </div>
       <div className="cols">
-        {/* key: al limpiar o relajar desde afuera, el form se vuelve a montar con los valores de la URL */}
+        {/* key solo con los filtros (sin orden ni paginado): al cambiar orden/página el form NO se
+            remonta, así no se pierde lo que el usuario tipeó y todavía no aplicó. */}
         <form
-          key={params.toString()}
+          key={filtrosSinPaginado.toString()}
           className="card filters"
           aria-label="Filtros de búsqueda"
           onSubmit={aplicar}
@@ -324,7 +325,7 @@ export default function Buscar() {
                       <TarjetaJugador
                         key={j.id}
                         jugador={j}
-                        filtros={filtrosSinPaginado.toString()}
+                        filtros={params.toString()}
                         onAlternarSeguimiento={alternar}
                         seleccionado={seleccion.some((s) => s.id === j.id)}
                         onAlternarSeleccion={alternarSeleccion}

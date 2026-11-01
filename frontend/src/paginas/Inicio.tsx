@@ -3,20 +3,15 @@ import { Link } from 'react-router-dom';
 
 import { useSesion } from '../contexto/SesionContext';
 
-const LIGAS = [
-  'Liga Profesional',
-  'Primera Nacional',
-  'B Metropolitana',
-  'Primera C y D',
-  'Federal A',
-];
+// Primera C y D quedan fuera: por ahora no tienen datos (RN-028).
+const LIGAS = ['Liga Profesional', 'Primera Nacional', 'B Metropolitana', 'Federal A'];
 
-// Filas de la maqueta: nombre, posición, valor y puntaje (ilustrativo, no son datos reales).
+// Filas de la maqueta: nombre, posición, valor de mercado (EUR) y rating (ilustrativo, no reales).
 const FILAS = [
-  { n: 'Lateral izq.', v: 'US$ 180k', s: 87 },
-  { n: 'Volante central', v: 'US$ 240k', s: 82 },
-  { n: 'Extremo der.', v: 'US$ 150k', s: 78 },
-  { n: 'Delantero', v: 'US$ 310k', s: 74 },
+  { n: 'Lateral izq.', v: 'EUR 180k', s: 7.4 },
+  { n: 'Volante central', v: 'EUR 240k', s: 7.1 },
+  { n: 'Extremo der.', v: 'EUR 150k', s: 6.8 },
+  { n: 'Delantero', v: 'EUR 310k', s: 7.3 },
 ];
 
 const BENEFICIOS = [
@@ -27,8 +22,8 @@ const BENEFICIOS = [
   },
   {
     icono: '↗',
-    titulo: 'Rendimiento vs. presupuesto',
-    texto: 'Un puntaje que pondera lo que rinde cada jugador contra lo que cuesta.',
+    titulo: 'Rendimiento y presupuesto, juntos',
+    texto: 'Compará lo que rinde cada jugador con lo que cuesta, lado a lado.',
   },
   {
     icono: '★',

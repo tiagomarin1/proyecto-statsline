@@ -1,6 +1,6 @@
 # Resumen MVP frontend StatsLine
 
-Entregable para revisión (Garrido). Sin commit. Código en `frontend/`.
+Entregable para revisión (Garrido). Código en `frontend/`, entregado como PR a `main` (rama `feature/frontend-mvp`).
 
 ## Stack (qué es y por qué)
 
@@ -63,14 +63,14 @@ Solo los que se reutilizan o simplifican algo:
 - Etiqueta “Datos básicos” en ligas con cobertura básica
 - Botones deshabilitados mientras se envía; detalles a11y (`aria-pressed`, `aria-live`)
 
-**Fuera a propósito:** comparación (CMP), perfil de búsqueda guardado, menú hamburguesa mobile.
+**Fuera a propósito (acordado con el equipo):** perfil de búsqueda guardado (BUS-005) y menú hamburguesa mobile. La comparación (CMP-001) sí entra y está incluida.
 
 ## Cómo correrlo
 
 1. Backend en `:8000` (ver `docs/SETUP.md`).
 2. `cd frontend && npm ci && npm run dev` → URL de Vite.
 
-Usuario demo (semilla backend, no del front): `javier@deportivonorte.com` — contraseña `DEMO_CONTRASENA` / en prototipo `scoutiando`. Detalle en `docs/SETUP.md` y `README.md`.
+Usuario demo (semilla backend, no del front): `javier@deportivonorte.com` — la contraseña se define en `DEMO_CONTRASENA`. Detalle en `docs/SETUP.md` y `README.md`.
 
 ## Archivos tocados (solo frontend)
 
@@ -79,4 +79,4 @@ Usuario demo (semilla backend, no del front): `javier@deportivonorte.com` — co
 - Nuevos componentes: LayoutApp, RutaProtegida, Dato, TarjetaJugador, Paginacion
 - Nuevos: SesionContext, AvisosContext, servicios jugadores/seguimiento, utilidades/formato
 - Validado: `npm run build`, `npm test` (4/4), `npm run lint`
-- No se modificó `backend/`. Sin commits.
+- No se modificó `backend/`. Entregado como PR del frontend a `main`.

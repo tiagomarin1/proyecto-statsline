@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-01
+- Frontend del MVP implementado: pantallas Inicio, Ingreso, Registro, Buscar, Ficha, Comparación (CMP-001) y Seguimiento, construidas contra `CONTRATO_DE_API.md`. Entregado como PR del frontend a `main` (rama `feature/frontend-mvp`), pendiente de revisión y merge.
+
 ## 2026-10-29
 - Decisión con el PO: RN-027 aprobada. Cada liga usa la temporada más reciente con al menos 100 jugadores con minutos; el ascenso queda en 2025 hasta que 2026 tenga el plantel cargado, y se pueden mezclar temporadas mostrando la de cada jugador. Implementada en la sincronización (DAT-001).
 

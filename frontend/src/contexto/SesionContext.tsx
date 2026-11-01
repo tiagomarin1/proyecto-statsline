@@ -24,6 +24,14 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       .finally(() => setCargando(false));
   }, []);
 
+  // Si la sesión vence a mitad de uso, pedirApi emite este evento ante un 401 sin_sesion:
+  // limpiamos el usuario una sola vez y RutaProtegida se encarga de mandar a /ingresar.
+  useEffect(() => {
+    const alExpirar = () => setUsuario(null);
+    window.addEventListener('sesion-expirada', alExpirar);
+    return () => window.removeEventListener('sesion-expirada', alExpirar);
+  }, []);
+
   async function autenticar(ruta: string, datos: IngresoRequest | RegistroRequest) {
     const u = await pedirApi<Usuario>(ruta, { method: 'POST', body: JSON.stringify(datos) });
     setUsuario(u);
@@ -36,8 +44,14 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     ingresar: (datos) => autenticar('/auth/ingreso', datos),
     registrarse: (datos) => autenticar('/auth/registro', datos),
     salir: async () => {
-      await pedirApi<void>('/auth/salida', { method: 'POST' });
-      setUsuario(null);
+      try {
+        await pedirApi<void>('/auth/salida', { method: 'POST' });
+      } catch {
+        // La salida es best-effort: si el backend falla (p. ej. cookie vencida), igual cerramos
+        // la sesión en la UI para no dejarla abierta.
+      } finally {
+        setUsuario(null);
+      }
     },
   };
 
