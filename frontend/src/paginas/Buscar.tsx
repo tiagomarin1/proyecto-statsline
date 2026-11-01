@@ -301,19 +301,13 @@ export default function Buscar() {
                 <div className="card empty">
                   <h3>No hay jugadores que cumplan estos filtros</h3>
                   {respuesta.sugerencia && (
-                    <>
-                      <p>
-                        Si relajás <b>{respuesta.sugerencia.etiqueta}</b> aparecen{' '}
-                        {respuesta.sugerencia.cantidad} candidatos.
-                      </p>
-                      <button
-                        className="btn btn--primary"
-                        type="button"
-                        onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
-                      >
-                        Relajar {respuesta.sugerencia.etiqueta}
-                      </button>
-                    </>
+                    <button
+                      className="btn btn--primary"
+                      type="button"
+                      onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
+                    >
+                      Relajar {respuesta.sugerencia.etiqueta}
+                    </button>
                   )}
                   <button
                     className="btn btn--ghost btn--sm"
