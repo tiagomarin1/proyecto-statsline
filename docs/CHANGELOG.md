@@ -3,6 +3,7 @@
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
 ## 2026-11-01
+- Arreglos en Buscar. BUS-002: la liga que llega por la URL o con "Volver a resultados" se muestra elegida y no se pierde al aplicar otro filtro. BUS-004: el presupuesto se limita al rango de RN-003 (EUR 20.000 a 400.000, de a 5.000) y lo indica; un 422 muestra el mensaje de cada campo en lugar del genérico, sin dejar los resultados viejos a la vista.
 - Frontend del MVP implementado: pantallas Inicio, Ingreso, Registro, Buscar, Ficha, Comparación (CMP-001) y Seguimiento, construidas contra `CONTRATO_DE_API.md`. Entregado como PR del frontend a `main` (rama `feature/frontend-mvp`), pendiente de revisión y merge.
 
 ## 2026-10-29

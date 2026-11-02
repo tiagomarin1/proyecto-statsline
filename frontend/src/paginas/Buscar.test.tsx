@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import type { JugadorResumen, RespuestaBusqueda } from '../tipos/api';
+import type { JugadorResumen, Liga, RespuestaBusqueda } from '../tipos/api';
 import Buscar from './Buscar';
-import { buscarJugadores } from '../servicios/jugadores';
+import { ErrorApi } from '../servicios/api';
+import { buscarJugadores, listarLigas } from '../servicios/jugadores';
 
 vi.mock('../servicios/jugadores', () => ({
   buscarJugadores: vi.fn(),
@@ -14,6 +15,12 @@ const avisarMock = vi.fn();
 vi.mock('../contexto/AvisosContext', () => ({ useAvisar: () => avisarMock }));
 
 const buscarMock = vi.mocked(buscarJugadores);
+const ligasMock = vi.mocked(listarLigas);
+
+const LIGAS: Liga[] = [
+  { id: 1, nombre: 'Liga Profesional', cobertura: 'completa', temporada_actual: 2026 },
+  { id: 2, nombre: 'Primera Nacional', cobertura: 'basica', temporada_actual: 2025 },
+];
 
 function jugador(id: number): JugadorResumen {
   return {
@@ -51,12 +58,17 @@ function respuesta(
   };
 }
 
-function renderizar() {
+function renderizar(ruta = '/buscar') {
   return render(
-    <MemoryRouter initialEntries={['/buscar']}>
+    <MemoryRouter initialEntries={[ruta]}>
       <Buscar />
     </MemoryRouter>,
   );
+}
+
+/** Los filtros con los que se llamó a la API la última vez. */
+function ultimosFiltros() {
+  return buscarMock.mock.lastCall![0];
 }
 
 describe('BUS-006: búsqueda y selección', () => {
@@ -96,5 +108,69 @@ describe('BUS-006: búsqueda y selección', () => {
 
     expect(avisarMock).toHaveBeenCalledWith(expect.stringContaining('hasta 3'));
     expect(checks[3]).not.toBeChecked();
+  });
+});
+
+describe('BUS-002: filtro de liga que llega por la URL', () => {
+  afterEach(() => {
+    buscarMock.mockReset();
+    ligasMock.mockResolvedValue([]);
+  });
+
+  it('muestra la liga elegida aunque las ligas carguen después del formulario', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    ligasMock.mockResolvedValue(LIGAS);
+    renderizar('/buscar?liga_id=2');
+
+    expect(await screen.findByDisplayValue('Primera Nacional')).toBeInTheDocument();
+  });
+
+  it('no pierde la liga al volver a aplicar los filtros', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    ligasMock.mockResolvedValue(LIGAS);
+    renderizar('/buscar?liga_id=2');
+    await screen.findByDisplayValue('Primera Nacional');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('liga_id')).toBe('2'));
+  });
+});
+
+describe('BUS-004: presupuesto (RN-003)', () => {
+  afterEach(() => buscarMock.mockReset());
+
+  it('limita el campo al rango de RN-003 y lo dice', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+
+    const campo = await screen.findByLabelText('Presupuesto máximo (EUR)');
+    expect(campo).toHaveAttribute('min', '20000');
+    expect(campo).toHaveAttribute('max', '400000');
+    expect(campo).toHaveAttribute('step', '5000');
+    // Mismo formato que el valor de las tarjetas (formatearEur); \s acepta el espacio duro de Intl
+    expect(screen.getByText(/De EUR\s20\.000 a EUR\s400\.000/)).toBeInTheDocument();
+  });
+
+  it('un 422 muestra el mensaje del campo y no deja los resultados viejos', async () => {
+    buscarMock.mockRejectedValue(
+      new ErrorApi(422, {
+        detalle: 'Hay datos inválidos en el pedido.',
+        codigo: 'validacion',
+        errores: [
+          {
+            campo: 'presupuesto_max_eur',
+            mensaje: 'Tiene que ser menor o igual a 400.000.',
+          },
+        ],
+      }),
+    );
+    renderizar('/buscar?presupuesto_max_eur=3000000');
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent(
+      'Presupuesto máximo (EUR): Tiene que ser menor o igual a 400.000.',
+    );
+    expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
   });
 });

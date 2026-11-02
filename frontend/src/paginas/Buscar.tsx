@@ -9,7 +9,7 @@ import { buscarJugadores, listarLigas } from '../servicios/jugadores';
 import { ErrorApi } from '../servicios/api';
 import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { JugadorResumen, Liga, OrdenBusqueda, RespuestaBusqueda } from '../tipos/api';
-import { POSICIONES } from '../utilidades/formato';
+import { formatearEur, POSICIONES } from '../utilidades/formato';
 
 const ORDENES: Record<OrdenBusqueda, string> = {
   minutos: 'Minutos jugados',
@@ -25,6 +25,27 @@ const METRICAS = [
   { nombre: 'recuperaciones_min', label: 'Recuperaciones por partido (mín.)' },
   { nombre: 'minutos_min', label: 'Minutos jugados (mín.)' },
 ];
+
+// RN-003: el back rechaza con 422 cualquier presupuesto fuera de este rango
+const PRESUPUESTO_MINIMO_EUR = 20_000;
+const PRESUPUESTO_MAXIMO_EUR = 400_000;
+const PASO_PRESUPUESTO_EUR = 5_000;
+
+const ETIQUETAS_FILTRO: Record<string, string> = {
+  posicion: 'Posición',
+  liga_id: 'Liga',
+  edad_min: 'Edad mínima',
+  edad_max: 'Edad máxima',
+  presupuesto_max_eur: 'Presupuesto máximo (EUR)',
+  ...Object.fromEntries(METRICAS.map((m) => [m.nombre, m.label])),
+};
+
+/** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
+function mensajeDeError(e: unknown) {
+  if (!(e instanceof ErrorApi)) return 'No pudimos conectar con el servidor.';
+  if (!e.errores?.length) return e.message;
+  return e.errores.map((x) => `${ETIQUETAS_FILTRO[x.campo] ?? x.campo}: ${x.mensaje}`).join(' ');
+}
 
 const MAX_COMPARAR = 3;
 
@@ -53,11 +74,12 @@ export default function Buscar() {
     setError('');
     buscarJugadores(params)
       .then((r) => vigente && setRespuesta(r))
-      .catch(
-        (e) =>
-          vigente &&
-          setError(e instanceof ErrorApi ? e.message : 'No pudimos conectar con el servidor.'),
-      )
+      .catch((e) => {
+        if (!vigente) return;
+        // Sin esto quedaban a la vista los resultados de la búsqueda anterior, debajo del error
+        setRespuesta(null);
+        setError(mensajeDeError(e));
+      })
       .finally(() => vigente && setCargando(false));
     return () => {
       vigente = false;
@@ -159,7 +181,10 @@ export default function Buscar() {
             <label className="filters__legend" htmlFor="liga_id">
               Liga
             </label>
+            {/* Las ligas llegan después que el formulario: el key lo vuelve a montar cuando
+                existen las opciones, si no defaultValue no encuentra la liga de la URL. */}
             <select
+              key={ligas.length}
               className="input"
               id="liga_id"
               name="liga_id"
@@ -207,10 +232,15 @@ export default function Buscar() {
               id="presupuesto_max_eur"
               name="presupuesto_max_eur"
               type="number"
-              min={0}
-              step={1000}
+              min={PRESUPUESTO_MINIMO_EUR}
+              max={PRESUPUESTO_MAXIMO_EUR}
+              step={PASO_PRESUPUESTO_EUR}
+              aria-describedby="presupuesto_rango"
               defaultValue={params.get('presupuesto_max_eur') ?? ''}
             />
+            <p id="presupuesto_rango" className="muted">
+              De {formatearEur(PRESUPUESTO_MINIMO_EUR)} a {formatearEur(PRESUPUESTO_MAXIMO_EUR)}.
+            </p>
           </div>
           <div className="filters__grp">
             <span className="filters__legend">Métricas tácticas</span>
