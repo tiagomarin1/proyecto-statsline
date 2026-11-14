@@ -3,6 +3,7 @@
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
 ## 2026-11-14
+- UI-003: hero nuevo en la home. Una pelota real rueda de izquierda a derecha por la línea de una cancha mientras se hace scroll, con el hero fijado entre 220 % y 300 % del alto, y a su paso aparecen puntos y tarjetas de datos. Se hace con `gsap` y `@gsap/react`, mueve solo `transform` y `opacity`, y con movimiento reducido (`prefers-reduced-motion`) queda estático y completo. Los chips de ligas pasan a ser informativos (antes cambiaban la maqueta, que se eliminó). Las cifras de las tarjetas son ilustrativas. **Pendiente:** confirmar la licencia y el autor de las dos fotos antes de publicar. Los prototipos de referencia están en `prototipos-landing/`.
 - UI-002: Buscar con filtros en vivo (sin botón "Aplicar filtros"), chips de filtros aplicados, tabla ordenable por columna y panel de detalle del jugador sin salir de la lista. En pantallas de menos de 768 px se mantienen las tarjetas. Solo frontend: el contrato de API no cambia. La búsqueda por nombre queda pendiente: necesita spec y cambio de backend.
 - UI-001: rebranding aplicado al frontend según la hoja de marca del 29/10/2026. Paleta grafito, papel y oro (los neutros se derivaron de esos tres y los estados de éxito, alerta y error se mantienen, **(supuesto)** pendiente de validar con quien diseñó la marca), logotipo `statsline` con bastas dibujadas, tipografía Archivo y favicon. La mascota queda fuera: todavía no tiene nombre ni set de poses.
 
