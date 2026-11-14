@@ -166,7 +166,6 @@ export function HeroLinea({ conSesion, destino }: Props) {
             <strong>{d.valor}</strong>
           </div>
         ))}
-        <p className="hero__nota">Datos ilustrativos</p>
         <div className="hero__bola">
           <span className="hero__bola-sombra" />
           <img className="hero__bola-img" src={pelota} alt="" width={224} height={224} />
