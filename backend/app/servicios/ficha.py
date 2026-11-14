@@ -11,10 +11,18 @@ from sqlalchemy.orm import Session
 
 from app.errores import ErrorApi
 from app.esquemas.busqueda import FiltrosBusqueda, LigaResumen
-from app.esquemas.ficha import FichaJugador, Metricas, PromediosPosicion, ValorMercado
+from app.esquemas.ficha import (
+    ClubEnTrayectoria,
+    FichaJugador,
+    Metricas,
+    PromediosPosicion,
+    TramoTrayectoria,
+    ValorMercado,
+)
 from app.modelos import Equipo, Jugador, Liga, Seguimiento
 from app.modelos.enums import Posicion
 from app.repositorios import jugador as repositorio_jugador
+from app.repositorios import trayectoria as repositorio_trayectoria
 from app.servicios.coincidencia import DatosJugadorCoincidencia, evaluar_coincidencia
 from app.servicios.edad import calcular_edad
 from app.servicios.estadistica_vigente import (
@@ -26,6 +34,7 @@ from app.servicios.estadistica_vigente import (
     recuperaciones_por_partido,
     redondear,
 )
+from app.servicios.trayectoria import ClubActual, armar_trayectoria
 
 # El promedio de un contador (minutos, goles...) no es entero: se muestra con 1 decimal
 DECIMALES_PROMEDIO_CONTADOR = 1
@@ -82,6 +91,7 @@ def obtener_ficha(
         valor_mercado=_valor_mercado(fila["valor_mercado_eur"], fila["valor_mercado_fecha"]),
         en_seguimiento=fila["en_seguimiento"],
         coincidencia=evaluar_coincidencia(filtros, datos_coincidencia),
+        trayectoria=_trayectoria(session, fila),
     )
 
 
@@ -98,6 +108,7 @@ def _consulta_ficha(jugador_id: int, usuario_id: int) -> Select:
             Jugador.nacionalidad,
             Jugador.valor_mercado_eur,
             Jugador.valor_mercado_fecha,
+            Jugador.trayectoria_sincronizada_en,
             vigente.c.posicion,
             vigente.c.temporada,
             vigente.c.partidos_jugados,
@@ -112,6 +123,7 @@ def _consulta_ficha(jugador_id: int, usuario_id: int) -> Select:
             Liga.nombre.label("liga_nombre"),
             Liga.cobertura.label("liga_cobertura"),
             Equipo.nombre.label("equipo"),
+            Equipo.id_api_football.label("equipo_id_api_football"),
             en_seguimiento.label("en_seguimiento"),
         )
         .join(vigente, vigente.c.jugador_id == Jugador.id)
@@ -148,6 +160,22 @@ def _promedios_posicion(session: Session, posicion: Posicion | None) -> Promedio
             for metrica, decimales in METRICAS_FICHA.items()
         }
     )
+
+
+def _trayectoria(session: Session, fila) -> list[ClubEnTrayectoria] | None:
+    """RN-008 y RN-032: null si nunca se sincronizó; si no, los clubes con el actual primero."""
+    if fila["trayectoria_sincronizada_en"] is None:
+        return None
+    pasos = repositorio_trayectoria.pasos_del_jugador(session, fila["id"])
+    clubes = armar_trayectoria(pasos, ClubActual(fila["equipo_id_api_football"], fila["equipo"]))
+    return [
+        ClubEnTrayectoria(
+            club=club.club,
+            actual=club.actual,
+            tramos=[TramoTrayectoria(desde=t.desde, hasta=t.hasta) for t in club.tramos],
+        )
+        for club in clubes
+    ]
 
 
 def _valor_mercado(eur: int | None, fecha: date | None) -> ValorMercado | None:

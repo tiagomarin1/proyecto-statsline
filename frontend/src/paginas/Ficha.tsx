@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
+import Trayectoria from '../componentes/Trayectoria';
 import { useAvisar } from '../contexto/AvisosContext';
 import { ErrorApi } from '../servicios/api';
 import { obtenerFicha } from '../servicios/jugadores';
@@ -186,20 +187,25 @@ export default function Ficha() {
             })}
           </section>
 
-          {coincidencia && (
-            <section className="card match">
-              <h3>Coincidencia con tu búsqueda</h3>
-              <p className="muted">
-                Cumple {coincidencia.cumple} de {coincidencia.total} criterios.
-              </p>
-              {coincidencia.criterios.map((c) => (
-                <div key={c.criterio} className="match__row">
-                  <span className={`match__i match__i--${CLASE[c.estado]}`}>{ICONO[c.estado]}</span>
-                  <span>{c.texto}</span>
-                </div>
-              ))}
-            </section>
-          )}
+          <div className="ficha__lateral">
+            {coincidencia && (
+              <section className="card match">
+                <h3>Coincidencia con tu búsqueda</h3>
+                <p className="muted">
+                  Cumple {coincidencia.cumple} de {coincidencia.total} criterios.
+                </p>
+                {coincidencia.criterios.map((c) => (
+                  <div key={c.criterio} className="match__row">
+                    <span className={`match__i match__i--${CLASE[c.estado]}`}>
+                      {ICONO[c.estado]}
+                    </span>
+                    <span>{c.texto}</span>
+                  </div>
+                ))}
+              </section>
+            )}
+            <Trayectoria trayectoria={ficha.trayectoria} />
+          </div>
         </div>
       </div>
     </div>

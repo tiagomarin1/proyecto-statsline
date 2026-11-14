@@ -118,7 +118,11 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
   "coincidencia": {                         // null si no se mandaron filtros
     "cumple": 3, "total": 4,
     "criterios": [{ "criterio": "posicion", "estado": "cumple", "texto": "Juega de Defensor" }, ...]
-  }
+  },
+  "trayectoria": [                          // JUG-003, RN-032. null si nunca se sincronizó (RN-008)
+    { "club": "Deportivo Merlo", "actual": true, "tramos": [{ "desde": 2024, "hasta": 2025 }] },
+    { "club": "Chacarita Juniors", "actual": false, "tramos": [{ "desde": 2016, "hasta": 2017 }, { "desde": 2008, "hasta": 2008 }] }
+  ]                                         // el club actual va primero; tramos vacíos = sin año
 }
 ```
 

@@ -65,6 +65,21 @@ class Coincidencia(BaseModel):
     criterios: list[CriterioCoincidencia]
 
 
+class TramoTrayectoria(BaseModel):
+    """Años consecutivos en un club (RN-032)."""
+
+    desde: int
+    hasta: int
+
+
+class ClubEnTrayectoria(BaseModel):
+    """Un club de la trayectoria. `tramos` vacío = la API no informa los años (RN-008)."""
+
+    club: str
+    actual: bool
+    tramos: list[TramoTrayectoria]
+
+
 class FichaJugador(BaseModel):
     id: int
     nombre: str
@@ -80,3 +95,5 @@ class FichaJugador(BaseModel):
     valor_mercado: ValorMercado | None
     en_seguimiento: bool
     coincidencia: Coincidencia | None  # null si no se mandaron filtros
+    # null = la trayectoria nunca se sincronizó (RN-008); si no, el club actual va primero (RN-032)
+    trayectoria: list[ClubEnTrayectoria] | None
