@@ -434,7 +434,61 @@ Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 
 ---
 
+### RN-029 Fuente de datos de cada liga (propuesta, 14/11/2026)
+
+Ver ADR-0011 (propuesta).
+
+| Liga | Fuente de las estadísticas |
+|---|---|
+| Liga Profesional | API-Football |
+| Primera Nacional, Torneo Federal A, Primera B Metropolitana, Primera C y Primera D | Sportmonks |
+
+- **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
+- La ficha indica la fuente de las métricas ("Datos de Sportmonks" o "Datos de API-Football").
+- **Aviso al comparar fuentes distintas:** si en el comparador hay jugadores de ligas con fuentes distintas, se muestra "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables". Lo mismo cuando una búsqueda mezcla ligas y se ordena por rating o por % de pases.
+- **Ejemplo:** un jugador de la Liga Profesional con rating 7,10 (API-Football) y uno de Primera Nacional con rating 7,40 (Sportmonks) pueden mostrarse juntos, pero con el aviso: el 7,40 no es "mejor" que el 7,10.
+
+**A validar con el PO:** si el aviso alcanza, o si el comparador debería bloquear la comparación entre fuentes.
+
+Usada en: DAT-003, BUS-*, JUG-001, CMP-001.
+
+### RN-030 Cruce de jugadores de Sportmonks con la base (propuesta, 14/11/2026)
+
+Para no duplicar a un jugador que pasa de una liga a otra:
+
+1. Se normaliza el nombre (sin tildes, en minúsculas, sin puntuación).
+2. Se busca en la base un jugador con el mismo nombre normalizado **y la misma fecha de nacimiento**.
+3. Si hay **exactamente una** coincidencia: se agrega `id_sportmonks` a ese jugador.
+4. Si hay **ninguna o más de una**: se crea un jugador nuevo y no se cruza (como en RN-002, paso 4).
+5. Si falta la fecha de nacimiento en alguno de los dos, no se cruza.
+
+**Ejemplo:** "Lucas Martínez", 15/03/1999, de Primera Nacional (Sportmonks) coincide con "L. Martinez" ya cargado de la Liga Profesional con la misma fecha → se agrega `id_sportmonks` al jugador existente. Si hubiera dos "Lucas Martínez" con esa fecha, se crea uno nuevo.
+
+Usada en: DAT-003.
+
+### RN-031 Datos de Sportmonks que se derivan o se traducen (propuesta, 14/11/2026)
+
+```
+pases_precision_pct = pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
+duelos_totales      = total-duels
+duelos_ganados      = duels-won
+intercepciones      = interceptions
+rating              = promedio de la temporada (value.average)
+```
+
+- Un dato que no viene se guarda `NULL`, nunca 0 (RN-008 y RN-025).
+- Un dato que viola las invariantes del modelo (`duelos_ganados` > `duelos_totales`, o `pases_precision_pct` fuera de 0-100) queda `NULL`, igual que con API-Football.
+- La posición se traduce a los 4 códigos de RN-019. **La tabla de posiciones de Sportmonks está pendiente**: se completa con los datos de la prueba, sin inventarla.
+
+**Ejemplo:** 320 pases acertados de 400 → 80,00%. 61 duelos ganados de 100 → se guardan 61 y 100, y la UI calcula 61% (RN-018).
+
+Usada en: DAT-003.
+
+---
+
 ## Pendientes
+
+- **PO y equipo:** validar ADR-0011 y las reglas RN-029, RN-030 y RN-031 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
 - ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.
