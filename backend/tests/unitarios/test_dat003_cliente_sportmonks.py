@@ -1,0 +1,191 @@
+"""DAT-003: cliente de Sportmonks (paginado, reintentos, límite de pedidos y token oculto)."""
+
+import json
+
+import httpx
+import pytest
+
+from app.integraciones.cliente_sportmonks import ClienteSportmonks, ErrorSportmonks
+
+TOKEN = "token-secreto-de-prueba"
+
+
+def _pagina(datos: list, *, pagina: int, hay_mas: bool) -> dict:
+    return {
+        "data": datos,
+        "pagination": {
+            "count": len(datos),
+            "per_page": 50,
+            "current_page": pagina,
+            "has_more": hay_mas,
+        },
+    }
+
+
+class SportmonksFalsa:
+    """Responde en orden lo que se le registró para cada ruta; la última respuesta se repite."""
+
+    def __init__(self) -> None:
+        self.pedidos: list[httpx.Request] = []
+        self._respuestas: dict[str, list] = {}
+
+    def responder(self, ruta: str, *respuestas) -> None:
+        self._respuestas[ruta] = list(respuestas)
+
+    def transporte(self) -> httpx.MockTransport:
+        return httpx.MockTransport(self._atender)
+
+    def _atender(self, pedido: httpx.Request) -> httpx.Response:
+        self.pedidos.append(pedido)
+        cola = self._respuestas[pedido.url.path]
+        respuesta = cola.pop(0) if len(cola) > 1 else cola[0]
+        if isinstance(respuesta, Exception):
+            raise respuesta
+        if isinstance(respuesta, httpx.Response):
+            return respuesta
+        if isinstance(respuesta, int):
+            return httpx.Response(respuesta, json={"message": "error de prueba"})
+        return httpx.Response(200, json=respuesta)
+
+
+@pytest.fixture
+def api() -> SportmonksFalsa:
+    return SportmonksFalsa()
+
+
+@pytest.fixture
+def esperas() -> list[float]:
+    return []
+
+
+@pytest.fixture
+def cliente(api: SportmonksFalsa, esperas: list[float]) -> ClienteSportmonks:
+    return ClienteSportmonks(TOKEN, transporte=api.transporte(), dormir=esperas.append)
+
+
+def test_dat003_el_token_va_en_el_header_y_no_en_la_url(api, cliente):
+    api.responder("/v3/football/seasons", _pagina([{"id": 1}], pagina=1, hay_mas=False))
+
+    cliente.obtener("/seasons", {})
+
+    pedido = api.pedidos[0]
+    assert pedido.headers["Authorization"] == TOKEN
+    assert pedido.url.host == "api.sportmonks.com"
+    assert TOKEN not in str(pedido.url)
+
+
+def test_dat003_se_recorren_todas_las_paginas_mientras_haya_mas(api, cliente):
+    api.responder(
+        "/v3/football/statistics/seasons/players/25001",
+        _pagina([{"id": 1}, {"id": 2}], pagina=1, hay_mas=True),
+        _pagina([{"id": 3}], pagina=2, hay_mas=True),
+        _pagina([{"id": 4}], pagina=3, hay_mas=False),
+    )
+
+    filas = cliente.paginar("/statistics/seasons/players/25001", {"include": "player;team"})
+
+    assert [fila["id"] for fila in filas] == [1, 2, 3, 4]
+    assert [p.url.params["page"] for p in api.pedidos] == ["1", "2", "3"]
+    assert all(p.url.params["per_page"] == "50" for p in api.pedidos)
+    assert all(p.url.params["include"] == "player;team" for p in api.pedidos)
+    assert cliente.pedidos_usados == 3
+
+
+def test_dat003_un_pedido_sin_datos_devuelve_lista_vacia(api, cliente):
+    api.responder("/v3/football/seasons", _pagina([], pagina=1, hay_mas=False))
+
+    assert cliente.paginar("/seasons", {}) == []
+
+
+def test_dat003_un_error_500_se_reintenta_con_backoff(api, cliente, esperas):
+    api.responder("/v3/football/seasons", 500, 503, _pagina([{"id": 7}], pagina=1, hay_mas=False))
+
+    assert cliente.paginar("/seasons", {}) == [{"id": 7}]
+    assert esperas == [1, 2]
+    assert cliente.pedidos_usados == 3
+
+
+def test_dat003_tres_errores_seguidos_cortan_con_un_mensaje_sin_el_token(api, cliente, esperas):
+    api.responder("/v3/football/seasons", 500)
+
+    with pytest.raises(ErrorSportmonks) as error:
+        cliente.paginar("/seasons", {})
+
+    assert "/seasons" in str(error.value)
+    assert TOKEN not in str(error.value)
+    assert esperas == [1, 2, 4]
+    assert cliente.pedidos_usados == 4
+
+
+def test_dat003_un_timeout_se_reintenta(api, cliente, esperas):
+    api.responder(
+        "/v3/football/seasons",
+        httpx.ReadTimeout("lento"),
+        _pagina([{"id": 1}], pagina=1, hay_mas=False),
+    )
+
+    assert cliente.paginar("/seasons", {}) == [{"id": 1}]
+    assert esperas == [1]
+
+
+def test_dat003_un_error_de_cliente_no_se_reintenta(api, cliente, esperas):
+    api.responder("/v3/football/seasons", 401)
+
+    with pytest.raises(ErrorSportmonks) as error:
+        cliente.paginar("/seasons", {})
+
+    assert "401" in str(error.value)
+    assert esperas == []
+    assert cliente.pedidos_usados == 1
+
+
+def test_dat003_un_429_espera_el_tiempo_que_indica_el_header_y_reintenta(api, cliente, esperas):
+    limite = httpx.Response(429, headers={"Retry-After": "90"}, json={"message": "Too Many"})
+    api.responder("/v3/football/seasons", limite, _pagina([{"id": 1}], pagina=1, hay_mas=False))
+
+    assert cliente.paginar("/seasons", {}) == [{"id": 1}]
+    assert esperas == [90]
+
+
+def test_dat003_un_429_usa_retry_after_del_cuerpo_si_no_hay_header(api, cliente, esperas):
+    limite = httpx.Response(429, json={"message": "Too Many", "retry_after": 45})
+    api.responder("/v3/football/seasons", limite, _pagina([{"id": 1}], pagina=1, hay_mas=False))
+
+    cliente.paginar("/seasons", {})
+
+    assert esperas == [45]
+
+
+def test_dat003_si_el_429_pide_esperar_demasiado_se_trata_como_error(api, cliente, esperas):
+    api.responder(
+        "/v3/football/seasons",
+        httpx.Response(429, headers={"Retry-After": "7200"}, json={"message": "Too Many"}),
+    )
+
+    with pytest.raises(ErrorSportmonks) as error:
+        cliente.paginar("/seasons", {})
+
+    assert "429" in str(error.value)
+    assert esperas == []
+
+
+def test_dat003_un_429_que_no_cede_corta_despues_de_reintentar(api, cliente, esperas):
+    api.responder(
+        "/v3/football/seasons",
+        httpx.Response(429, headers={"Retry-After": "10"}, json={"message": "Too Many"}),
+    )
+
+    with pytest.raises(ErrorSportmonks):
+        cliente.paginar("/seasons", {})
+
+    assert esperas == [10, 10, 10]
+
+
+def test_dat003_si_el_token_aparece_en_la_respuesta_no_se_filtra_en_el_error(api, cliente):
+    cuerpo = json.dumps({"message": f"token invalido {TOKEN}"})
+    api.responder("/v3/football/seasons", httpx.Response(403, content=cuerpo))
+
+    with pytest.raises(ErrorSportmonks) as error:
+        cliente.paginar("/seasons", {})
+
+    assert TOKEN not in str(error.value)

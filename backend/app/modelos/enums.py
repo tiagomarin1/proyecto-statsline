@@ -27,9 +27,17 @@ class Cobertura(StrEnum):
     sin_datos = "sin_datos"
 
 
+class FuenteDatos(StrEnum):
+    """De dónde salen las estadísticas de una liga (RN-029, ADR-0011)."""
+
+    api_football = "api_football"
+    sportmonks = "sportmonks"
+
+
 class OrigenSincronizacion(StrEnum):
     api_football = "api_football"
     transfermarkt = "transfermarkt"
+    sportmonks = "sportmonks"
 
 
 class EstadoSincronizacion(StrEnum):
