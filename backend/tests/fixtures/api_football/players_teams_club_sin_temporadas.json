@@ -1,0 +1,53 @@
+{
+  "get": "players/teams",
+  "parameters": {
+    "player": "361907"
+  },
+  "errors": [],
+  "results": 4,
+  "paging": {
+    "current": 1,
+    "total": 1
+  },
+  "response": [
+    {
+      "team": {
+        "id": 1957,
+        "name": "Racing Cordoba",
+        "logo": "https://media.api-sports.io/football/teams/1957.png"
+      },
+      "seasons": [
+        2025,
+        2024
+      ]
+    },
+    {
+      "team": {
+        "id": 19042,
+        "name": "Vargas Torres",
+        "logo": "https://media.api-sports.io/football/teams/19042.png"
+      },
+      "seasons": []
+    },
+    {
+      "team": {
+        "id": 8379,
+        "name": "San Miguel",
+        "logo": "https://media.api-sports.io/football/teams/8379.png"
+      },
+      "seasons": [
+        2023
+      ]
+    },
+    {
+      "team": {
+        "id": 3960,
+        "name": "Sportivo Peñarol",
+        "logo": "https://media.api-sports.io/football/teams/3960.png"
+      },
+      "seasons": [
+        2022
+      ]
+    }
+  ]
+}
