@@ -152,6 +152,17 @@ export interface Coincidencia {
   criterios: CriterioCoincidencia[];
 }
 
+export interface TramoTrayectoria {
+  desde: number;
+  hasta: number;
+}
+
+export interface ClubEnTrayectoria {
+  club: string;
+  actual: boolean;
+  tramos: TramoTrayectoria[];
+}
+
 export interface FichaJugador {
   id: number;
   nombre: string;
@@ -167,6 +178,7 @@ export interface FichaJugador {
   valor_mercado: ValorMercado | null;
   en_seguimiento: boolean;
   coincidencia: Coincidencia | null;
+  trayectoria: ClubEnTrayectoria[] | null;
 }
 
 // --- Comparación ---

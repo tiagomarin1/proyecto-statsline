@@ -675,6 +675,13 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
 .ficha__meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .ficha__right { display: grid; gap: 10px; justify-items: end; text-align: right; }
 .ficha__val { font-family: var(--font-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ficha__lateral { display: grid; gap: 22px; align-content: start; }
+.trayectoria { padding: 16px 18px; display: grid; gap: 10px; }
+.trayectoria__lista { list-style: none; margin: 0; padding: 0; display: grid; }
+.trayectoria__item { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--border, rgba(128,128,128,.25)); }
+.trayectoria__item:first-child { border-top: 0; }
+.trayectoria__club { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 600; }
+.trayectoria__anios { color: var(--fg-muted); text-align: right; }
 .ficha__grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; align-items: start; }
 .mlist { padding: 4px 0; }
 .mitem { padding: 14px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }

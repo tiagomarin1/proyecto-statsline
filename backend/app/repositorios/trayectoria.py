@@ -52,6 +52,16 @@ def jugadores_pendientes(
     return [(fila[0], fila[1]) for fila in session.execute(consulta)]
 
 
+def pasos_del_jugador(session: Session, jugador_id: int) -> list[PasoTrayectoria]:
+    """Los clubes y temporadas guardados de un jugador, para armar su trayectoria (JUG-003)."""
+    filas = session.execute(
+        select(
+            Trayectoria.id_club_api_football, Trayectoria.nombre_club, Trayectoria.temporada
+        ).where(Trayectoria.jugador_id == jugador_id)
+    )
+    return [PasoTrayectoria(id_club, nombre, temporada) for id_club, nombre, temporada in filas]
+
+
 def reemplazar_trayectoria(
     session: Session, jugador_id: int, pasos: list[PasoTrayectoria], ahora: datetime
 ) -> None:
