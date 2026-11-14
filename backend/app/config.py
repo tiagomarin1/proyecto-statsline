@@ -22,6 +22,8 @@ class Configuracion(BaseSettings):
     database_ssl_ca: str | None = None
     secret_key: str
     api_football_key: str = ""
+    # Token de Sportmonks (DAT-003). Solo del entorno: nunca va en el repo
+    sportmonks_token: str = ""
     sesion_horas: int = 8
     demo_contrasena: str = ""
     entorno: Literal["desarrollo", "test", "produccion"] = "desarrollo"

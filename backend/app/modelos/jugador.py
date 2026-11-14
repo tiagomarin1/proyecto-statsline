@@ -12,10 +12,15 @@ class Jugador(Base):
     __tablename__ = "jugador"
     __table_args__ = (
         CheckConstraint("valor_mercado_eur >= 0", name="valor_mercado_eur_no_negativo"),
+        CheckConstraint(
+            "id_api_football IS NOT NULL OR id_sportmonks IS NOT NULL", name="tiene_id_de_fuente"
+        ),
     )
 
     id: Mapped[int] = mapped_column(Id, primary_key=True, autoincrement=True)
-    id_api_football: Mapped[int] = mapped_column(Integer, unique=True)
+    # Un jugador que solo existe en Sportmonks no tiene id de API-Football: tiene que tener alguno
+    id_api_football: Mapped[int | None] = mapped_column(Integer, unique=True)
+    id_sportmonks: Mapped[int | None] = mapped_column(Integer, unique=True)
     nombre: Mapped[str] = mapped_column(String(120))
     nombre_pila: Mapped[str | None] = mapped_column(String(80))
     apellido: Mapped[str | None] = mapped_column(String(80))
