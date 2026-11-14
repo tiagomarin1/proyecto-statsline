@@ -399,7 +399,8 @@ button, input, select { font: inherit; color: inherit; }
 .hero__fondo { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; z-index: 0; }
 .hero__foto {
   --ar: 1.5;
-  --W: max(100cqw, calc(100cqh * 2.4));
+  /* 200px de más a lo ancho: el scroll corre la foto +-80px y no puede dejar ver el fondo */
+  --W: max(calc(100cqw + 200px), calc(100cqh * 2.4));
   position: absolute; left: 50%;
   top: calc(88cqh - var(--W) / var(--ar) * .583); /* la línea blanca de la foto queda al 88% de la altura */
   width: var(--W); height: calc(var(--W) / var(--ar));
@@ -427,7 +428,6 @@ button, input, select { font: inherit; color: inherit; }
 .hero__capa .p2 { left: 66%; }
 .hero__capa .p3 { left: 77%; }
 .hero__capa .p4 { left: 88%; }
-.hero__nota { position: absolute; right: var(--gutter-r); bottom: 10px; font-size: 12px; color: var(--on-dark-muted); }
 
 /* La pelota: en reposo queda a la vista; con data-anim arranca fuera de pantalla y rueda. */
 .hero__bola {
@@ -463,7 +463,6 @@ button, input, select { font: inherit; color: inherit; }
   .hero__dato, .hero__dato:nth-of-type(even) { bottom: calc(12% + var(--b) + 22px); }
   .hero__dato span { font-size: 10px; }
   .hero__dato strong { font-size: 14.5px; }
-  .hero__nota { display: none; }
 }
 
 .band { padding-block: 64px; }

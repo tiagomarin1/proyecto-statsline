@@ -77,11 +77,11 @@ describe('UI-003: hero de la home', () => {
     expect(screen.queryByRole('link', { name: 'Ya tengo cuenta' })).not.toBeInTheDocument();
   });
 
-  it('aclara que las cifras son ilustrativas y esconde las fotos a los lectores de pantalla', () => {
+  it('esconde las fotos a los lectores de pantalla y no muestra ninguna nota sobre las cifras', () => {
     simularPantalla('reducido');
     const { container } = renderizar();
 
-    expect(screen.getByText('Datos ilustrativos')).toBeInTheDocument();
+    expect(screen.queryByText('Datos ilustrativos')).not.toBeInTheDocument();
     container.querySelectorAll('img').forEach((img) => {
       expect(img).toHaveAttribute('alt', '');
     });
