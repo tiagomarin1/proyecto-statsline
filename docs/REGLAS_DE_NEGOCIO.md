@@ -434,7 +434,107 @@ Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 
 ---
 
+### RN-029 Fuente de datos de cada liga (propuesta, 14/11/2026)
+
+Ver ADR-0011 (propuesta).
+
+| Liga | Fuente de las estadísticas |
+|---|---|
+| Liga Profesional | API-Football |
+| Primera Nacional, Torneo Federal A, Primera B Metropolitana, Primera C y Primera D | Sportmonks |
+
+- **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
+- La ficha indica la fuente de las métricas ("Datos de Sportmonks" o "Datos de API-Football").
+- **Aviso al comparar fuentes distintas:** si en el comparador hay jugadores de ligas con fuentes distintas, se muestra "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables". Lo mismo cuando una búsqueda mezcla ligas y se ordena por rating o por % de pases.
+- **Ejemplo:** un jugador de la Liga Profesional con rating 7,10 (API-Football) y uno de Primera Nacional con rating 7,40 (Sportmonks) pueden mostrarse juntos, pero con el aviso: el 7,40 no es "mejor" que el 7,10.
+
+**A validar con el PO:** si el aviso alcanza, o si el comparador debería bloquear la comparación entre fuentes.
+
+Usada en: DAT-003, BUS-*, JUG-001, CMP-001.
+
+### RN-030 Cruce de jugadores de Sportmonks con la base (propuesta, 14/11/2026)
+
+Para no duplicar a un jugador que pasa de una liga a otra:
+
+1. Se normaliza el nombre (sin tildes, en minúsculas, sin puntuación).
+2. Se busca en la base un jugador con el mismo nombre normalizado **y la misma fecha de nacimiento**.
+3. Si hay **exactamente una** coincidencia: se agrega `id_sportmonks` a ese jugador.
+4. Si hay **ninguna o más de una**: se crea un jugador nuevo y no se cruza (como en RN-002, paso 4).
+5. Si falta la fecha de nacimiento en alguno de los dos, no se cruza.
+
+**Ejemplo:** "Lucas Martínez", 15/03/1999, de Primera Nacional (Sportmonks) coincide con "L. Martinez" ya cargado de la Liga Profesional con la misma fecha → se agrega `id_sportmonks` al jugador existente. Si hubiera dos "Lucas Martínez" con esa fecha, se crea uno nuevo.
+
+Usada en: DAT-003.
+
+### RN-031 Datos de Sportmonks que se derivan o se traducen (propuesta, 14/11/2026)
+
+```
+pases_precision_pct = pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
+duelos_totales      = total-duels
+duelos_ganados      = duels-won
+intercepciones      = interceptions
+rating              = promedio de la temporada (value.average)
+```
+
+- Un dato que no viene se guarda `NULL`, nunca 0 (RN-008 y RN-025).
+- Un dato que viola las invariantes del modelo (`duelos_ganados` > `duelos_totales`, o `pases_precision_pct` fuera de 0-100) queda `NULL`, igual que con API-Football.
+- La posición se traduce a los 4 códigos de RN-019. **La tabla de posiciones de Sportmonks está pendiente**: se completa con los datos de la prueba, sin inventarla.
+
+**Ejemplo:** 320 pases acertados de 400 → 80,00%. 61 duelos ganados de 100 → se guardan 61 y 100, y la UI calcula 61% (RN-018).
+
+Usada en: DAT-003.
+
+
+### RN-032 Cómo se arma la trayectoria que se muestra (propuesta, 14/11/2026)
+
+- Las temporadas de cada club se agrupan en **tramos de años consecutivos**. Si hay un hueco, son tramos separados. Los tramos de un club van del más reciente al más viejo.
+- Los clubes se ordenan por su **último año, del más reciente al más viejo**. Los clubes sin años van al final, con "Sin año".
+- **El club actual** (el equipo de la estadística elegida por RN-017) va primero con la marca "Actual", aunque no figure en la trayectoria que trajo la API.
+- Si la trayectoria nunca se sincronizó, se muestra "Trayectoria no disponible" (RN-008). Si solo figura el club actual, se muestra ese club con la leyenda "No hay clubes anteriores registrados".
+
+**Ejemplo** (datos reales de un jugador de Primera B Metropolitana): Deportivo Merlo [2024, 2025], Atlanta [2023], Alvarado [2020, 2021, 2022], San Martín de Tucumán [2018, 2019], Villa Dálmine [2013, 2014, 2015], Chacarita Juniors [2008, 2010, 2011, 2012, 2016, 2017]. Se muestra:
+
+```
+Deportivo Merlo (Actual)   2024–2025
+Atlanta                    2023
+Alvarado                   2020–2022
+San Martín de Tucumán      2018–2019
+Chacarita Juniors          2016–2017, 2010–2012, 2008
+Villa Dálmine              2013–2015
+```
+
+(Chacarita queda antes que Villa Dálmine porque su último año, 2017, es más reciente que 2015.)
+
+Usada en: JUG-003.
+
+### RN-033 Qué no cuenta como club en la trayectoria (propuesta, 14/11/2026)
+
+- Las **selecciones nacionales** no se guardan ni se muestran. API-Football no las marca como tales, así que se reconocen por el nombre: un nombre igual a un país, con o sin categoría ("U17", "U20", "U23"), se descarta.
+- Los equipos **juveniles y de reserva** de un club ("Club U20", "Club II", "Club Reserve") sí se muestran, tal como vienen.
+- Si hay dudas sobre un nombre, se muestra: es preferible un dato de más que perder un club.
+
+**Ejemplo:** "Argentina" y "Argentina U20" se descartan. "Argentino de Quilmes" se muestra, porque su nombre no es el de un país.
+
+**A validar:** la lista de países es una aproximación. Con los datos reales hay que revisar qué nombres quedan mal clasificados.
+
+Usada en: DAT-004, JUG-003.
+
+### RN-034 Actualización de la trayectoria (propuesta, 14/11/2026)
+
+- Se hace **un pedido por jugador** (`/players/teams`).
+- Un jugador se vuelve a pedir si **nunca se sincronizó o si pasaron más de 30 días** desde la última vez. Con `--forzar` se pide siempre.
+- Cada corrida tiene un **tope de pedidos** (por defecto 5.000), para dejar margen del cupo diario de API-Football a la sincronización de estadísticas. Se empieza por los jugadores con más minutos.
+- Si la API falla para un jugador, su trayectoria anterior no se toca y se reintenta en la próxima corrida (RN-025).
+
+**Ejemplo:** 5.295 jugadores sin trayectoria y tope de 5.000: la primera corrida cubre 5.000 (los de más minutos) y la segunda los 295 restantes.
+
+Usada en: DAT-004.
+
+---
+
 ## Pendientes
+
+- **PO y equipo:** validar ADR-0011 y las reglas RN-029 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
 - ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.

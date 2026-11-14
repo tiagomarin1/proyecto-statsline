@@ -28,6 +28,8 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | DAT-001 | Sincronizar jugadores desde API-Football | en testing | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
 | DAT-002 | Importar valores de mercado de transfermarkt-datasets | en testing | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
+| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | borrador (depende de ADR-0011, propuesta) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
+| DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | borrador | P1 | — (nueva) | — | specs/datos/DAT-004.md |
 
 ### Módulo: Autenticación
 
@@ -52,6 +54,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | JUG-001 | Ver ficha individual de un jugador | en testing | P0 | 4/11 | Garrido + Marin | specs/jugador/JUG-001.md |
+| JUG-003 | Ver la trayectoria del jugador en su ficha | borrador (depende de DAT-004) | P1 | — (nueva) | — | specs/jugador/JUG-003.md |
 
 ### Módulo: Comparación
 
