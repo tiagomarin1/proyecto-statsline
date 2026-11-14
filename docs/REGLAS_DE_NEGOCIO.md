@@ -484,11 +484,57 @@ rating              = promedio de la temporada (value.average)
 
 Usada en: DAT-003.
 
+
+### RN-032 Cómo se arma la trayectoria que se muestra (propuesta, 14/11/2026)
+
+- Las temporadas de cada club se agrupan en **tramos de años consecutivos**. Si hay un hueco, son tramos separados. Los tramos de un club van del más reciente al más viejo.
+- Los clubes se ordenan por su **último año, del más reciente al más viejo**. Los clubes sin años van al final, con "Sin año".
+- **El club actual** (el equipo de la estadística elegida por RN-017) va primero con la marca "Actual", aunque no figure en la trayectoria que trajo la API.
+- Si la trayectoria nunca se sincronizó, se muestra "Trayectoria no disponible" (RN-008). Si solo figura el club actual, se muestra ese club con la leyenda "No hay clubes anteriores registrados".
+
+**Ejemplo** (datos reales de un jugador de Primera B Metropolitana): Deportivo Merlo [2024, 2025], Atlanta [2023], Alvarado [2020, 2021, 2022], San Martín de Tucumán [2018, 2019], Villa Dálmine [2013, 2014, 2015], Chacarita Juniors [2008, 2010, 2011, 2012, 2016, 2017]. Se muestra:
+
+```
+Deportivo Merlo (Actual)   2024–2025
+Atlanta                    2023
+Alvarado                   2020–2022
+San Martín de Tucumán      2018–2019
+Chacarita Juniors          2016–2017, 2010–2012, 2008
+Villa Dálmine              2013–2015
+```
+
+(Chacarita queda antes que Villa Dálmine porque su último año, 2017, es más reciente que 2015.)
+
+Usada en: JUG-003.
+
+### RN-033 Qué no cuenta como club en la trayectoria (propuesta, 14/11/2026)
+
+- Las **selecciones nacionales** no se guardan ni se muestran. API-Football no las marca como tales, así que se reconocen por el nombre: un nombre igual a un país, con o sin categoría ("U17", "U20", "U23"), se descarta.
+- Los equipos **juveniles y de reserva** de un club ("Club U20", "Club II", "Club Reserve") sí se muestran, tal como vienen.
+- Si hay dudas sobre un nombre, se muestra: es preferible un dato de más que perder un club.
+
+**Ejemplo:** "Argentina" y "Argentina U20" se descartan. "Argentino de Quilmes" se muestra, porque su nombre no es el de un país.
+
+**A validar:** la lista de países es una aproximación. Con los datos reales hay que revisar qué nombres quedan mal clasificados.
+
+Usada en: DAT-004, JUG-003.
+
+### RN-034 Actualización de la trayectoria (propuesta, 14/11/2026)
+
+- Se hace **un pedido por jugador** (`/players/teams`).
+- Un jugador se vuelve a pedir si **nunca se sincronizó o si pasaron más de 30 días** desde la última vez. Con `--forzar` se pide siempre.
+- Cada corrida tiene un **tope de pedidos** (por defecto 5.000), para dejar margen del cupo diario de API-Football a la sincronización de estadísticas. Se empieza por los jugadores con más minutos.
+- Si la API falla para un jugador, su trayectoria anterior no se toca y se reintenta en la próxima corrida (RN-025).
+
+**Ejemplo:** 5.295 jugadores sin trayectoria y tope de 5.000: la primera corrida cubre 5.000 (los de más minutos) y la segunda los 295 restantes.
+
+Usada en: DAT-004.
+
 ---
 
 ## Pendientes
 
-- **PO y equipo:** validar ADR-0011 y las reglas RN-029, RN-030 y RN-031 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
+- **PO y equipo:** validar ADR-0011 y las reglas RN-029 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
 - ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.
