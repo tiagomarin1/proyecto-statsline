@@ -18,6 +18,7 @@ TABLAS_DEL_MODELO_CANONICO = {
     "perfil_busqueda",
     "seguimiento",
     "sincronizacion",
+    "trayectoria",
 }
 
 

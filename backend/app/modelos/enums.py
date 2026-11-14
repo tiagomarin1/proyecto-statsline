@@ -37,6 +37,7 @@ class FuenteDatos(StrEnum):
 class OrigenSincronizacion(StrEnum):
     api_football = "api_football"
     transfermarkt = "transfermarkt"
+    api_football_trayectoria = "api_football_trayectoria"
     sportmonks = "sportmonks"
 
 

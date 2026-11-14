@@ -8,6 +8,7 @@ from app.modelos.liga import Liga
 from app.modelos.perfil_busqueda import PerfilBusqueda
 from app.modelos.seguimiento import Seguimiento
 from app.modelos.sincronizacion import Sincronizacion
+from app.modelos.trayectoria import Trayectoria
 from app.modelos.usuario import Usuario
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "PerfilBusqueda",
     "Seguimiento",
     "Sincronizacion",
+    "Trayectoria",
     "Usuario",
 ]

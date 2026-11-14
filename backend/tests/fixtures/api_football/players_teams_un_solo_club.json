@@ -1,0 +1,26 @@
+{
+  "get": "players/teams",
+  "parameters": {
+    "player": "445035"
+  },
+  "errors": [],
+  "results": 1,
+  "paging": {
+    "current": 1,
+    "total": 1
+  },
+  "response": [
+    {
+      "team": {
+        "id": 468,
+        "name": "Brown DE Adrogue",
+        "logo": "https://media.api-sports.io/football/teams/468.png"
+      },
+      "seasons": [
+        2025,
+        2024,
+        2023
+      ]
+    }
+  ]
+}
