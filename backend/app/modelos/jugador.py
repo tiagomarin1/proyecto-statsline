@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, Integer, String
+from sqlalchemy import CheckConstraint, Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.modelos.base import Base, Id, columna_actualizado_en
@@ -31,4 +31,6 @@ class Jugador(Base):
     valor_mercado_eur: Mapped[int | None] = mapped_column(Integer, index=True)
     id_transfermarkt: Mapped[int | None] = mapped_column(Integer, unique=True)
     valor_mercado_fecha: Mapped[date | None] = mapped_column(Date)
+    # NULL = la trayectoria nunca se sincronizó (DAT-004, RN-034)
+    trayectoria_sincronizada_en: Mapped[datetime | None] = mapped_column(DateTime)
     actualizado_en: Mapped[datetime] = columna_actualizado_en()

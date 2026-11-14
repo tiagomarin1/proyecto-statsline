@@ -74,6 +74,10 @@ class ClienteApiFootball:
             pagina += 1
         return jugadores
 
+    def equipos_del_jugador(self, id_jugador_api: int) -> list[dict[str, Any]]:
+        """Clubes y temporadas de un jugador (`/players/teams`): un solo pedido (DAT-004)."""
+        return self.obtener("/players/teams", {"player": id_jugador_api})["response"]
+
     def obtener(self, ruta: str, parametros: dict[str, Any]) -> dict[str, Any]:
         """GET con reintentos. Cada intento cuenta como un pedido del cupo."""
         descripcion = _describir(ruta, parametros)
