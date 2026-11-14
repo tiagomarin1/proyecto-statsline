@@ -53,11 +53,11 @@ export default function Inicio() {
               clubes chicos y medianos, sin necesidad de un analista de datos.
             </p>
             <div className="hero__cta">
-              <Link className="btn btn--sky btn--lg" to={destino}>
+              <Link className="btn btn--oro btn--lg" to={destino}>
                 {usuario ? 'Buscar jugadores' : 'Empezar ahora'} <span aria-hidden="true">→</span>
               </Link>
               {!usuario && (
-                <Link className="btn btn--onNavy btn--lg" to="/ingresar">
+                <Link className="btn btn--onDark btn--lg" to="/ingresar">
                   Ya tengo cuenta
                 </Link>
               )}
@@ -140,7 +140,7 @@ export default function Inicio() {
       <section className="band band--cta">
         <div className="cta__in wrap">
           <h2>Tu próximo refuerzo está en los datos.</h2>
-          <Link className="btn btn--sky btn--lg" to={destino}>
+          <Link className="btn btn--oro btn--lg" to={destino}>
             {usuario ? 'Ir a buscar' : 'Crear cuenta gratis'} <span aria-hidden="true">→</span>
           </Link>
         </div>

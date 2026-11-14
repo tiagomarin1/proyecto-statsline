@@ -1,44 +1,19 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import BarraFiltros from '../componentes/BarraFiltros';
 import BarraSeleccion from '../componentes/BarraSeleccion';
+import PanelJugador from '../componentes/PanelJugador';
 import Paginacion from '../componentes/Paginacion';
+import TablaJugadores from '../componentes/TablaJugadores';
 import TarjetaJugador from '../componentes/TarjetaJugador';
 import { useAvisar } from '../contexto/AvisosContext';
 import { buscarJugadores, listarLigas } from '../servicios/jugadores';
 import { ErrorApi } from '../servicios/api';
 import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { JugadorResumen, Liga, OrdenBusqueda, RespuestaBusqueda } from '../tipos/api';
-import { formatearEur, POSICIONES } from '../utilidades/formato';
-
-const ORDENES: Record<OrdenBusqueda, string> = {
-  minutos: 'Minutos jugados',
-  valor: 'Valor (menor primero)',
-  edad: 'Edad (menor primero)',
-  pases: '% pases completados',
-  rating: 'Rating',
-};
-
-const METRICAS = [
-  { nombre: 'pases_min', label: '% pases completados (mín.)' },
-  { nombre: 'duelos_min', label: 'Duelos ganados % (mín.)' },
-  { nombre: 'recuperaciones_min', label: 'Recuperaciones por partido (mín.)' },
-  { nombre: 'minutos_min', label: 'Minutos jugados (mín.)' },
-];
-
-// RN-003: el back rechaza con 422 cualquier presupuesto fuera de este rango
-const PRESUPUESTO_MINIMO_EUR = 20_000;
-const PRESUPUESTO_MAXIMO_EUR = 400_000;
-const PASO_PRESUPUESTO_EUR = 5_000;
-
-const ETIQUETAS_FILTRO: Record<string, string> = {
-  posicion: 'Posición',
-  liga_id: 'Liga',
-  edad_min: 'Edad mínima',
-  edad_max: 'Edad máxima',
-  presupuesto_max_eur: 'Presupuesto máximo (EUR)',
-  ...Object.fromEntries(METRICAS.map((m) => [m.nombre, m.label])),
-};
+import { ETIQUETAS_FILTRO, ORDENES, TAMANO_TABLA, TAMANO_TARJETAS } from '../utilidades/filtros';
+import { usePantallaChica } from '../utilidades/pantalla';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
 function mensajeDeError(e: unknown) {
@@ -54,6 +29,7 @@ export default function Buscar() {
   const [params, setParams] = useSearchParams();
   const navegar = useNavigate();
   const avisar = useAvisar();
+  const pantallaChica = usePantallaChica();
   const [ligas, setLigas] = useState<Liga[]>([]);
   const [respuesta, setRespuesta] = useState<RespuestaBusqueda | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -61,6 +37,11 @@ export default function Buscar() {
   // Selección para comparar (CMP-001). Guarda el jugador entero para que la barra lo muestre
   // aunque cambie de página de resultados.
   const [seleccion, setSeleccion] = useState<JugadorResumen[]>([]);
+  // Jugador cuyo detalle está abierto en el panel (UI-002)
+  const [elegidoId, setElegidoId] = useState<number | null>(null);
+
+  const orden = (params.get('orden') as OrdenBusqueda | null) ?? 'minutos';
+  const elegido = respuesta?.resultados.find((j) => j.id === elegidoId) ?? null;
 
   useEffect(() => {
     listarLigas()
@@ -72,7 +53,10 @@ export default function Buscar() {
     let vigente = true;
     setCargando(true);
     setError('');
-    buscarJugadores(params)
+    // El tamaño de página no es un filtro: no va en la URL, solo en el pedido
+    const consulta = new URLSearchParams(params);
+    consulta.set('tamano', String(pantallaChica ? TAMANO_TARJETAS : TAMANO_TABLA));
+    buscarJugadores(consulta)
       .then((r) => vigente && setRespuesta(r))
       .catch((e) => {
         if (!vigente) return;
@@ -84,14 +68,25 @@ export default function Buscar() {
     return () => {
       vigente = false;
     };
-  }, [params]);
+  }, [params, pantallaChica]);
 
-  function aplicar(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const nuevos = new URLSearchParams();
-    new FormData(e.currentTarget).forEach((valor, clave) => {
-      if (String(valor).trim() !== '') nuevos.set(clave, String(valor));
-    });
+  // Si el jugador del panel ya no está en la lista (cambió un filtro o el orden), se cierra
+  useEffect(() => {
+    if (elegidoId !== null && respuesta && !elegido) setElegidoId(null);
+  }, [elegidoId, respuesta, elegido]);
+
+  useEffect(() => {
+    if (elegidoId === null) return;
+    const alTeclear = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setElegidoId(null);
+    };
+    document.addEventListener('keydown', alTeclear);
+    return () => document.removeEventListener('keydown', alTeclear);
+  }, [elegidoId]);
+
+  /** Aplica los filtros que llegan y conserva el orden; siempre vuelve a la página 1. */
+  function aplicarFiltros(filtros: Record<string, string>) {
+    const nuevos = new URLSearchParams(filtros);
     if (params.get('orden')) nuevos.set('orden', params.get('orden')!);
     setParams(nuevos);
   }
@@ -149,137 +144,21 @@ export default function Buscar() {
           <p>Definí el perfil que necesita tu plantel y revisá a los candidatos que lo cumplen.</p>
         </div>
       </div>
-      <div className="cols">
-        {/* key solo con los filtros (sin orden ni paginado): al cambiar orden/página el form NO se
-            remonta, así no se pierde lo que el usuario tipeó y todavía no aplicó. */}
-        <form
-          key={filtrosSinPaginado.toString()}
-          className="card filters"
-          aria-label="Filtros de búsqueda"
-          onSubmit={aplicar}
-        >
-          <h2>Filtros</h2>
-          <div className="filters__grp">
-            <label className="filters__legend" htmlFor="posicion">
-              Posición
-            </label>
-            <select
-              className="input"
-              id="posicion"
-              name="posicion"
-              defaultValue={params.get('posicion') ?? ''}
-            >
-              <option value="">Todas</option>
-              {Object.entries(POSICIONES).map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filters__grp">
-            <label className="filters__legend" htmlFor="liga_id">
-              Liga
-            </label>
-            {/* Las ligas llegan después que el formulario: el key lo vuelve a montar cuando
-                existen las opciones, si no defaultValue no encuentra la liga de la URL. */}
-            <select
-              key={ligas.length}
-              className="input"
-              id="liga_id"
-              name="liga_id"
-              defaultValue={params.get('liga_id') ?? ''}
-            >
-              <option value="">Todas</option>
-              {ligas.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filters__grp">
-            <span className="filters__legend">Edad</span>
-            <div className="metric" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              <input
-                className="input"
-                name="edad_min"
-                type="number"
-                min={15}
-                max={45}
-                placeholder="Desde"
-                aria-label="Edad mínima"
-                defaultValue={params.get('edad_min') ?? ''}
-              />
-              <input
-                className="input"
-                name="edad_max"
-                type="number"
-                min={15}
-                max={45}
-                placeholder="Hasta"
-                aria-label="Edad máxima"
-                defaultValue={params.get('edad_max') ?? ''}
-              />
-            </div>
-          </div>
-          <div className="filters__grp">
-            <label className="filters__legend" htmlFor="presupuesto_max_eur">
-              Presupuesto máximo (EUR)
-            </label>
-            <input
-              className="input"
-              id="presupuesto_max_eur"
-              name="presupuesto_max_eur"
-              type="number"
-              min={PRESUPUESTO_MINIMO_EUR}
-              max={PRESUPUESTO_MAXIMO_EUR}
-              step={PASO_PRESUPUESTO_EUR}
-              aria-describedby="presupuesto_rango"
-              defaultValue={params.get('presupuesto_max_eur') ?? ''}
-            />
-            <p id="presupuesto_rango" className="muted">
-              De {formatearEur(PRESUPUESTO_MINIMO_EUR)} a {formatearEur(PRESUPUESTO_MAXIMO_EUR)}.
-            </p>
-          </div>
-          <div className="filters__grp">
-            <span className="filters__legend">Métricas tácticas</span>
-            {METRICAS.map((m) => (
-              <div key={m.nombre} className="metric">
-                <label htmlFor={m.nombre}>{m.label}</label>
-                <input
-                  className="input"
-                  id={m.nombre}
-                  name={m.nombre}
-                  type="number"
-                  min={0}
-                  step="any"
-                  defaultValue={params.get(m.nombre) ?? ''}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="filters__acts">
-            <button className="btn btn--primary" type="submit">
-              Aplicar filtros
-            </button>
-            <button className="btn btn--ghost btn--sm" type="button" onClick={() => setParams({})}>
-              Limpiar
-            </button>
-          </div>
-        </form>
 
-        <div className="results">
-          <div className="results__bar">
-            <div>
-              <h2>Candidatos</h2>
-              {respuesta && <p className="results__meta num">{respuesta.total} resultados</p>}
-            </div>
+      <BarraFiltros params={params} ligas={ligas} onCambiar={aplicarFiltros} />
+
+      <div className="results">
+        <div className="results__bar">
+          <div>
+            <h2>Candidatos</h2>
+            {respuesta && <p className="results__meta num">{respuesta.total} resultados</p>}
+          </div>
+          {pantallaChica && (
             <label className="results__sort">
               Ordenar por
               <select
                 className="input"
-                value={params.get('orden') ?? 'minutos'}
+                value={orden}
                 onChange={(e) => cambiar('orden', e.target.value)}
               >
                 {Object.entries(ORDENES).map(([v, l]) => (
@@ -289,98 +168,123 @@ export default function Buscar() {
                 ))}
               </select>
             </label>
-          </div>
-
-          {error && (
-            <div className="alert" role="alert">
-              <span className="alert__i">!</span>
-              <span>{error}</span>
-            </div>
-          )}
-          {cargando && <p className="muted">Buscando…</p>}
-
-          {!cargando && respuesta && (
-            <>
-              {respuesta.liga_sin_datos && (
-                <div className="alert alert--warn">
-                  <span className="alert__i">i</span>
-                  <span>
-                    Esa liga no está cubierta por nuestra fuente de datos. Elegí otra para seguir.
-                  </span>
-                </div>
-              )}
-              {respuesta.excluidos_por_dato_faltante > 0 && (
-                <div className="alert alert--info">
-                  <span className="alert__i">i</span>
-                  <span>
-                    {respuesta.excluidos_por_dato_faltante} jugador(es) quedaron afuera porque su
-                    liga no publica alguna métrica por la que filtrás.
-                  </span>
-                </div>
-              )}
-              {respuesta.excluidos_sin_valor > 0 && (
-                <div className="alert alert--info">
-                  <span className="alert__i">i</span>
-                  <span>
-                    {respuesta.excluidos_sin_valor} jugador(es) quedaron afuera por no tener valor
-                    de mercado publicado.
-                  </span>
-                </div>
-              )}
-
-              {respuesta.total === 0 ? (
-                <div className="card empty">
-                  <h3>No hay jugadores que cumplan estos filtros</h3>
-                  {respuesta.sugerencia && (
-                    <button
-                      className="btn btn--primary"
-                      type="button"
-                      onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
-                    >
-                      Relajar {respuesta.sugerencia.etiqueta}
-                    </button>
-                  )}
-                  <button
-                    className="btn btn--ghost btn--sm"
-                    type="button"
-                    onClick={() => setParams({})}
-                  >
-                    Limpiar todos los filtros
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="follow">
-                    {respuesta.resultados.map((j) => (
-                      <TarjetaJugador
-                        key={j.id}
-                        jugador={j}
-                        filtros={params.toString()}
-                        onAlternarSeguimiento={alternar}
-                        seleccionado={seleccion.some((s) => s.id === j.id)}
-                        onAlternarSeleccion={alternarSeleccion}
-                      />
-                    ))}
-                  </div>
-                  <Paginacion
-                    pagina={respuesta.pagina}
-                    totalPaginas={Math.ceil(respuesta.total / respuesta.tamano)}
-                    onCambiar={(p) => cambiar('pagina', String(p))}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          {seleccion.length > 0 && (
-            <BarraSeleccion
-              seleccion={seleccion}
-              onQuitar={(id) => setSeleccion(seleccion.filter((s) => s.id !== id))}
-              onLimpiar={() => setSeleccion([])}
-              onComparar={compararSeleccion}
-            />
           )}
         </div>
+
+        {error && (
+          <div className="alert" role="alert">
+            <span className="alert__i">!</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {respuesta && (
+          <>
+            {respuesta.liga_sin_datos && (
+              <div className="alert alert--warn">
+                <span className="alert__i">i</span>
+                <span>
+                  Esa liga no está cubierta por nuestra fuente de datos. Elegí otra para seguir.
+                </span>
+              </div>
+            )}
+            {respuesta.excluidos_por_dato_faltante > 0 && (
+              <div className="alert alert--info">
+                <span className="alert__i">i</span>
+                <span>
+                  {respuesta.excluidos_por_dato_faltante} jugador(es) quedaron afuera porque su liga
+                  no publica alguna métrica por la que filtrás.
+                </span>
+              </div>
+            )}
+            {respuesta.excluidos_sin_valor > 0 && (
+              <div className="alert alert--info">
+                <span className="alert__i">i</span>
+                <span>
+                  {respuesta.excluidos_sin_valor} jugador(es) quedaron afuera por no tener valor de
+                  mercado publicado.
+                </span>
+              </div>
+            )}
+
+            {respuesta.total === 0 ? (
+              <div className="card empty">
+                <h3>No hay jugadores que cumplan estos filtros</h3>
+                {respuesta.sugerencia && (
+                  <button
+                    className="btn btn--primary"
+                    type="button"
+                    onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
+                  >
+                    Relajar {respuesta.sugerencia.etiqueta}
+                  </button>
+                )}
+                <button
+                  className="btn btn--ghost btn--sm"
+                  type="button"
+                  onClick={() => setParams({})}
+                >
+                  Limpiar todos los filtros
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Mientras llegan los resultados nuevos se siguen viendo los anteriores, atenuados */}
+                <div className={`cuerpo${cargando ? ' is-cargando' : ''}`} aria-busy={cargando}>
+                  {pantallaChica ? (
+                    <div className="follow">
+                      {respuesta.resultados.map((j) => (
+                        <TarjetaJugador
+                          key={j.id}
+                          jugador={j}
+                          filtros={params.toString()}
+                          onAlternarSeguimiento={alternar}
+                          seleccionado={seleccion.some((s) => s.id === j.id)}
+                          onAlternarSeleccion={alternarSeleccion}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`cuerpo__grilla${elegido ? ' con-panel' : ''}`}>
+                      <TablaJugadores
+                        jugadores={respuesta.resultados}
+                        orden={orden}
+                        elegidoId={elegido?.id ?? null}
+                        seleccionIds={seleccion.map((s) => s.id)}
+                        onOrdenar={(o) => cambiar('orden', o)}
+                        onElegir={(j) => setElegidoId(elegidoId === j.id ? null : j.id)}
+                        onAlternarSeguimiento={alternar}
+                        onAlternarSeleccion={alternarSeleccion}
+                      />
+                      {elegido && (
+                        <PanelJugador
+                          jugador={elegido}
+                          filtros={params.toString()}
+                          onCerrar={() => setElegidoId(null)}
+                          onAlternarSeguimiento={alternar}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+                <Paginacion
+                  pagina={respuesta.pagina}
+                  totalPaginas={Math.ceil(respuesta.total / respuesta.tamano)}
+                  onCambiar={(p) => cambiar('pagina', String(p))}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {seleccion.length > 0 && (
+          <BarraSeleccion
+            seleccion={seleccion}
+            onQuitar={(id) => setSeleccion(seleccion.filter((s) => s.id !== id))}
+            onLimpiar={() => setSeleccion([])}
+            onComparar={compararSeleccion}
+          />
+        )}
       </div>
     </div>
   );

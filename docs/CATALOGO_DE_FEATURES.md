@@ -65,6 +65,13 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | SEG-001 | Lista de seguimiento | en testing | P1 | — | — | specs/seguimiento/SEG-001.md |
 
+### Módulo: Interfaz
+
+| ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
+|---|---|---|---|---|---|---|
+| UI-001 | Rebranding: paleta, logotipo, tipografía y favicon | en testing | P1 | — (nueva) | — | — (sin spec; la fuente es la hoja de marca del 29/10) |
+| UI-002 | Buscar con filtros en vivo, tabla ordenable y panel de detalle | en testing | P1 | — (nueva) | — | specs/interfaz/UI-002.md |
+
 ### Mapeo con las tarjetas de Trello
 
 | Tarjeta de Trello | ID |
