@@ -3,6 +3,7 @@
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
 ## 2026-11-14
+- UI-002: Buscar con filtros en vivo (sin botón "Aplicar filtros"), chips de filtros aplicados, tabla ordenable por columna y panel de detalle del jugador sin salir de la lista. En pantallas de menos de 768 px se mantienen las tarjetas. Solo frontend: el contrato de API no cambia. La búsqueda por nombre queda pendiente: necesita spec y cambio de backend.
 - UI-001: rebranding aplicado al frontend según la hoja de marca del 29/10/2026. Paleta grafito, papel y oro (los neutros se derivaron de esos tres y los estados de éxito, alerta y error se mantienen, **(supuesto)** pendiente de validar con quien diseñó la marca), logotipo `statsline` con bastas dibujadas, tipografía Archivo y favicon. La mascota queda fuera: todavía no tiene nombre ni set de poses.
 
 ## 2026-11-01
