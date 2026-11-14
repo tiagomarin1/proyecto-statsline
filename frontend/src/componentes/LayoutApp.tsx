@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
+import { Logo } from './Logo';
 
 export default function LayoutApp() {
   const { usuario, salir } = useSesion();
@@ -29,7 +30,7 @@ export default function LayoutApp() {
       <header className={`topbar${scrolleado ? ' is-scrolled' : ''}`}>
         <div className="topbar__in wrap">
           <Link className="logo" to="/">
-            Stats<i>Line</i>
+            <Logo />
           </Link>
           {usuario ? (
             <nav className="nav nav--app" aria-label="Principal">
@@ -44,7 +45,7 @@ export default function LayoutApp() {
           ) : (
             <nav className="nav nav--site" aria-label="Principal">
               <Link to="/ingresar">Ingresar</Link>
-              <Link className="nav__cta btn btn--sky btn--sm" to="/registro">
+              <Link className="nav__cta btn btn--oro btn--sm" to="/registro">
                 Registrarse
               </Link>
             </nav>
@@ -59,7 +60,7 @@ export default function LayoutApp() {
       <footer className="foot">
         <div className="foot__in wrap">
           <Link className="logo logo--sm" to="/">
-            Stats<i>Line</i>
+            <Logo />
           </Link>
           <span>Equipo 04 · UADE</span>
           <span className="foot__note">Datos de ligas del fútbol argentino</span>
