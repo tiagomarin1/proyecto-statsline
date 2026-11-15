@@ -84,6 +84,8 @@ def crear_jugador(
     session: Session,
     *,
     nombre: str | None = None,
+    nombre_pila: str | None = None,
+    apellido: str | None = None,
     id_api_football: int | None = None,
     fecha_nacimiento: date | None = date(2003, 4, 12),
     nacionalidad: str | None = "Argentina",
@@ -94,6 +96,8 @@ def crear_jugador(
     numero = _siguiente()
     jugador = Jugador(
         nombre=nombre or f"Jugador {numero}",
+        nombre_pila=nombre_pila,
+        apellido=apellido,
         id_api_football=id_api_football or 30_000 + numero,
         fecha_nacimiento=fecha_nacimiento,
         nacionalidad=nacionalidad,

@@ -542,7 +542,7 @@ Usada en: DAT-004.
 
 - No hay mínimo: alcanza con una letra o un número. Las iniciales ("S.") tienen que servir como palabra.
 - Si después de normalizar no queda nada (solo espacios o signos), equivale a "sin filtro" (RN-024).
-- Máximo 60 caracteres, contados sobre el texto tal como se escribió. Más que eso devuelve 422: "El nombre puede tener hasta 60 caracteres."
+- Máximo 60 caracteres, contados sobre el texto tal como se escribió. Más que eso devuelve 422: "Puede tener hasta 60 caracteres."
 
 **Relación con las demás reglas.**
 
