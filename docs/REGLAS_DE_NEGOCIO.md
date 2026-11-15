@@ -530,10 +530,59 @@ Usada en: DAT-004, JUG-003.
 
 Usada en: DAT-004.
 
+### RN-035 Búsqueda por nombre (propuesta, 14/11/2026)
+
+**Normalización.** El texto que escribe el usuario y el nombre del jugador se normalizan igual que en RN-002 (paso 1): minúsculas, sin tildes, sin signos y con espacios simples. Es la misma función (`normalizar_nombre`), no una copia.
+
+**Con qué se compara.** Con las palabras de `nombre`, `nombre_pila` y `apellido` juntas. API-Football trae el nombre para mostrar abreviado ("S. Arias") y el nombre completo aparte ("Santiago" + "Arias Naranjo"): con `nombre` solo, "santiago arias" no encontraría a nadie. Si `nombre_pila` o `apellido` son nulos, se compara con lo que haya; nunca se excluye a un jugador por eso.
+
+**Coincidencia.** El texto normalizado se separa en palabras. Un jugador coincide si **cada palabra del texto es el comienzo de alguna palabra de su nombre**. El orden de las palabras no importa.
+
+**Largo del texto.**
+
+- No hay mínimo: alcanza con una letra o un número. Las iniciales ("S.") tienen que servir como palabra.
+- Si después de normalizar no queda nada (solo espacios o signos), equivale a "sin filtro" (RN-024).
+- Máximo 60 caracteres, contados sobre el texto tal como se escribió. Más que eso devuelve 422: "El nombre puede tener hasta 60 caracteres."
+
+**Relación con las demás reglas.**
+
+- Es un filtro más: se combina con AND con los otros.
+- No cambia el orden de los resultados (RN-021). No se ordena por parecido con el texto.
+- No se relaja en la sugerencia de RN-016, igual que la edad: la sugerencia se calcula manteniendo el nombre.
+- No es un criterio de la coincidencia con el perfil (RN-012).
+
+**Ejemplo.** En la base hay 4 jugadores:
+
+| `nombre` | `nombre_pila` | `apellido` | Palabras normalizadas |
+|---|---|---|---|
+| S. Arias | Santiago | Arias Naranjo | s, arias, santiago, naranjo |
+| Á. Correa | Ángel Martín | Correa Martínez | a, correa, angel, martin, martinez |
+| Á. Di María | Ángel Fabián | Di María Hernández | a, di, maria, angel, fabian, hernandez |
+| L. Magallán | Lisandro | Magallán | l, magallan, lisandro |
+
+| Texto escrito | Normalizado | Coinciden | Cantidad |
+|---|---|---|---|
+| `ARIAS` | `arias` | S. Arias | 1 |
+| `angel` | `angel` | Á. Correa y Á. Di María | 2 |
+| `S. Ari` | `s ari` | S. Arias ("s" empieza "s" y "santiago"; "ari" empieza "arias") | 1 |
+| `maría ángel` | `maria angel` | Á. Di María (el orden no importa) | 1 |
+| `mar` | `mar` | Á. Correa ("martin") y Á. Di María ("maria"). L. Magallán no: "magallan" empieza con "mag" | 2 |
+| `rias` | `rias` | Ninguno: "rias" no es el comienzo de ninguna palabra | 0 |
+| `...` | (vacío) | Sin filtro: los 4 | 4 |
+
+**A validar con el PO:**
+
+- si la coincidencia tiene que ser desde el comienzo de la palabra (lo propuesto) o en cualquier parte. Con "en cualquier parte", `rias` encontraría a S. Arias, pero la inicial de `S. Ari` coincidiría con cualquier nombre que tenga una "s";
+- si hace falta un mínimo de 2 o 3 caracteres;
+- el máximo de 60 caracteres.
+
+Usada en: BUS-010.
+
 ---
 
 ## Pendientes
 
+- **PO:** validar RN-035 **(propuesta)**: búsqueda por nombre (BUS-010).
 - **PO y equipo:** validar ADR-0011 y las reglas RN-029 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.

@@ -48,6 +48,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | BUS-004 | Filtrar por presupuesto | en testing | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
 | BUS-005 | Crear, guardar y cargar el perfil de búsqueda | en testing | P1 | — | — | specs/busqueda/BUS-005.md |
 | BUS-006 | Resultados: orden, paginado, sin resultados y selección | en testing | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
+| BUS-010 | Buscar jugadores por nombre | borrador (spec escrita; falta el OK del equipo a RN-035, propuesta) | P1 | — (nueva) | — | specs/busqueda/BUS-010.md |
 
 ### Módulo: Jugador
 
