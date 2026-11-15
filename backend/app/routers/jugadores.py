@@ -22,7 +22,8 @@ def buscar_jugadores(
     session: Annotated[Session, Depends(obtener_session)],
     hoy: Annotated[date, Depends(obtener_hoy)],
 ) -> RespuestaBusqueda:
-    """BUS-001 a BUS-004: candidatos filtrados por posición, edad, liga, presupuesto y métricas."""
+    """BUS-001 a BUS-004 y BUS-010: candidatos filtrados por nombre, posición, edad, liga,
+    presupuesto y métricas."""
     return servicio_busqueda.buscar_jugadores(session, filtros, usuario.id, hoy)
 
 

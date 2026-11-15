@@ -2,7 +2,8 @@
 BUS-006 (orden, paginado y sugerencia sin resultados).
 
 Cada filtro es una función que recibe la consulta y la devuelve filtrada (PLAN_BACKEND.md). El de
-BUS-004 (presupuesto) vive en servicios/presupuesto.py.
+BUS-004 (presupuesto) vive en servicios/presupuesto.py y el de BUS-010 (nombre), en
+servicios/busqueda_por_nombre.py.
 """
 
 from datetime import date
@@ -23,6 +24,7 @@ from app.modelos import Equipo, Jugador, Liga, Seguimiento
 from app.modelos.enums import Cobertura, Posicion
 from app.repositorios import jugador as repositorio_jugador
 from app.repositorios import liga as repositorio_liga
+from app.servicios.busqueda_por_nombre import filtrar_por_nombre
 from app.servicios.edad import calcular_edad, rango_fechas_de_nacimiento
 from app.servicios.estadistica_vigente import (
     DECIMALES_PORCENTAJE,
@@ -235,6 +237,7 @@ def buscar_jugadores(
 def _aplicar_filtros(filtros: FiltrosBusqueda, usuario_id: int, hoy: date) -> tuple[Select, Select]:
     """Devuelve la consulta con todos los filtros y la misma sin los mínimos tácticos."""
     consulta = consulta_base(usuario_id)
+    consulta = filtrar_por_nombre(consulta, filtros.nombre)
     consulta = filtrar_por_posicion(consulta, filtros.posicion)
     consulta = filtrar_por_liga(consulta, filtros.liga_id)
     consulta = filtrar_por_edad(consulta, filtros.edad_min, filtros.edad_max, hoy)

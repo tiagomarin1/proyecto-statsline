@@ -20,12 +20,16 @@ export const PRESUPUESTO_MINIMO_EUR = 20_000;
 export const PRESUPUESTO_MAXIMO_EUR = 400_000;
 export const PASO_PRESUPUESTO_EUR = 5_000;
 
+// RN-035: el back rechaza con 422 un nombre más largo
+export const NOMBRE_LARGO_MAXIMO = 60;
+
 /** Candidatos por página: la tabla pide más que las tarjetas (el máximo del contrato es 50). */
 export const TAMANO_TABLA = 15;
 export const TAMANO_TARJETAS = 6;
 
 /** Los filtros que se aplican solos desde la barra. `orden` y `pagina` no son filtros. */
 export const NOMBRES_FILTRO = [
+  'nombre',
   'posicion',
   'liga_id',
   'edad_min',
@@ -35,6 +39,7 @@ export const NOMBRES_FILTRO = [
 ] as const;
 
 export const ETIQUETAS_FILTRO: Record<string, string> = {
+  nombre: 'Nombre del jugador',
   posicion: 'Posición',
   liga_id: 'Liga',
   edad_min: 'Edad mínima',
@@ -48,7 +53,8 @@ export function filtrosDeParams(params: URLSearchParams): Record<string, string>
   const valores: Record<string, string> = {};
   for (const nombre of NOMBRES_FILTRO) {
     const valor = params.get(nombre);
-    if (valor) valores[nombre] = valor;
+    // Un texto de solo espacios equivale a "sin filtro" (RN-024)
+    if (valor?.trim()) valores[nombre] = valor;
   }
   return valores;
 }

@@ -337,3 +337,160 @@ describe('UI-002: filtros en vivo, tabla y panel de detalle', () => {
     expect(screen.getByLabelText('Ordenar por')).toBeInTheDocument();
   });
 });
+
+describe('BUS-010: búsqueda por nombre (RN-035)', () => {
+  afterEach(() => buscarMock.mockReset());
+
+  it('al escribir un nombre se aplica solo y viaja tal como se escribió', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    const campo = screen.getByLabelText('Nombre del jugador');
+    expect(campo).toHaveAttribute('maxLength', '60');
+    fireEvent.change(campo, { target: { value: 'S. Beltrán' } });
+
+    // Sin normalizar: RN-035 vive solo en el backend
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('S. Beltrán'));
+  });
+
+  it('el nombre de la URL se ve en el campo y en un chip, y la x quita solo ese filtro', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?nombre=arias&posicion=defensor');
+    await screen.findByText('Jugador 1');
+
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('arias');
+    const chips = screen.getByRole('list', { name: 'Filtros aplicados' });
+    expect(within(chips).getByText('Nombre: arias')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtro Nombre: arias' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('nombre')).toBeNull();
+      expect(ultimosFiltros().get('posicion')).toBe('defensor');
+    });
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('');
+  });
+
+  it('"Limpiar todo" también quita el nombre', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?nombre=arias');
+    await screen.findByText('Jugador 1');
+    expect(ultimosFiltros().get('nombre')).toBe('arias');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('');
+  });
+
+  it('se combina con los demás filtros, vuelve a la página 1 y conserva el orden', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?posicion=defensor&orden=valor&pagina=2');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('arias'));
+    expect(ultimosFiltros().get('posicion')).toBe('defensor');
+    expect(ultimosFiltros().get('orden')).toBe('valor');
+    expect(ultimosFiltros().get('pagina')).toBeNull();
+  });
+
+  it('no pierde el espacio entre palabras mientras se escribe', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    const campo = screen.getByLabelText('Nombre del jugador');
+    fireEvent.change(campo, { target: { value: 'santiago ' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('santiago '));
+    expect(campo).toHaveValue('santiago ');
+  });
+
+  it('un texto vacío o de solo espacios no manda el filtro', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?nombre=arias');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: '   ' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
+  });
+
+  it('mientras llegan los resultados nuevos se ven los anteriores atenuados', async () => {
+    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    buscarMock.mockReturnValue(new Promise(() => {})); // el pedido queda en curso
+    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('arias'));
+    expect(screen.getByText('Jugador 1').closest('[aria-busy]')).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
+  });
+
+  it('sin coincidencias muestra el estado vacío y deja limpiar los filtros', async () => {
+    buscarMock.mockResolvedValue(respuesta([], { total: 0 }));
+    renderizar('/buscar?nombre=zzzz');
+
+    expect(
+      await screen.findByText('No hay jugadores que cumplan estos filtros'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Nombre: zzzz')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todos los filtros' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
+  });
+
+  it('sin coincidencias por otro filtro ofrece relajarlo y mantiene el nombre', async () => {
+    buscarMock.mockResolvedValue(
+      respuesta([], {
+        total: 0,
+        sugerencia: { filtro: 'posicion', etiqueta: 'la posición', cantidad: 1 },
+      }),
+    );
+    renderizar('/buscar?nombre=arias&posicion=arquero');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Relajar la posición' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBeNull());
+    expect(ultimosFiltros().get('nombre')).toBe('arias');
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('arias');
+  });
+
+  it('un 422 muestra el mensaje con la etiqueta del campo y sin resultados viejos', async () => {
+    buscarMock.mockRejectedValue(
+      new ErrorApi(422, {
+        detalle: 'Hay datos inválidos en el pedido.',
+        codigo: 'validacion',
+        errores: [{ campo: 'nombre', mensaje: 'Puede tener hasta 60 caracteres.' }],
+      }),
+    );
+    renderizar(`/buscar?nombre=${'a'.repeat(61)}`);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Nombre del jugador: Puede tener hasta 60 caracteres.',
+    );
+    expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
+  });
+
+  it('si el pedido falla muestra el error y no deja los resultados anteriores', async () => {
+    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    buscarMock.mockRejectedValue(new Error('sin red'));
+    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No pudimos conectar con el servidor.',
+    );
+    expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+  });
+});

@@ -15,6 +15,7 @@ RECUPERACIONES_MAXIMAS = 15
 MINUTOS_MAXIMOS = 5000
 PRESUPUESTO_MINIMO_EUR = 20_000  # RN-003
 PRESUPUESTO_MAXIMO_EUR = 400_000
+NOMBRE_LARGO_MAXIMO = 60  # RN-035
 TAMANO_PAGINA_POR_DEFECTO = 6  # RN-021
 TAMANO_PAGINA_MAXIMO = 50
 
@@ -56,8 +57,12 @@ Presupuesto = Annotated[
     SinFiltroSiVacio,
 ]
 
+# BUS-010: viaja tal como se escribió; la normalización de RN-035 se hace en el servicio
+Nombre = Annotated[Annotated[str, Field(max_length=NOMBRE_LARGO_MAXIMO)] | None, SinFiltroSiVacio]
+
 
 class FiltrosBusqueda(BaseModel):
+    nombre: Nombre = None
     posicion: Annotated[Posicion | None, SinFiltroSiVacio] = None
     edad_min: Edad = None
     edad_max: Edad = None

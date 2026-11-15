@@ -72,6 +72,7 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | `liga_id` | int | BUS-002 |
 | `pases_min`, `duelos_min`, `recuperaciones_min`, `minutos_min` | número | BUS-003, RN-008 |
 | `presupuesto_max_eur` | int | BUS-004, RN-005 |
+| `nombre` | texto, hasta 60 caracteres | BUS-010, RN-035 **(propuesta)**. Parte del nombre del jugador. Se manda tal como se escribió: el backend lo normaliza |
 | `orden` | `minutos` \| `valor` \| `edad` \| `pases` \| `rating` | RN-021, por defecto `minutos` |
 | `pagina` | int ≥ 1 | Por defecto 1 |
 | `tamano` | int | Por defecto 6, máximo 50 |
@@ -93,14 +94,14 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 
 **Errores:**
 
-- 422 `validacion`: valores fuera de rango o `edad_min > edad_max`.
+- 422 `validacion`: valores fuera de rango, `edad_min > edad_max` o un `nombre` de más de 60 caracteres.
 - 404 `liga_inexistente`.
 
 ## Jugador (ficha)
 
 `GET /jugadores/{id}` 🔒
 
-**Query params opcionales:** los mismos filtros de la búsqueda. Se usan para calcular la coincidencia (RN-012). El frontend manda el perfil guardado o, si no hay, los filtros actuales.
+**Query params opcionales:** los mismos filtros de la búsqueda. Se usan para calcular la coincidencia (RN-012). El frontend manda el perfil guardado o, si no hay, los filtros actuales. `nombre` (BUS-010) se acepta y se ignora: no es un criterio de la coincidencia.
 
 **Respuesta 200:**
 
