@@ -4,6 +4,7 @@ import type { Liga } from '../tipos/api';
 import {
   filtrosDeParams,
   METRICAS,
+  NOMBRE_LARGO_MAXIMO,
   PASO_PRESUPUESTO_EUR,
   PRESUPUESTO_MAXIMO_EUR,
   PRESUPUESTO_MINIMO_EUR,
@@ -25,6 +26,8 @@ interface Props {
 function etiquetaChip(nombre: string, valor: string, ligas: Liga[]): string {
   const numero = Number(valor);
   switch (nombre) {
+    case 'nombre':
+      return `Nombre: ${valor}`;
     case 'posicion':
       return POSICIONES[valor as keyof typeof POSICIONES] ?? valor;
     case 'liga_id':
@@ -48,7 +51,8 @@ function etiquetaChip(nombre: string, valor: string, ligas: Liga[]): string {
   }
 }
 
-/** Filtros que se aplican solos: los selectores al instante y los números al dejar de tipear. */
+/** Filtros que se aplican solos: los selectores al instante, y el nombre y los números al dejar
+ * de tipear. */
 export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
   const aplicados = filtrosDeParams(params);
   const clave = JSON.stringify(aplicados);
@@ -90,6 +94,20 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
   return (
     <section className="card bf" aria-label="Filtros de búsqueda">
       <div className="bf__fila">
+        {/* BUS-010: viaja tal como se escribe; el backend lo normaliza y lo compara (RN-035) */}
+        <div className="bf__campo">
+          <label htmlFor="nombre">Nombre del jugador</label>
+          <input
+            className="input"
+            id="nombre"
+            type="text"
+            maxLength={NOMBRE_LARGO_MAXIMO}
+            placeholder="Ej.: Beltrán"
+            autoComplete="off"
+            value={valores.nombre ?? ''}
+            onChange={(e) => cambiar('nombre', e.target.value, false)}
+          />
+        </div>
         <div className="bf__campo">
           <label htmlFor="posicion">Posición</label>
           <select
