@@ -28,7 +28,8 @@ Convenciones:
 | Costo no disponible | (texto UI) | El jugador no tiene valor de mercado | — | — |
 | Presupuesto máximo | `presupuesto_max_eur` | Monto máximo en EUR que el usuario define en una búsqueda (RN-003). **No** es el presupuesto del club (eso es R3) | budget, presupuesto del club | parámetro |
 | Entra en el presupuesto | `entra_en_presupuesto` | `valor_mercado_eur` ≤ `presupuesto_max_eur` (RN-005) | — | — |
-| Filtros de búsqueda | `filtros` | Conjunto de criterios de una búsqueda: posición, liga, edad, presupuesto y mínimos tácticos | criterios, query | — |
+| Filtros de búsqueda | `filtros` | Conjunto de criterios de una búsqueda: nombre, posición, liga, edad, presupuesto y mínimos tácticos | criterios, query | — |
+| Búsqueda por nombre | `nombre` (parámetro) | Texto con parte del nombre de un jugador que acota la búsqueda. Se compara con `nombre`, `nombre_pila` y `apellido` (RN-035) | search, query, texto libre, buscador | parámetro |
 | Perfil de búsqueda | `perfil_busqueda` | Filtros guardados por el usuario. Hay uno por usuario en el MVP (RN-023) | perfil guardado, búsqueda guardada | `PerfilBusqueda` |
 | Lista de seguimiento | `seguimiento` | Jugadores que el usuario guardó para revisar después | favoritos, watchlist, shortlist | `Seguimiento` |
 | Comparación | `comparacion` | Vista de 2 o 3 jugadores lado a lado. No se guarda en el MVP | comparativa, versus | — |
