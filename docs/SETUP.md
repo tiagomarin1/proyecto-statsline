@@ -75,9 +75,46 @@ cd frontend
 npm test                                  # Vitest
 npm run lint                              # ESLint
 npm run build                             # chequeo de tipos + build
+npx playwright test                       # E2E de la demo: necesita la app levantada (abajo)
 ```
 
 Más detalle en `TESTING_STRATEGY.md`.
+
+### Test E2E del recorrido de la demo (INF-002)
+
+Un test de Playwright recorre ingresar → filtrar → ficha → comparar → seguimiento con el usuario demo. **No levanta nada solo:** antes de correrlo tiene que estar todo esto.
+
+1. **La base local con el seed fijo**, no con datos sincronizados. El seed solo corre contra una base local (`localhost`, `127.0.0.1` o el contenedor `postgres`) y nunca con `ENTORNO=produccion`:
+
+   ```bash
+   cd backend && source .venv/bin/activate
+   alembic upgrade head
+   python -m semillas.demo_e2e               # 40 jugadores, valores de mercado y el usuario demo
+   ```
+
+   Si la base ya tenía datos sincronizados, los conteos del test no coinciden: usá una base de desarrollo limpia.
+
+2. **La app con el build de React**, servida por FastAPI como en producción:
+
+   ```bash
+   cd frontend && npm run build
+   cd ../backend && uvicorn app.main:app     # http://localhost:8000
+   ```
+
+   También anda contra Vite (`npm run dev`, con uvicorn atrás) con `E2E_URL=http://localhost:5173`.
+
+3. **`DEMO_CONTRASENA`**, la misma con la que se cargó el seed. Si no está en el entorno, el test la toma de `backend/.env`.
+
+4. **Chromium de Playwright**, solo la primera vez: `npx playwright install chromium`.
+
+Después, desde `frontend/`:
+
+```bash
+npx playwright test                       # o: npm run test:e2e
+npx playwright show-report                # reporte HTML de la última corrida
+```
+
+Tarda unos segundos. Se puede repetir sin volver a cargar el seed. Si falla, la consola dice en qué paso, y la captura y el video quedan en `frontend/test-results/`. El trace está apagado a propósito: guardaría la contraseña. Si la app no está levantada o el usuario demo no puede ingresar, falla enseguida con un mensaje que dice qué falta.
 
 ## Cargar datos reales
 
