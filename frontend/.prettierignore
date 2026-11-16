@@ -1,3 +1,6 @@
 dist
 node_modules
 src/estilos/base.css
+playwright-report
+test-results
+blob-report
