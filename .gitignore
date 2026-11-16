@@ -230,3 +230,8 @@ frontend/dist/
 
 # macOS
 .DS_Store
+
+# Playwright (INF-002)
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
