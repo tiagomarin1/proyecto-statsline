@@ -87,6 +87,10 @@ class SportmonksFalsa:
     def __init__(self) -> None:
         self.pedidos: list[httpx.Request] = []
         self._respuestas: dict[str, list] = {}
+        self.responder(
+            "/v3/core/countries",
+            {"data": [{"id": 44, "name": "Argentina"}], "pagination": {"has_more": False}},
+        )
 
     def responder(self, ruta: str, *respuestas) -> None:
         """Cada respuesta es el JSON de un 200 (dict), un código HTTP (int) o una excepción.
