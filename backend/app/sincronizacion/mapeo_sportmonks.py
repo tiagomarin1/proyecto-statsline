@@ -1,9 +1,11 @@
-"""Pasa las estadísticas de temporada de Sportmonks al modelo canónico, sin tocar la base.
+"""Pasa los jugadores de Sportmonks al modelo canónico, sin tocar la base (DAT-003).
 
-Entrada: las filas de `/statistics/seasons/{participant}/{id}` con los includes `player` y `team`.
-Cada fila es de un jugador, un equipo y una temporada, con un arreglo `details` de
+Entrada: los equipos de la temporada (`/teams/seasons/{id}`) y los jugadores como los devuelve
+`/players/{id}?include=statistics.details&filters=playerStatisticSeasons:{temporada}`: un jugador
+con una fila de `statistics` por equipo y temporada, cada una con un arreglo `details` de
 `{type_id, value}`. Un dato que no viene o que no se puede convertir queda en None, nunca en 0
-(RN-008, RN-025). Las métricas derivadas siguen RN-031.
+(RN-008, RN-025). Las métricas derivadas siguen RN-031. La forma de los datos se confirmó con
+respuestas reales el 16/11/2026.
 """
 
 from dataclasses import dataclass
@@ -21,13 +23,16 @@ TIPO_GOLES = 52
 TIPO_ASISTENCIAS = 79
 TIPO_PASES = 80
 TIPO_PASES_ACERTADOS = 116
+# Sportmonks trae el porcentaje de pases ya calculado en los mismos jugadores que traen pases
+TIPO_PORCENTAJE_PASES = 1584
 TIPO_DUELOS_TOTALES = 105
 TIPO_DUELOS_GANADOS = 106
 TIPO_INTERCEPCIONES = 100
 TIPO_RATING = 118
 
-# RN-019. (supuesto) Los IDs de posición están sin confirmar contra `/core/types`: se verifican
-# con la prueba de 14 días (DAT-003, "Qué falta"). Cualquier otro ID, o vacío, queda en None.
+# RN-019. En los datos reales de Primera Nacional y Federal A solo aparecen estos cuatro IDs, con
+# pocos arqueros en el 24 (16/11/2026). Falta cotejar los nombres contra `/core/types`. Cualquier
+# otro ID (por ejemplo 221), o vacío, queda en None.
 POSICIONES_SPORTMONKS = {
     24: Posicion.arquero,
     25: Posicion.defensor,
@@ -77,29 +82,39 @@ class DatosDeLigaSportmonks:
     estadisticas: list[EstadisticaSportmonks]
 
 
-def mapear_estadisticas(filas: list[dict[str, Any]]) -> DatosDeLigaSportmonks:
-    """Mapea todas las filas de estadísticas de una liga y temporada.
+def mapear_liga(
+    equipos: list[dict[str, Any]], jugadores: list[dict[str, Any]], id_temporada: int
+) -> DatosDeLigaSportmonks:
+    """Mapea los jugadores de una liga y temporada.
 
-    - Una fila sin `player` o sin `team` se ignora: no hay con qué crear el jugador o el equipo.
+    - Solo cuentan las filas de `statistics` de `id_temporada`; un jugador sin ninguna no se
+      guarda (no hay estadística que mostrar).
+    - Una fila de un equipo que no está en `equipos` se ignora: no hay con qué crear el equipo.
     - Se guardan todas las filas de un jugador (una por equipo): RN-017 elige una al leer.
     - Si el mismo jugador y equipo se repite, queda la fila con más minutos.
     """
-    jugadores: dict[int, JugadorSportmonks] = {}
-    equipos: dict[int, EquipoSportmonks] = {}
+    nombres_de_equipos = _nombres_de_equipos(equipos)
+    jugadores_mapeados: dict[int, JugadorSportmonks] = {}
+    equipos_mapeados: dict[int, EquipoSportmonks] = {}
     estadisticas: dict[tuple[int, int], EstadisticaSportmonks] = {}
-    for fila in filas:
-        jugador = _mapear_jugador(fila.get("player"))
-        equipo = _mapear_equipo(fila.get("team"))
-        if jugador is None or equipo is None:
+    for datos in jugadores:
+        jugador = _mapear_jugador(datos)
+        if jugador is None:
             continue
-        estadistica = _mapear_estadistica(fila, jugador.id_sportmonks, equipo.id_sportmonks)
-        clave = (jugador.id_sportmonks, equipo.id_sportmonks)
-        if clave not in estadisticas or _minutos(estadistica) > _minutos(estadisticas[clave]):
-            estadisticas[clave] = estadistica
-        jugadores[jugador.id_sportmonks] = jugador
-        equipos[equipo.id_sportmonks] = equipo
+        for fila in datos.get("statistics") or []:
+            id_equipo = _entero_no_negativo(fila.get("team_id"))
+            if fila.get("season_id") != id_temporada or id_equipo not in nombres_de_equipos:
+                continue
+            estadistica = _mapear_estadistica(fila, datos, jugador.id_sportmonks, id_equipo)
+            clave = (jugador.id_sportmonks, id_equipo)
+            if clave not in estadisticas or _minutos(estadistica) > _minutos(estadisticas[clave]):
+                estadisticas[clave] = estadistica
+            jugadores_mapeados[jugador.id_sportmonks] = jugador
+            equipos_mapeados[id_equipo] = EquipoSportmonks(id_equipo, nombres_de_equipos[id_equipo])
     return DatosDeLigaSportmonks(
-        list(jugadores.values()), list(equipos.values()), list(estadisticas.values())
+        list(jugadores_mapeados.values()),
+        list(equipos_mapeados.values()),
+        list(estadisticas.values()),
     )
 
 
@@ -110,9 +125,17 @@ def contar_jugadores_con_minutos(datos: DatosDeLigaSportmonks) -> int:
     )
 
 
-def _mapear_jugador(jugador: dict[str, Any] | None) -> JugadorSportmonks | None:
-    if not jugador:
-        return None
+def _nombres_de_equipos(equipos: list[dict[str, Any]]) -> dict[int, str]:
+    nombres: dict[int, str] = {}
+    for equipo in equipos:
+        id_equipo = _entero_no_negativo(equipo.get("id"))
+        nombre = _texto(equipo.get("name"), LARGO_NOMBRE_EQUIPO)
+        if id_equipo is not None and nombre is not None:
+            nombres[id_equipo] = nombre
+    return nombres
+
+
+def _mapear_jugador(jugador: dict[str, Any]) -> JugadorSportmonks | None:
     id_sm = _entero_no_negativo(jugador.get("id"))
     nombre = _texto(jugador.get("name"), LARGO_NOMBRE)
     if id_sm is None or nombre is None:
@@ -126,37 +149,28 @@ def _mapear_jugador(jugador: dict[str, Any] | None) -> JugadorSportmonks | None:
     )
 
 
-def _mapear_equipo(equipo: dict[str, Any] | None) -> EquipoSportmonks | None:
-    if not equipo:
-        return None
-    id_sm = _entero_no_negativo(equipo.get("id"))
-    nombre = _texto(equipo.get("name"), LARGO_NOMBRE_EQUIPO)
-    if id_sm is None or nombre is None:
-        return None
-    return EquipoSportmonks(id_sportmonks=id_sm, nombre=nombre)
-
-
 def _mapear_estadistica(
-    fila: dict[str, Any], id_jugador: int, id_equipo: int
+    fila: dict[str, Any], jugador: dict[str, Any], id_jugador: int, id_equipo: int
 ) -> EstadisticaSportmonks:
     detalles = {
         d.get("type_id"): d.get("value") for d in fila.get("details") or [] if isinstance(d, dict)
     }
-    pases_totales = _entero_no_negativo(_valor(detalles, TIPO_PASES))
-    pases_acertados = _entero_no_negativo(_valor(detalles, TIPO_PASES_ACERTADOS))
     duelos_totales, duelos_ganados = _duelos(
         _entero_no_negativo(_valor(detalles, TIPO_DUELOS_TOTALES)),
         _entero_no_negativo(_valor(detalles, TIPO_DUELOS_GANADOS)),
     )
+    id_posicion = fila.get("position_id")
+    if id_posicion is None:
+        id_posicion = jugador.get("position_id")
     return EstadisticaSportmonks(
         id_jugador_sportmonks=id_jugador,
         id_equipo_sportmonks=id_equipo,
-        posicion=POSICIONES_SPORTMONKS.get(fila.get("position_id")),
+        posicion=POSICIONES_SPORTMONKS.get(id_posicion),
         partidos_jugados=_entero_no_negativo(_valor(detalles, TIPO_PARTIDOS)),
         minutos_jugados=_entero_no_negativo(_valor(detalles, TIPO_MINUTOS)),
         goles=_entero_no_negativo(_valor(detalles, TIPO_GOLES)),
         asistencias=_entero_no_negativo(_valor(detalles, TIPO_ASISTENCIAS)),
-        pases_precision_pct=_porcentaje_de_pases(pases_acertados, pases_totales),
+        pases_precision_pct=_porcentaje_de_pases(detalles),
         duelos_totales=duelos_totales,
         duelos_ganados=duelos_ganados,
         rating=_rating(_valor(detalles, TIPO_RATING, "average")),
@@ -170,9 +184,14 @@ def _valor(detalles: dict[Any, Any], tipo: int, clave: str = "total") -> Any:
     return valor.get(clave) if isinstance(valor, dict) else None
 
 
-def _porcentaje_de_pases(acertados: int | None, totales: int | None) -> Decimal | None:
-    """RN-031: acertados / totales * 100. None si falta alguno, si no hay pases o si da más del
-    100 % (no es un dato válido)."""
+def _porcentaje_de_pases(detalles: dict[Any, Any]) -> Decimal | None:
+    """RN-031: el porcentaje que trae Sportmonks si es válido (de 0 a 100); si no, acertados
+    sobre totales por 100. None si no hay con qué calcularlo, si no hay pases o si da más de 100."""
+    directo = _decimal(_valor(detalles, TIPO_PORCENTAJE_PASES))
+    if directo is not None and 0 <= directo <= PORCENTAJE_MAXIMO:
+        return directo.quantize(DECIMALES_PORCENTAJE)
+    acertados = _entero_no_negativo(_valor(detalles, TIPO_PASES_ACERTADOS))
+    totales = _entero_no_negativo(_valor(detalles, TIPO_PASES))
     if acertados is None or not totales:
         return None
     porcentaje = (Decimal(acertados) * 100 / Decimal(totales)).quantize(DECIMALES_PORCENTAJE)
@@ -187,10 +206,15 @@ def _duelos(totales: int | None, ganados: int | None) -> tuple[int | None, int |
 
 
 def _rating(valor: Any) -> Decimal | None:
+    numero = _decimal(valor)
+    return None if numero is None else numero.quantize(DECIMALES_RATING)
+
+
+def _decimal(valor: Any) -> Decimal | None:
     if valor is None or isinstance(valor, bool):
         return None
     try:
-        return Decimal(str(valor)).quantize(DECIMALES_RATING)
+        return Decimal(str(valor))
     except InvalidOperation:
         return None
 

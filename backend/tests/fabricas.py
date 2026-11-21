@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.modelos import Equipo, EstadisticaTemporada, Jugador, Liga, Usuario
 from app.modelos.base import ahora_utc
-from app.modelos.enums import Cobertura, Posicion, Rol
+from app.modelos.enums import Cobertura, FuenteDatos, Posicion, Rol
 from app.seguridad.contrasenas import hashear_contrasena
 
 CONTRASENA_DE_PRUEBA = "contrasena-de-prueba"
@@ -54,6 +54,8 @@ def crear_liga(
     temporada_actual: int = 2026,
     cobertura: Cobertura = Cobertura.completa,
     orden: int = 0,
+    fuente: FuenteDatos = FuenteDatos.api_football,
+    id_sportmonks: int | None = None,
 ) -> Liga:
     numero = _siguiente()
     liga = Liga(
@@ -62,6 +64,8 @@ def crear_liga(
         temporada_actual=temporada_actual,
         cobertura=cobertura,
         orden=orden,
+        fuente=fuente,
+        id_sportmonks=id_sportmonks,
     )
     session.add(liga)
     session.flush()
@@ -92,6 +96,7 @@ def crear_jugador(
     valor_mercado_eur: int | None = None,
     valor_mercado_fecha: date | None = None,
     id_transfermarkt: int | None = None,
+    id_sportmonks: int | None = None,
 ) -> Jugador:
     numero = _siguiente()
     jugador = Jugador(
@@ -104,6 +109,7 @@ def crear_jugador(
         valor_mercado_eur=valor_mercado_eur,
         valor_mercado_fecha=valor_mercado_fecha,
         id_transfermarkt=id_transfermarkt,
+        id_sportmonks=id_sportmonks,
     )
     session.add(jugador)
     session.flush()

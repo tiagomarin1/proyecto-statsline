@@ -443,6 +443,15 @@ Ver ADR-0011 (propuesta).
 | Liga Profesional | API-Football |
 | Primera Nacional, Torneo Federal A, Primera B Metropolitana, Primera C y Primera D | Sportmonks |
 
+**Actualización del 16/11/2026 (propuesta, a decidir con el PO):** la prueba de 14 días mostró que Sportmonks solo trae rendimiento en Primera Nacional y Torneo Federal A (68 % a 84 % de los jugadores con cada dato). En Primera B Metropolitana, Primera C y Primera D no trae nada (0 %), y para B Metropolitana API-Football al menos trae minutos. La propuesta pasa a ser:
+
+| Liga | Fuente de las estadísticas |
+|---|---|
+| Liga Profesional, Primera B Metropolitana, Primera C y Primera D | API-Football |
+| Primera Nacional y Torneo Federal A | Sportmonks |
+
+La fuente de cada liga vive en `liga.fuente` y la semilla de ligas no la cambia: pasar una liga a Sportmonks es una decisión explícita, una vez aprobada esta regla. Hasta entonces todas las ligas siguen en API-Football.
+
 - **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
 - La ficha indica la fuente de las métricas ("Datos de Sportmonks" o "Datos de API-Football").
 - **Aviso al comparar fuentes distintas:** si en el comparador hay jugadores de ligas con fuentes distintas, se muestra "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables". Lo mismo cuando una búsqueda mezcla ligas y se ordena por rating o por % de pases.
@@ -469,7 +478,8 @@ Usada en: DAT-003.
 ### RN-031 Datos de Sportmonks que se derivan o se traducen (propuesta, 14/11/2026)
 
 ```
-pases_precision_pct = pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
+pases_precision_pct = el porcentaje que trae Sportmonks (tipo 1584), si es válido (0 a 100)
+                      si no: pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
 duelos_totales      = total-duels
 duelos_ganados      = duels-won
 intercepciones      = interceptions
