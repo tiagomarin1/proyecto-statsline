@@ -20,7 +20,7 @@ from app.db import obtener_fabrica_sesiones
 from app.integraciones.cliente_api_football import ClienteApiFootball
 from app.modelos import Liga, Sincronizacion
 from app.modelos.base import ahora_utc
-from app.modelos.enums import EstadoSincronizacion, OrigenSincronizacion
+from app.modelos.enums import EstadoSincronizacion, FuenteDatos, OrigenSincronizacion
 from app.repositorios import liga as repositorio_liga
 from app.repositorios import sincronizacion_api_football as repositorio
 from app.servicios.cobertura import calcular_cobertura
@@ -106,11 +106,21 @@ def ejecutar(
 ) -> int:
     """Sincroniza una liga o todas, una transacción por liga. Devuelve el código de salida."""
     if liga_id is None:
-        ligas = repositorio_liga.listar_en_orden(session)
+        # RN-029: las ligas de Sportmonks las sincroniza app.sincronizacion.sportmonks
+        ligas = [
+            liga
+            for liga in repositorio_liga.listar_en_orden(session)
+            if liga.fuente == FuenteDatos.api_football
+        ]
     else:
         liga = repositorio_liga.obtener_por_id(session, liga_id)
         if liga is None:
             logger.error("No existe la liga con id %s.", liga_id)
+            return 1
+        if liga.fuente != FuenteDatos.api_football:
+            logger.error(
+                "La liga %s tiene fuente %s, no api_football (RN-029).", liga_id, liga.fuente
+            )
             return 1
         ligas = [liga]
     resultados = []

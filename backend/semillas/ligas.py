@@ -23,15 +23,18 @@ class DatosLiga:
     nombre: str
     id_api_football: int
     orden: int
+    # IDs de Sportmonks, confirmados el 16/11/2026 con la prueba de 14 días (DAT-003). La Liga
+    # Profesional no está en la suscripción. La fuente de cada liga (RN-029) no la fija esta semilla
+    id_sportmonks: int | None = None
 
 
 LIGAS_MVP = (
     DatosLiga("Liga Profesional", 128, 1),
-    DatosLiga("Primera Nacional", 129, 2),
-    DatosLiga("Primera B Metropolitana", 131, 3),
-    DatosLiga("Primera C", 132, 4),
-    DatosLiga("Primera D", 133, 5),
-    DatosLiga("Torneo Federal A", 134, 6),
+    DatosLiga("Primera Nacional", 129, 2, id_sportmonks=645),
+    DatosLiga("Primera B Metropolitana", 131, 3, id_sportmonks=1330),
+    DatosLiga("Primera C", 132, 4, id_sportmonks=1093),
+    DatosLiga("Primera D", 133, 5, id_sportmonks=1094),
+    DatosLiga("Torneo Federal A", 134, 6, id_sportmonks=1333),
 )
 
 
@@ -48,6 +51,7 @@ def cargar_ligas(session: Session) -> list[Liga]:
             liga = Liga(nombre=datos.nombre, temporada_actual=TEMPORADA_INICIAL)
             session.add(liga)
         liga.id_api_football = datos.id_api_football
+        liga.id_sportmonks = datos.id_sportmonks
         liga.orden = datos.orden
         ligas.append(liga)
     session.flush()
