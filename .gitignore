@@ -230,3 +230,6 @@ frontend/dist/
 
 # macOS
 .DS_Store
+
+# Respuestas grabadas de Sportmonks durante la prueba (DAT-003): se revisan antes de pasarlas a fixtures
+backend/grabaciones_sportmonks*/
