@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.modelos import Liga, Usuario
-from app.modelos.enums import Cobertura, Rol
+from app.modelos.enums import Cobertura, FuenteDatos, Rol
 from app.seguridad.contrasenas import verificar_contrasena
 from semillas.__main__ import cargar_semillas
 from semillas.ligas import cargar_ligas
@@ -31,6 +31,34 @@ def test_inf001_se_cargan_las_6_ligas_del_mvp_en_orden(session: Session):
         "Torneo Federal A",
     ]
     assert all(liga.cobertura == Cobertura.sin_datos for liga in ligas)
+
+
+def test_dat003_las_ligas_del_ascenso_traen_su_id_de_sportmonks(session: Session):
+    cargar_ligas(session)
+
+    ids = {liga.nombre: liga.id_sportmonks for liga in session.scalars(select(Liga))}
+    assert ids == {
+        "Liga Profesional": None,
+        "Primera Nacional": 645,
+        "Primera B Metropolitana": 1330,
+        "Primera C": 1093,
+        "Primera D": 1094,
+        "Torneo Federal A": 1333,
+    }
+
+
+def test_dat003_la_fuente_de_cada_liga_sale_de_rn_029(session: Session):
+    cargar_ligas(session)
+
+    fuentes = {liga.nombre: liga.fuente for liga in session.scalars(select(Liga))}
+    assert fuentes == {
+        "Liga Profesional": FuenteDatos.api_football,
+        "Primera Nacional": FuenteDatos.sportmonks,
+        "Primera B Metropolitana": FuenteDatos.api_football,
+        "Primera C": FuenteDatos.api_football,
+        "Primera D": FuenteDatos.api_football,
+        "Torneo Federal A": FuenteDatos.sportmonks,
+    }
 
 
 def test_inf001_cargar_las_ligas_dos_veces_no_las_duplica(session: Session):

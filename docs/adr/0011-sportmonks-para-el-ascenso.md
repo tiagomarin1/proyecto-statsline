@@ -1,6 +1,6 @@
 # ADR-0011: Sportmonks como fuente de rendimiento del ascenso (una fuente por liga)
 
-**Estado:** Propuesta (2026-11-14). Pendiente de validar con el equipo y el PO. **Amplía** ADR-0008 y la regla "alcance de datos = API-Football"; no las reemplaza. ADR-0004 (valor de mercado desde Transfermarkt) sigue igual.
+**Estado:** Aceptada (2026-11-20). La validó el PO el 20/11/2026 después de la prueba de 14 días: se acepta Sportmonks como fuente de Primera Nacional y Torneo Federal A (ver el reparto en RN-029). Fue propuesta el 2026-11-14. **Amplía** ADR-0008 y la regla "alcance de datos = API-Football"; no las reemplaza. ADR-0004 (valor de mercado desde Transfermarkt) sigue igual.
 
 ## Contexto
 Solo la Liga Profesional tiene métricas completas en API-Football. En el ascenso la API trae a lo sumo minutos, goles y posición (medido el 14/11/2026 en nuestra base):
@@ -43,7 +43,7 @@ Reglas de diseño:
 - Los jugadores de Sportmonks se **cruzan con la base por nombre y fecha de nacimiento** (RN-030, propuesta) para no duplicar a quien pasa de una liga a otra.
 - La interfaz **indica la fuente** de las métricas de cada ficha y avisa cuando se comparan jugadores de fuentes distintas (RN-029).
 
-**Condición para aceptarla:** una prueba de 14 días de Sportmonks con estos criterios (resultado a registrar en esta ADR):
+**Condición para aceptarla (cumplida el 16/11/2026, ver el resultado más abajo):** una prueba de 14 días de Sportmonks con estos criterios:
 
 | Prueba | Para pasar |
 |---|---|
@@ -78,10 +78,12 @@ Con `python -m app.sincronizacion.explorar_sportmonks` se recorrieron 3 equipos 
 
 - **Primera Nacional y Federal A cumplen el criterio de la ADR** (80 % de los jugadores con rating, pases, duelos e intercepciones, con una muestra de planteles completos y no solo de los de más minutos): están entre 68 % y 84 %.
 - **Primera B Metropolitana, Primera C y Primera D no traen datos de rendimiento en Sportmonks.** Para B Metropolitana, API-Football trae minutos (56 % en 2025), así que Sportmonks no suma y podría restar. Hay que decidir con el PO qué fuente usan esas ligas. El plan Starter permite 5 ligas, pero solo 2 aportan datos.
-- **IDs de posición:** en los datos reales solo aparecen 24, 25, 26 y 27, repartidos como se espera (pocos 24, es decir arqueros). Falta verificar los nombres contra `/core/types`.
+- **IDs de posición:** confirmados contra `/core/types` el 20/11/2026: 24 Goalkeeper, 25 Defender, 26 Midfielder y 27 Attacker. El 221 que aparece en el listado general de jugadores es "Coach" (un técnico) y queda sin posición.
 - **Porcentaje de pases:** Sportmonks trae el tipo 1584 con el porcentaje ya calculado, en los mismos jugadores que traen pases acertados. Coincide con acertados sobre totales (5 de 7 da 71,43).
 - **Listado general `/players`:** no filtra por temporada, devuelve a los mismos 50 jugadores en todas las ligas. Para sincronizar una liga hay que pedir los equipos de la temporada, el plantel de cada uno y las estadísticas jugador por jugador. Estimación: unos 1.400 pedidos para Primera Nacional y 1.050 para Federal A, a razón de poco menos de un pedido por segundo.
-- **Sin resolver:** que 2025 traiga estadísticas (aparece como temporada disponible, no se pidieron sus jugadores) y la cantidad real de pedidos de una sincronización completa.
+- **Primera sincronización completa (16/11/2026, Torneo Federal A, base de desarrollo):** 728 pedidos, temporada 2026, 705 estadísticas de 688 jugadores y 37 equipos. De esos jugadores, 405 (59 %) ya existían por API-Football y se cruzaron por nombre y fecha de nacimiento (RN-030) sin duplicarse. Con minutos mayores a cero quedaron 631, y de las 705 filas traen minutos el 89 %, pases el 88 %, duelos el 88 %, intercepciones el 80 % y rating el 88 %. La cobertura de la liga pasó de básica a completa. No hubo ratings fuera de 0 a 10, porcentajes fuera de 0 a 100 ni duelos ganados mayores a los totales.
+- **Temporada 2025 incluida en el Starter, sin el add-on de datos históricos (verificado el 20/11/2026):** jugadores de Primera Nacional y de Federal A devolvieron sus estadísticas de 2025 con minutos, pases y rating. RN-027 puede volver a la temporada anterior si hace falta.
+- **Primera sincronización completa de Primera Nacional (20/11/2026, base de desarrollo):** 1.353 pedidos, temporada 2026, 1.381 estadísticas y cobertura completa. De las filas traen minutos el 89 %, pases el 85 %, duelos el 84 %, intercepciones el 75 % y rating el 85 %; sin valores fuera de rango. Entre las dos ligas hay 1.972 jugadores con `id_sportmonks`, de los cuales 1.016 (51 %) se cruzaron con los de API-Football. **Una sincronización de las dos ligas son unos 2.100 pedidos, cerca de una hora.**
 
 ## Consecuencias
 + Primera Nacional y Federal A pasan de tener solo minutos a tener asistencias, % de pases, intercepciones y rating.

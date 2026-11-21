@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db import obtener_fabrica_sesiones
 from app.modelos import Liga
+from app.modelos.enums import FuenteDatos
 
 # Supuesto (REGLAS_DE_NEGOCIO.md, "Temporada"): la sincronización la actualiza con la temporada
 # actual que informa API-Football. En Argentina coincide con el año calendario.
@@ -23,20 +24,26 @@ class DatosLiga:
     nombre: str
     id_api_football: int
     orden: int
+    # IDs de Sportmonks, confirmados el 16/11/2026 con la prueba de 14 días (DAT-003). La Liga
+    # Profesional no está en la suscripción
+    id_sportmonks: int | None = None
+    # RN-029 (aprobada por el PO el 20/11/2026): Sportmonks solo trae rendimiento en Primera
+    # Nacional y Torneo Federal A
+    fuente: FuenteDatos = FuenteDatos.api_football
 
 
 LIGAS_MVP = (
     DatosLiga("Liga Profesional", 128, 1),
-    DatosLiga("Primera Nacional", 129, 2),
-    DatosLiga("Primera B Metropolitana", 131, 3),
-    DatosLiga("Primera C", 132, 4),
-    DatosLiga("Primera D", 133, 5),
-    DatosLiga("Torneo Federal A", 134, 6),
+    DatosLiga("Primera Nacional", 129, 2, id_sportmonks=645, fuente=FuenteDatos.sportmonks),
+    DatosLiga("Primera B Metropolitana", 131, 3, id_sportmonks=1330),
+    DatosLiga("Primera C", 132, 4, id_sportmonks=1093),
+    DatosLiga("Primera D", 133, 5, id_sportmonks=1094),
+    DatosLiga("Torneo Federal A", 134, 6, id_sportmonks=1333, fuente=FuenteDatos.sportmonks),
 )
 
 
 def cargar_ligas(session: Session) -> list[Liga]:
-    """Crea las ligas que faltan y corrige el id de API-Football y el orden de las existentes.
+    """Crea las ligas que faltan y corrige ids, fuente y orden de las existentes.
 
     No toca temporada_actual ni cobertura de una liga que ya existe: eso lo mantiene la
     sincronización (DAT-001, RN-020).
@@ -48,6 +55,8 @@ def cargar_ligas(session: Session) -> list[Liga]:
             liga = Liga(nombre=datos.nombre, temporada_actual=TEMPORADA_INICIAL)
             session.add(liga)
         liga.id_api_football = datos.id_api_football
+        liga.id_sportmonks = datos.id_sportmonks
+        liga.fuente = datos.fuente
         liga.orden = datos.orden
         ligas.append(liga)
     session.flush()

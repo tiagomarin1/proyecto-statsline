@@ -434,25 +434,26 @@ Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 
 ---
 
-### RN-029 Fuente de datos de cada liga (propuesta, 14/11/2026)
+### RN-029 Fuente de datos de cada liga (aprobada por el PO el 20/11/2026)
 
-Ver ADR-0011 (propuesta).
+Ver ADR-0011 (aceptada).
 
 | Liga | Fuente de las estadísticas |
 |---|---|
-| Liga Profesional | API-Football |
-| Primera Nacional, Torneo Federal A, Primera B Metropolitana, Primera C y Primera D | Sportmonks |
+| Liga Profesional, Primera B Metropolitana, Primera C y Primera D | API-Football |
+| Primera Nacional y Torneo Federal A | Sportmonks |
+
+El reparto sale de la prueba de 14 días (16/11/2026): Sportmonks trae rendimiento solo en Primera Nacional y Torneo Federal A (68 % a 84 % de los jugadores con cada dato). En Primera B Metropolitana, Primera C y Primera D no trae nada (0 %), y para B Metropolitana API-Football al menos trae minutos. La fuente de cada liga vive en `liga.fuente` y la carga la semilla de ligas.
 
 - **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
-- La ficha indica la fuente de las métricas ("Datos de Sportmonks" o "Datos de API-Football").
-- **Aviso al comparar fuentes distintas:** si en el comparador hay jugadores de ligas con fuentes distintas, se muestra "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables". Lo mismo cuando una búsqueda mezcla ligas y se ordena por rating o por % de pases.
+- **La interfaz no indica la fuente** de las métricas: ni la ficha ni la búsqueda (decisión del PO, 20/11/2026).
+- **Comparar entre fuentes distintas está permitido.** Si en el comparador hay jugadores de ligas con fuentes distintas, se muestra el aviso "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables" (decisión del PO, 20/11/2026; spec CMP-003). El aviso no nombra las fuentes.
+- **Búsqueda que mezcla ligas:** sin aviso por ahora. El PO no lo pidió; si hace falta, es una decisión aparte.
 - **Ejemplo:** un jugador de la Liga Profesional con rating 7,10 (API-Football) y uno de Primera Nacional con rating 7,40 (Sportmonks) pueden mostrarse juntos, pero con el aviso: el 7,40 no es "mejor" que el 7,10.
 
-**A validar con el PO:** si el aviso alcanza, o si el comparador debería bloquear la comparación entre fuentes.
+Usada en: DAT-003, CMP-003.
 
-Usada en: DAT-003, BUS-*, JUG-001, CMP-001.
-
-### RN-030 Cruce de jugadores de Sportmonks con la base (propuesta, 14/11/2026)
+### RN-030 Cruce de jugadores de Sportmonks con la base (aprobada por el PO el 20/11/2026)
 
 Para no duplicar a un jugador que pasa de una liga a otra:
 
@@ -469,7 +470,8 @@ Usada en: DAT-003.
 ### RN-031 Datos de Sportmonks que se derivan o se traducen (propuesta, 14/11/2026)
 
 ```
-pases_precision_pct = pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
+pases_precision_pct = el porcentaje que trae Sportmonks (tipo 1584), si es válido (0 a 100)
+                      si no: pases_acertados / pases_totales * 100   (None si pases_totales es None o 0)
 duelos_totales      = total-duels
 duelos_ganados      = duels-won
 intercepciones      = interceptions
@@ -583,7 +585,8 @@ Usada en: BUS-010.
 ## Pendientes
 
 - **PO:** validar RN-035 **(propuesta)**: búsqueda por nombre (BUS-010).
-- **PO y equipo:** validar ADR-0011 y las reglas RN-029 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasarían de `basica` a una cobertura casi completa.
+- ~~**PO y equipo:** validar ADR-0011, RN-029 y RN-030.~~ Resueltas el 20/11/2026: ADR-0011 aceptada, RN-029 aprobada con el reparto de fuentes de arriba y RN-030 aprobada tal como estaba.
+- **PO:** validar RN-031 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasan de `basica` a `completa` (medido el 16/11/2026 en Federal A).
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
 - ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.

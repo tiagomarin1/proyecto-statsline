@@ -1,5 +1,7 @@
-# Sincronización diaria con API-Football (ADR-0008 y ADR-0009). Reemplaza al cron de Railway.
-# Los secrets DATABASE_URL, DATABASE_SSL_CA y API_FOOTBALL_KEY los carga el dueño del repo.
+# Sincronización diaria (ADR-0008, ADR-0009 y ADR-0011). Reemplaza al cron de Railway. Cada liga sale
+# de una sola fuente (RN-029): API-Football para la mayoría y Sportmonks para Primera Nacional y
+# Torneo Federal A.
+# Los secrets DATABASE_URL, DATABASE_SSL_CA, API_FOOTBALL_KEY y SPORTMONKS_TOKEN los carga el dueño del repo.
 name: Sincronización diaria
 
 # Solo lee el repo: escribe en Aiven, no en GitHub
@@ -11,8 +13,13 @@ on:
     - cron: "0 6 * * *" # 03:00 de Argentina
   workflow_dispatch:
     inputs:
+      fuente:
+        description: "qué fuente sincronizar"
+        type: choice
+        options: [todas, api_football, sportmonks]
+        default: todas
       liga:
-        description: "id interno de la liga (vacío = las 6)"
+        description: "id interno de la liga (vacío = todas las de la fuente). Usar con una sola fuente"
         required: false
       temporada:
         description: "año de la temporada (vacío = la que elige RN-027)"
@@ -24,6 +31,8 @@ concurrency:
 
 jobs:
   api_football:
+    # A mano se puede elegir la fuente; el cron corre las dos
+    if: github.event_name != 'workflow_dispatch' || inputs.fuente != 'sportmonks'
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -57,3 +66,31 @@ jobs:
           LIGA: ${{ inputs.liga }}
           TEMPORADA: ${{ inputs.temporada }}
         run: python -m app.sincronizacion.api_football ${LIGA:+--liga "$LIGA"} ${TEMPORADA:+--temporada "$TEMPORADA"}
+
+  sportmonks:
+    # Primera Nacional y Torneo Federal A (RN-029). Sportmonks no tiene una llamada por liga:
+    # son unos 2.500 pedidos por corrida, a menos de uno por segundo (DAT-003)
+    if: github.event_name != 'workflow_dispatch' || inputs.fuente != 'api_football'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_SSL_CA: ${{ secrets.DATABASE_SSL_CA }}
+      SPORTMONKS_TOKEN: ${{ secrets.SPORTMONKS_TOKEN }}
+      # La sincronización no firma sesiones, pero la configuración lo pide
+      SECRET_KEY: no-se-usa-en-la-sincronizacion
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install .
+      - env:
+          LIGA: ${{ inputs.liga }}
+          TEMPORADA: ${{ inputs.temporada }}
+        run: python -m app.sincronizacion.sportmonks ${LIGA:+--liga "$LIGA"} ${TEMPORADA:+--temporada "$TEMPORADA"}
