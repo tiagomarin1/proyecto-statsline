@@ -37,3 +37,5 @@ class RespuestaComparacion(BaseModel):
     metricas_ganadas: dict[str, int]
     diferencia_valor_eur: int | None
     mas_barato_id: int | None
+    # CMP-003 y RN-029: el texto del aviso si los jugadores salen de fuentes distintas
+    aviso_fuentes: str | None = None

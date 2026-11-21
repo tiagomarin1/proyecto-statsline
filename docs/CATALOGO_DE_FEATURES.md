@@ -62,6 +62,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | CMP-001 | Comparar 2 o 3 candidatos | en testing | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
+| CMP-003 | Avisar al comparar jugadores de fuentes distintas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-003.md |
 
 ### Módulo: Seguimiento
 

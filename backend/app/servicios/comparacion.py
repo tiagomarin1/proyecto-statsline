@@ -9,6 +9,7 @@ from app.errores import ErrorApi
 from app.esquemas.busqueda import LigaResumen
 from app.esquemas.comparacion import FilaComparacion, JugadorComparado, RespuestaComparacion
 from app.modelos import Equipo, Jugador, Liga
+from app.modelos.enums import FuenteDatos
 from app.repositorios import jugador as repositorio_jugador
 from app.servicios.edad import calcular_edad
 from app.servicios.estadistica_vigente import (
@@ -24,6 +25,11 @@ from app.servicios.estadistica_vigente import (
 MIN_JUGADORES_COMPARACION = 2
 MAX_JUGADORES_COMPARACION = 3
 MENSAJE_CANTIDAD_INVALIDA = "Se pueden comparar entre 2 y 3 jugadores."
+# RN-029: el rating y los porcentajes de cada proveedor no son comparables entre sí. El PO pidió
+# que el aviso no nombre las fuentes (20/11/2026)
+MENSAJE_FUENTES_DISTINTAS = (
+    "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables."
+)
 
 # RN-001: métricas de rendimiento del comparador, en orden, con su etiqueta y redondeo (RN-018).
 # Todas son "mayor es mejor" (RN-006). El valor de mercado no compite: va aparte.
@@ -61,6 +67,12 @@ def marcar_mejor_y_peor(valores: dict[int, float | None]) -> tuple[list[int], li
     return mejor, peor
 
 
+def avisar_fuentes_distintas(fuentes: list[FuenteDatos]) -> str | None:
+    """RN-029 y CMP-003: comparar entre fuentes está permitido, pero se avisa. Devuelve el texto
+    del aviso si los jugadores salen de más de una fuente, y None si todos salen de la misma."""
+    return MENSAJE_FUENTES_DISTINTAS if len(set(fuentes)) > 1 else None
+
+
 def comparar_valores(valores: dict[int, int | None]) -> tuple[int | None, int | None]:
     """RN-006: el valor de mercado no compite. Devuelve (diferencia_valor_eur, mas_barato_id).
 
@@ -96,6 +108,7 @@ def _consulta_jugadores(jugador_ids: list[int]) -> Select:
             Liga.id.label("liga_id"),
             Liga.nombre.label("liga_nombre"),
             Liga.cobertura.label("liga_cobertura"),
+            Liga.fuente.label("liga_fuente"),
             Equipo.nombre.label("equipo"),
         )
         .join(vigente, vigente.c.jugador_id == Jugador.id)
@@ -150,6 +163,7 @@ def comparar(session: Session, jugador_ids: list[int], hoy: date) -> RespuestaCo
         metricas_ganadas={str(jugador_id): total for jugador_id, total in ganadas.items()},
         diferencia_valor_eur=diferencia,
         mas_barato_id=mas_barato,
+        aviso_fuentes=avisar_fuentes_distintas([fila["liga_fuente"] for fila in ordenadas]),
     )
 
 

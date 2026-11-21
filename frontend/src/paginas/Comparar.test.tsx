@@ -54,7 +54,11 @@ const RESPUESTA: RespuestaComparacion = {
   metricas_ganadas: { '1': 2, '2': 0 },
   diferencia_valor_eur: 600_000,
   mas_barato_id: 2,
+  aviso_fuentes: null,
 };
+
+const AVISO =
+  'El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables.';
 
 function renderizarEn(ruta: string) {
   return render(
@@ -89,5 +93,18 @@ describe('CMP-001: comparar jugadores', () => {
     // exportar PDF queda para el release 2
     expect(screen.getByText(/release 2/)).toBeInTheDocument();
     expect(compararMock).toHaveBeenCalledWith([1, 2]);
+    // sin fuentes distintas no hay aviso (CMP-003)
+    expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
+  });
+
+  it('CMP-003: avisa cuando los jugadores vienen de fuentes distintas y compara igual', async () => {
+    compararMock.mockResolvedValue({ ...RESPUESTA, aviso_fuentes: AVISO });
+    renderizarEn('/comparar?ids=1,2');
+
+    expect(await screen.findByText(AVISO)).toBeInTheDocument();
+    // la comparación sigue ahí
+    expect(screen.getByText('A 2 · B 0')).toBeInTheDocument();
+    // el aviso no nombra las fuentes
+    expect(screen.queryByText(/Sportmonks|API-Football/i)).not.toBeInTheDocument();
   });
 });
