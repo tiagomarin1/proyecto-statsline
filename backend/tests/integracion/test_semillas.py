@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.modelos import Liga, Usuario
-from app.modelos.enums import Cobertura, Rol
+from app.modelos.enums import Cobertura, FuenteDatos, Rol
 from app.seguridad.contrasenas import verificar_contrasena
 from semillas.__main__ import cargar_semillas
 from semillas.ligas import cargar_ligas
@@ -31,6 +31,24 @@ def test_inf001_se_cargan_las_6_ligas_del_mvp_en_orden(session: Session):
         "Torneo Federal A",
     ]
     assert all(liga.cobertura == Cobertura.sin_datos for liga in ligas)
+
+
+def test_dat003_las_ligas_del_ascenso_traen_su_id_de_sportmonks_pero_siguen_en_api_football(
+    session: Session,
+):
+    cargar_ligas(session)
+
+    ids = {liga.nombre: liga.id_sportmonks for liga in session.scalars(select(Liga))}
+    assert ids == {
+        "Liga Profesional": None,
+        "Primera Nacional": 645,
+        "Primera B Metropolitana": 1330,
+        "Primera C": 1093,
+        "Primera D": 1094,
+        "Torneo Federal A": 1333,
+    }
+    # RN-029 (propuesta): la fuente de cada liga la decide el PO, no la semilla
+    assert {liga.fuente for liga in session.scalars(select(Liga))} == {FuenteDatos.api_football}
 
 
 def test_inf001_cargar_las_ligas_dos_veces_no_las_duplica(session: Session):
