@@ -147,7 +147,9 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
   ],
   "metricas_ganadas": { "1": 4, "2": 1, "3": 3 },
   "diferencia_valor_eur": 55000,              // null si menos de 2 tienen valor
-  "mas_barato_id": 1                          // null si nadie tiene valor
+  "mas_barato_id": 1,                         // null si nadie tiene valor
+  "aviso_fuentes": "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables."
+                                              // CMP-003, RN-029. null si todos salen de la misma fuente
 }
 ```
 

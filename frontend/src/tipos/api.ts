@@ -214,6 +214,8 @@ export interface RespuestaComparacion {
   metricas_ganadas: Record<string, number>;
   diferencia_valor_eur: number | null;
   mas_barato_id: number | null;
+  /** CMP-003: el aviso si los jugadores salen de fuentes distintas, o null */
+  aviso_fuentes: string | null;
 }
 
 // --- Perfil de búsqueda ---

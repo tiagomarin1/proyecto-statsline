@@ -88,7 +88,8 @@ export default function Comparar() {
     );
   }
 
-  const { jugadores, filas, metricas_ganadas, diferencia_valor_eur, mas_barato_id } = datos;
+  const { jugadores, filas, metricas_ganadas, diferencia_valor_eur, mas_barato_id, aviso_fuentes } =
+    datos;
   const masBarato = jugadores.find((j) => j.id === mas_barato_id);
   const temporadas = [...new Set(jugadores.map((j) => j.temporada))];
   const subtitulo =
@@ -102,6 +103,12 @@ export default function Comparar() {
           <p>Métricas lado a lado · {subtitulo}</p>
         </div>
       </div>
+
+      {aviso_fuentes && (
+        <p className="chip chip--warn cmp__aviso" role="note">
+          {aviso_fuentes}
+        </p>
+      )}
 
       <div className="cmp">
         <div
