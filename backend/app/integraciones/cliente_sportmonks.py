@@ -13,6 +13,8 @@ from typing import Any
 import httpx
 
 URL_BASE = "https://api.sportmonks.com/v3/football"
+# Los datos comunes (países, tipos) no cuelgan de /football
+URL_CORE = "https://api.sportmonks.com/v3/core"
 SEGUNDOS_TIMEOUT = 20
 ESPERAS_REINTENTO_SEGUNDOS = (1, 2, 4)
 # Una sincronización son más de mil pedidos: un corte de red de un par de minutos no tiene que
@@ -45,6 +47,7 @@ class ClienteSportmonks:
         self._token = token
         self._dormir = dormir
         self.pedidos_usados = 0
+        self._paises: dict[int, str] | None = None
         self._http = httpx.Client(
             base_url=url_base,
             headers={"Authorization": token},
@@ -77,6 +80,13 @@ class ClienteSportmonks:
     def liga(self, id_liga: int) -> dict[str, Any]:
         """La liga con todas sus temporadas."""
         return self.obtener(f"/leagues/{id_liga}", {"include": "seasons"}).get("data") or {}
+
+    def paises(self) -> dict[int, str]:
+        """{id: nombre} de todos los países (unos 240). Se piden una sola vez por cliente."""
+        if self._paises is None:
+            filas = self.paginar(f"{URL_CORE}/countries", {})
+            self._paises = {fila["id"]: fila["name"] for fila in filas if fila.get("name")}
+        return self._paises
 
     def equipos_de_la_temporada(self, id_temporada: int) -> list[dict[str, Any]]:
         return self.paginar(f"/teams/seasons/{id_temporada}", {})

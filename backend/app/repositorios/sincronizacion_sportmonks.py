@@ -29,9 +29,9 @@ from app.servicios.cruce_sportmonks import (
 )
 from app.sincronizacion.mapeo_sportmonks import DatosDeLigaSportmonks
 
-# Lo que se actualiza de un jugador que ya tenía id_sportmonks. La nacionalidad llega como un ID de
-# país que todavía no se traduce, así que no se toca; el valor de mercado (DAT-002) tampoco
-COLUMNAS_JUGADOR = ("nombre", "nombre_pila", "apellido", "fecha_nacimiento")
+# Lo que se actualiza de un jugador que ya tenía id_sportmonks. El valor de mercado (DAT-002) no se
+# toca. Un jugador cruzado con uno de API-Football conserva todo lo suyo
+COLUMNAS_JUGADOR = ("nombre", "nombre_pila", "apellido", "fecha_nacimiento", "nacionalidad")
 
 
 def guardar_datos_de_liga(

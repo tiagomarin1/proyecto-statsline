@@ -126,7 +126,7 @@ def traer_datos_de_liga(cliente: ClienteSportmonks, id_temporada: int) -> DatosD
             if fila.get("has_values") and fila.get("player_id"):
                 ids_de_jugadores.setdefault(fila["player_id"])
     jugadores = [cliente.jugador(id_jugador, id_temporada) for id_jugador in ids_de_jugadores]
-    return mapear_liga(equipos, [j for j in jugadores if j], id_temporada)
+    return mapear_liga(equipos, [j for j in jugadores if j], id_temporada, cliente.paises())
 
 
 def ejecutar(

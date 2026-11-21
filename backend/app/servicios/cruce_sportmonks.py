@@ -41,6 +41,7 @@ class JugadorSportmonks:
     nombre_pila: str | None
     apellido: str | None
     fecha_nacimiento: date | None
+    nacionalidad: str | None = None
 
 
 @dataclass(frozen=True)

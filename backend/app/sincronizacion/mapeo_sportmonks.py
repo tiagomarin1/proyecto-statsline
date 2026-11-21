@@ -30,9 +30,8 @@ TIPO_DUELOS_GANADOS = 106
 TIPO_INTERCEPCIONES = 100
 TIPO_RATING = 118
 
-# RN-019. En los datos reales de Primera Nacional y Federal A solo aparecen estos cuatro IDs, con
-# pocos arqueros en el 24 (16/11/2026). Falta cotejar los nombres contra `/core/types`. Cualquier
-# otro ID (por ejemplo 221), o vacío, queda en None.
+# RN-019. Confirmados contra `/core/types` el 16/11/2026: 24 Goalkeeper, 25 Defender, 26 Midfielder
+# y 27 Attacker. Cualquier otro ID, o vacío, queda en None (por ejemplo 221 es "Coach", un técnico).
 POSICIONES_SPORTMONKS = {
     24: Posicion.arquero,
     25: Posicion.defensor,
@@ -48,6 +47,7 @@ PORCENTAJE_MAXIMO = 100
 LARGO_NOMBRE = 120
 LARGO_NOMBRE_PILA = 80
 LARGO_APELLIDO = 80
+LARGO_NACIONALIDAD = 60
 LARGO_NOMBRE_EQUIPO = 120
 
 
@@ -83,7 +83,10 @@ class DatosDeLigaSportmonks:
 
 
 def mapear_liga(
-    equipos: list[dict[str, Any]], jugadores: list[dict[str, Any]], id_temporada: int
+    equipos: list[dict[str, Any]],
+    jugadores: list[dict[str, Any]],
+    id_temporada: int,
+    paises: dict[int, str] | None = None,
 ) -> DatosDeLigaSportmonks:
     """Mapea los jugadores de una liga y temporada.
 
@@ -92,13 +95,15 @@ def mapear_liga(
     - Una fila de un equipo que no está en `equipos` se ignora: no hay con qué crear el equipo.
     - Se guardan todas las filas de un jugador (una por equipo): RN-017 elige una al leer.
     - Si el mismo jugador y equipo se repite, queda la fila con más minutos.
+    - La nacionalidad llega como un ID de país: se traduce con `paises` ({id: nombre}); un ID que
+      no está queda en None.
     """
     nombres_de_equipos = _nombres_de_equipos(equipos)
     jugadores_mapeados: dict[int, JugadorSportmonks] = {}
     equipos_mapeados: dict[int, EquipoSportmonks] = {}
     estadisticas: dict[tuple[int, int], EstadisticaSportmonks] = {}
     for datos in jugadores:
-        jugador = _mapear_jugador(datos)
+        jugador = _mapear_jugador(datos, paises or {})
         if jugador is None:
             continue
         for fila in datos.get("statistics") or []:
@@ -135,7 +140,7 @@ def _nombres_de_equipos(equipos: list[dict[str, Any]]) -> dict[int, str]:
     return nombres
 
 
-def _mapear_jugador(jugador: dict[str, Any]) -> JugadorSportmonks | None:
+def _mapear_jugador(jugador: dict[str, Any], paises: dict[int, str]) -> JugadorSportmonks | None:
     id_sm = _entero_no_negativo(jugador.get("id"))
     nombre = _texto(jugador.get("name"), LARGO_NOMBRE)
     if id_sm is None or nombre is None:
@@ -146,6 +151,7 @@ def _mapear_jugador(jugador: dict[str, Any]) -> JugadorSportmonks | None:
         nombre_pila=_texto(jugador.get("firstname"), LARGO_NOMBRE_PILA),
         apellido=_texto(jugador.get("lastname"), LARGO_APELLIDO),
         fecha_nacimiento=_fecha(jugador.get("date_of_birth")),
+        nacionalidad=_texto(paises.get(jugador.get("nationality_id")), LARGO_NACIONALIDAD),
     )
 
 
