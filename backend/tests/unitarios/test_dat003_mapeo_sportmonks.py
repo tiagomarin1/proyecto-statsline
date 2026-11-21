@@ -21,8 +21,8 @@ def _completo() -> dict:
     return jugador(1, "Lucas Martínez", posicion=25, filas=[fila(810, TEMPORADA, detalles, 25)])
 
 
-def _mapear(*jugadores: dict):
-    return mapear_liga(EQUIPOS, list(jugadores), TEMPORADA)
+def _mapear(*jugadores: dict, paises: dict[int, str] | None = None):
+    return mapear_liga(EQUIPOS, list(jugadores), TEMPORADA, paises)
 
 
 def _estadistica(datos, id_jugador: int = 1, id_equipo: int = 810):
@@ -193,3 +193,14 @@ def test_dat003_se_cuentan_los_jugadores_con_minutos_de_la_temporada():
     )
 
     assert contar_jugadores_con_minutos(datos) == 1
+
+
+def test_dat003_la_nacionalidad_se_traduce_con_la_tabla_de_paises():
+    [j] = _mapear(_completo(), paises={44: "Argentina"}).jugadores
+
+    assert j.nacionalidad == "Argentina"
+
+
+def test_dat003_un_pais_desconocido_o_sin_tabla_deja_la_nacionalidad_en_null():
+    assert _mapear(_completo(), paises={999: "Otro"}).jugadores[0].nacionalidad is None
+    assert _mapear(_completo()).jugadores[0].nacionalidad is None

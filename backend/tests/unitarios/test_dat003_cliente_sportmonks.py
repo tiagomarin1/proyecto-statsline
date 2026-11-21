@@ -277,3 +277,23 @@ def test_dat003_una_espera_por_cupo_nunca_pasa_de_una_hora(api, cliente, esperas
     cliente.paginar("/seasons", {})
 
     assert esperas == [3600]
+
+
+def test_dat003_los_paises_se_piden_una_sola_vez_y_se_indexan_por_id():
+    pedidos: list[str] = []
+
+    def responder(pedido: httpx.Request) -> httpx.Response:
+        pedidos.append(pedido.url.path)
+        pagina = int(pedido.url.params["page"])
+        datos = (
+            [{"id": 44, "name": "Argentina"}] if pagina == 1 else [{"id": 858, "name": "Uruguay"}]
+        )
+        return httpx.Response(200, json={"data": datos, "pagination": {"has_more": pagina == 1}})
+
+    with ClienteSportmonks("t", transporte=httpx.MockTransport(responder)) as cliente:
+        primero = cliente.paises()
+        segundo = cliente.paises()
+
+    assert primero == {44: "Argentina", 858: "Uruguay"}
+    assert segundo is primero
+    assert pedidos == ["/v3/core/countries", "/v3/core/countries"]

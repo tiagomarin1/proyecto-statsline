@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -164,6 +165,8 @@ def test_dat003_una_liga_sin_temporada_actual_se_informa_y_no_rompe(tmp_path: Pa
 
 
 def test_dat003_sin_token_el_script_termina_con_error(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    monkeypatch.setenv("SPORTMONKS_TOKEN", "")
+    # Hermético: un .env con un token real no puede hacer que el test le pegue a la API
+    sin_token = SimpleNamespace(sportmonks_token="")
+    monkeypatch.setattr(explorar_sportmonks, "obtener_configuracion", lambda: sin_token)
 
     assert explorar_sportmonks.main(["--salida", str(tmp_path)]) == 1

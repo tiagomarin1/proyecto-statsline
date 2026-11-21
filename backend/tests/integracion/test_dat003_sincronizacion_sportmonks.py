@@ -374,3 +374,34 @@ def test_dat003_la_sincronizacion_de_api_football_saltea_las_ligas_de_sportmonks
 
     assert codigo == 0
     assert _ultima_sincronizacion(session, primera_nacional) is None
+
+
+def test_dat003_un_jugador_nuevo_se_guarda_con_su_nacionalidad(
+    session: Session, api: SportmonksFalsa, cliente: ClienteSportmonks, primera_nacional: Liga
+):
+    _armar_liga(api, [_completo(1, "Lucas Martínez"), _completo(2, "Joel Gordillo")])
+
+    sincronizar_liga(session, cliente, primera_nacional, umbral_jugadores=UMBRAL_DE_PRUEBA)
+
+    nuevo = session.scalars(select(Jugador).where(Jugador.id_sportmonks == 1)).one()
+    assert nuevo.nacionalidad == "Argentina"
+
+
+def test_dat003_un_jugador_cruzado_conserva_su_nacionalidad(
+    session: Session, api: SportmonksFalsa, cliente: ClienteSportmonks, primera_nacional: Liga
+):
+    existente = crear_jugador(
+        session,
+        nombre="L. Martínez",
+        nombre_pila="Lucas",
+        apellido="Martínez",
+        fecha_nacimiento=date(1999, 3, 15),
+        nacionalidad="Uruguay",
+    )
+    _armar_liga(api, [_completo(1, "Lucas Martínez"), _completo(2, "Joel Gordillo")])
+
+    sincronizar_liga(session, cliente, primera_nacional, umbral_jugadores=UMBRAL_DE_PRUEBA)
+
+    session.refresh(existente)
+    assert existente.id_sportmonks == 1
+    assert existente.nacionalidad == "Uruguay"
