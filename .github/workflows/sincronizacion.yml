@@ -28,6 +28,13 @@ on:
       max_pedidos:
         description: "solo trayectoria: tope de pedidos de la corrida (vacío = 5.000, RN-034)"
         required: false
+      jugador:
+        description: "solo trayectoria: id interno de un jugador (vacío = todos los pendientes)"
+        required: false
+      forzar:
+        description: "solo trayectoria: volver a pedir aunque se haya sincronizado hace menos de 30 días"
+        type: boolean
+        default: false
 
 concurrency:
   group: sincronizacion
@@ -48,6 +55,11 @@ jobs:
       run:
         working-directory: backend
     steps:
+      - name: Avisar si llegó un input que solo usa la trayectoria
+        if: github.event_name == 'workflow_dispatch' && (inputs.max_pedidos != '' || inputs.jugador != '' || inputs.forzar)
+        # Antes del checkout todavía no existe backend/
+        working-directory: .
+        run: echo "::warning::max_pedidos, jugador y forzar solo se usan con la fuente trayectoria. Acá se ignoran."
       - uses: actions/checkout@v4
       - name: ¿Ya existe la sincronización (DAT-001)?
         id: dat001
@@ -87,6 +99,11 @@ jobs:
       run:
         working-directory: backend
     steps:
+      - name: Avisar si llegó un input que solo usa la trayectoria
+        if: github.event_name == 'workflow_dispatch' && (inputs.max_pedidos != '' || inputs.jugador != '' || inputs.forzar)
+        # Antes del checkout todavía no existe backend/
+        working-directory: .
+        run: echo "::warning::max_pedidos, jugador y forzar solo se usan con la fuente trayectoria. Acá se ignoran."
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -115,6 +132,15 @@ jobs:
       run:
         working-directory: backend
     steps:
+      # La trayectoria no se filtra por liga ni por temporada: se frena antes de gastar cupo con
+      # una corrida de todos los jugadores que no era la que se quería
+      - name: Rechazar liga y temporada
+        if: inputs.liga != '' || inputs.temporada != ''
+        # Antes del checkout todavía no existe backend/
+        working-directory: .
+        run: |
+          echo "::error::La trayectoria no usa liga ni temporada. Para un solo jugador, usá el input jugador."
+          exit 1
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -124,4 +150,10 @@ jobs:
       - run: pip install .
       - env:
           MAX_PEDIDOS: ${{ inputs.max_pedidos }}
-        run: python -m app.sincronizacion.trayectoria ${MAX_PEDIDOS:+--max-pedidos "$MAX_PEDIDOS"}
+          JUGADOR: ${{ inputs.jugador }}
+          FORZAR: ${{ inputs.forzar }}
+        run: >-
+          python -m app.sincronizacion.trayectoria
+          ${MAX_PEDIDOS:+--max-pedidos "$MAX_PEDIDOS"}
+          ${JUGADOR:+--jugador "$JUGADOR"}
+          $([ "$FORZAR" = "true" ] && echo --forzar)
