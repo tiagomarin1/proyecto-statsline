@@ -189,3 +189,111 @@ def test_dat003_si_el_token_aparece_en_la_respuesta_no_se_filtra_en_el_error(api
         cliente.paginar("/seasons", {})
 
     assert TOKEN not in str(error.value)
+
+
+def test_dat003_los_pedidos_de_una_liga_usan_las_rutas_documentadas():
+    rutas: list[tuple[str, dict]] = []
+
+    def responder(pedido: httpx.Request) -> httpx.Response:
+        rutas.append((pedido.url.path, dict(pedido.url.params)))
+        return httpx.Response(200, json={"data": [], "pagination": {"has_more": False}})
+
+    with ClienteSportmonks("t", transporte=httpx.MockTransport(responder)) as cliente:
+        cliente.liga(645)
+        cliente.equipos_de_la_temporada(26809)
+        cliente.plantel(26809, 8378)
+        cliente.jugador(37, 26809)
+
+    assert [ruta for ruta, _ in rutas] == [
+        "/v3/football/leagues/645",
+        "/v3/football/teams/seasons/26809",
+        "/v3/football/squads/seasons/26809/teams/8378",
+        "/v3/football/players/37",
+    ]
+    assert rutas[0][1] == {"include": "seasons"}
+    assert rutas[3][1] == {
+        "include": "statistics.details",
+        "filters": "playerStatisticSeasons:26809",
+    }
+
+
+def test_dat003_una_caida_de_conexion_espera_mas_antes_de_rendirse(api, cliente, esperas):
+    # una sincronización de Sportmonks son más de mil pedidos: un corte de red de un minuto o dos
+    # no tiene que tirar toda la corrida
+    api.responder(
+        "/v3/football/seasons",
+        *[httpx.ConnectError("sin red")] * 6,
+        _pagina([{"id": 1}], pagina=1, hay_mas=False),
+    )
+
+    assert cliente.paginar("/seasons", {}) == [{"id": 1}]
+    assert esperas == [1, 2, 4, 10, 30, 60]
+
+
+def test_dat003_si_la_conexion_sigue_caida_corta_con_un_mensaje_sin_el_token(api, cliente, esperas):
+    api.responder("/v3/football/seasons", httpx.ConnectError("sin red"))
+
+    with pytest.raises(ErrorSportmonks) as error:
+        cliente.paginar("/seasons", {})
+
+    assert "conexión" in str(error.value)
+    assert TOKEN not in str(error.value)
+    assert esperas == [1, 2, 4, 10, 30, 60, 60]
+
+
+def _con_cupo(restante: int, segundos: int = 120) -> dict:
+    return {
+        "data": [{"id": 1}],
+        "pagination": {"has_more": False},
+        "rate_limit": {
+            "resets_in_seconds": segundos,
+            "remaining": restante,
+            "requested_entity": "Player",
+        },
+    }
+
+
+def test_dat003_si_queda_poco_cupo_espera_a_que_se_renueve_antes_del_proximo_pedido(
+    api, cliente, esperas
+):
+    api.responder("/v3/football/seasons", _con_cupo(restante=5, segundos=120))
+
+    cliente.paginar("/seasons", {})
+
+    assert esperas == [120]
+
+
+def test_dat003_con_cupo_de_sobra_no_espera(api, cliente, esperas):
+    api.responder("/v3/football/seasons", _con_cupo(restante=1500))
+
+    cliente.paginar("/seasons", {})
+
+    assert esperas == []
+
+
+def test_dat003_una_espera_por_cupo_nunca_pasa_de_una_hora(api, cliente, esperas):
+    api.responder("/v3/football/seasons", _con_cupo(restante=0, segundos=99999))
+
+    cliente.paginar("/seasons", {})
+
+    assert esperas == [3600]
+
+
+def test_dat003_los_paises_se_piden_una_sola_vez_y_se_indexan_por_id():
+    pedidos: list[str] = []
+
+    def responder(pedido: httpx.Request) -> httpx.Response:
+        pedidos.append(pedido.url.path)
+        pagina = int(pedido.url.params["page"])
+        datos = (
+            [{"id": 44, "name": "Argentina"}] if pagina == 1 else [{"id": 858, "name": "Uruguay"}]
+        )
+        return httpx.Response(200, json={"data": datos, "pagination": {"has_more": pagina == 1}})
+
+    with ClienteSportmonks("t", transporte=httpx.MockTransport(responder)) as cliente:
+        primero = cliente.paises()
+        segundo = cliente.paises()
+
+    assert primero == {44: "Argentina", 858: "Uruguay"}
+    assert segundo is primero
+    assert pedidos == ["/v3/core/countries", "/v3/core/countries"]

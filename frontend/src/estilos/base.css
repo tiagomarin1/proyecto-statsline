@@ -1017,3 +1017,4 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
   .cuerpo__grilla.con-panel { grid-template-columns: minmax(0, 1fr); }
   .pj { position: static; }
 }
+.cmp__aviso { display: block; margin: 0 0 16px; padding: 10px 14px; border-radius: var(--radius, 10px); font-size: 14px; line-height: 1.4; white-space: normal; }

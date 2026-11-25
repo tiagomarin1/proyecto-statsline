@@ -20,6 +20,7 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 | `DATABASE_URL_TEST` | Base de test. **pytest la borra y la recrea** en cada corrida, así que su nombre tiene que terminar en `_test` (si no, los tests frenan antes de borrar nada) |
 | `SECRET_KEY` | Firma de la cookie de sesión. Tiene que ser larga y aleatoria: con `ENTORNO=produccion`, la app no arranca si tiene menos de 32 caracteres |
 | `API_FOOTBALL_KEY` | Solo para la sincronización (DAT-001) |
+| `SPORTMONKS_TOKEN` | Solo para la sincronización de Primera Nacional y Torneo Federal A (DAT-003) |
 | `SESION_HORAS` | Duración de la sesión. Por defecto es 8 (ADR-0005) |
 | `DEMO_CONTRASENA` | Contraseña del usuario demo |
 | `ENTORNO` | `desarrollo`, `test` o `produccion` |
@@ -125,7 +126,7 @@ python -m app.sincronizacion.api_football --liga 2 --temporada 2025   # una liga
 python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv.gz   # DAT-002, después de la de API-Football
 ```
 
-La sincronización necesita `API_FOOTBALL_KEY`. Si tu red no llega a `api-sports.io`, corréla desde GitHub: *Actions → Sincronización diaria → Run workflow*, donde se pueden completar la liga y la temporada. Sale con código 1 si alguna liga falló; el detalle queda en la tabla `sincronizacion`.
+La sincronización de API-Football necesita `API_FOOTBALL_KEY` y la de Sportmonks, `SPORTMONKS_TOKEN` (`python -m app.sincronizacion.sportmonks`; son unos 2.500 pedidos y tarda cerca de una hora). Cada liga sale de una sola fuente (RN-029), y cada comando solo toca las suyas. Si tu red no llega a `api-sports.io`, corréla desde GitHub: *Actions → Sincronización diaria → Run workflow*, donde se pueden elegir la fuente, la liga y la temporada. Sale con código 1 si alguna liga falló; el detalle queda en la tabla `sincronizacion`.
 
 ## Deploy (Render + Aiven + GitHub Actions)
 
@@ -169,6 +170,7 @@ En el repo: *Settings → Secrets and variables → Actions*. Los carga el dueñ
 | `DATABASE_URL` | La misma Service URI de Aiven |
 | `DATABASE_SSL_CA` | El mismo contenido de `ca.pem` |
 | `API_FOOTBALL_KEY` | La clave de API-Football |
+| `SPORTMONKS_TOKEN` | El token de Sportmonks (my.sportmonks.com). Sin él, el job de Sportmonks falla y las dos ligas que salen de ahí no se actualizan |
 | `RENDER_DEPLOY_HOOK` | El deploy hook del servicio: en Render, *Settings → Deploy Hook*. Es secreto: con esa URL cualquiera puede desplegar. Si falta, el CI no despliega y deja un aviso |
 
 Para correrla a mano: pestaña *Actions → Sincronización diaria → Run workflow*. GitHub desactiva los workflows programados si el repo pasa 60 días sin actividad.

@@ -29,7 +29,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | DAT-001 | Sincronizar jugadores desde API-Football | en testing | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
 | DAT-002 | Importar valores de mercado de transfermarkt-datasets | en testing | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
-| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | en desarrollo (parcial: falta el comando de sincronización; depende de ADR-0011, propuesta) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
+| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | en testing (implementada y probada con Sportmonks real; falta cargar el secret `SPORTMONKS_TOKEN`, la primera corrida en producción y validar RN-031) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
 | DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | en desarrollo (implementado; falta validar RN-032 a RN-034 con el PO) | P1 | — (nueva) | — | specs/datos/DAT-004.md |
 
 ### Módulo: Autenticación
@@ -63,6 +63,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | CMP-001 | Comparar 2 o 3 candidatos | en testing | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
+| CMP-003 | Avisar al comparar jugadores de fuentes distintas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-003.md |
 
 ### Módulo: Seguimiento
 

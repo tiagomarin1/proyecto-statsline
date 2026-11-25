@@ -235,3 +235,6 @@ frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
 frontend/blob-report/
+
+# Respuestas grabadas de Sportmonks durante la prueba (DAT-003): se revisan antes de pasarlas a fixtures
+backend/grabaciones_sportmonks*/
