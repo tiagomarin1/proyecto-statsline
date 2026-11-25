@@ -35,10 +35,12 @@ class Configuracion(BaseSettings):
         """Agrega el driver psycopg a la URL que entrega Aiven (postgres://...?sslmode=require).
 
         El resto de la URL, incluido sslmode, se deja igual: libpq lo entiende. La verificación
-        del servidor se configura con DATABASE_SSL_CA (ver app/db.py).
+        del servidor se configura con DATABASE_SSL_CA (ver app/db.py). Los espacios y saltos de
+        línea de los bordes se sacan, como en los tokens: libpq rechaza "sslmode=require\\n".
         """
         if not url:
             return url
+        url = url.strip()
         for prefijo in ("postgres://", "postgresql://"):
             if url.startswith(prefijo):
                 return PREFIJO_POSTGRESQL_PSYCOPG + url.removeprefix(prefijo)
