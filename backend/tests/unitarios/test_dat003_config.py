@@ -36,3 +36,14 @@ def test_dat003_la_clave_de_api_football_se_lee_sin_espacios(monkeypatch: pytest
     monkeypatch.setenv("API_FOOTBALL_KEY", "clave-de-prueba\n")
 
     assert _configuracion(_env_file=None).api_football_key == "clave-de-prueba"
+
+
+def test_dat003_la_url_de_la_base_se_lee_sin_salto_de_linea(monkeypatch: pytest.MonkeyPatch):
+    # Mismo problema que el token: libpq rechaza "sslmode=require\n"
+    monkeypatch.setenv("DATABASE_URL", "postgres://u:c@h:5432/db?sslmode=require\n")
+    monkeypatch.setenv("DATABASE_URL_TEST", " postgres://u:c@h:5432/test\r\n")
+
+    configuracion = Configuracion(_env_file=None, secret_key="x")
+
+    assert configuracion.database_url == "postgresql+psycopg://u:c@h:5432/db?sslmode=require"
+    assert configuracion.database_url_test == "postgresql+psycopg://u:c@h:5432/test"
