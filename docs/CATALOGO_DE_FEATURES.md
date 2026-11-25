@@ -28,8 +28,8 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | DAT-001 | Sincronizar jugadores desde API-Football | en testing | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
 | DAT-002 | Importar valores de mercado de transfermarkt-datasets | en testing | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
-| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | en testing (implementada y probada con Sportmonks real; falta cargar el secret `SPORTMONKS_TOKEN`, la primera corrida en producción y validar RN-031) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
-| DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | en desarrollo (implementado; falta validar RN-032 a RN-034 con el PO) | P1 | — (nueva) | — | specs/datos/DAT-004.md |
+| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | en testing (implementada; primera corrida en producción el 25/11/2026: Primera Nacional 1.381 y Torneo Federal A 712 registros, temporada 2026, cobertura completa; falta validar RN-031 y decidir el plan pago de Sportmonks, cuya prueba vence el 30/11/2026) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
+| DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | en testing (implementado; carga inicial en producción el 25/11/2026: 5.301 jugadores en 2 corridas desde Actions; falta validar RN-032 a RN-034 con el PO) | P1 | — (nueva) | — | specs/datos/DAT-004.md |
 
 ### Módulo: Autenticación
 
