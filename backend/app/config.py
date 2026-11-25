@@ -44,6 +44,16 @@ class Configuracion(BaseSettings):
                 return PREFIJO_POSTGRESQL_PSYCOPG + url.removeprefix(prefijo)
         return url
 
+    @field_validator("api_football_key", "sportmonks_token")
+    @classmethod
+    def recortar_espacios(cls, valor: str) -> str:
+        """Saca espacios y saltos de línea de los bordes: van en un header HTTP.
+
+        Un secret pegado con un salto de línea al final hace que httpx rechace el header en
+        cada pedido (LocalProtocolError), como pasó con SPORTMONKS_TOKEN el 25/11/2026.
+        """
+        return valor.strip()
+
     @model_validator(mode="after")
     def exigir_secret_key_larga_en_produccion(self) -> "Configuracion":
         if (
