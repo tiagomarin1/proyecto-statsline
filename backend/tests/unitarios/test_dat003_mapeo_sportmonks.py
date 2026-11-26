@@ -79,16 +79,34 @@ def test_dat003_el_rating_es_el_promedio_con_dos_decimales():
     assert _estadistica(_mapear(_completo())).rating == Decimal("6.83")
 
 
-def test_dat003_lo_que_no_viene_queda_en_null_y_nunca_en_cero():
+def test_dat003_lo_que_no_viene_queda_en_null_salvo_los_contadores_de_quien_jugo():
     e = _estadistica(_mapear(_con_detalles(3, estadisticas(t119=450, t321=6))), 3)
 
     assert e.minutos_jugados == 450
-    assert e.goles is None
-    assert e.asistencias is None
     assert e.pases_precision_pct is None
     assert e.duelos_totales is None
-    assert e.intercepciones is None
+    assert e.duelos_ganados is None
     assert e.rating is None
+
+
+def test_dat003_si_jugo_y_no_vienen_goles_asistencias_ni_intercepciones_valen_cero():
+    # RN-031: Sportmonks no manda el tipo cuando vale 0 (arquero de 3420 minutos sin goles)
+    e = _estadistica(_mapear(_con_detalles(3, estadisticas(t119=3420, t321=38), 24)), 3)
+
+    assert (e.goles, e.asistencias, e.intercepciones) == (0, 0, 0)
+
+
+def test_dat003_sin_minutos_los_contadores_que_no_vienen_quedan_en_null():
+    for detalles in (estadisticas(t321=0), estadisticas(t119=0, t321=0)):
+        e = _estadistica(_mapear(_con_detalles(3, detalles)), 3)
+
+        assert (e.goles, e.asistencias, e.intercepciones) == (None, None, None)
+
+
+def test_dat003_un_contador_que_viene_no_cambia_aunque_falten_los_otros():
+    e = _estadistica(_mapear(_con_detalles(3, estadisticas(t119=900, t52=4))), 3)
+
+    assert (e.goles, e.asistencias, e.intercepciones) == (4, 0, 0)
 
 
 def test_dat003_una_fila_sin_detalles_se_guarda_con_todo_en_null():

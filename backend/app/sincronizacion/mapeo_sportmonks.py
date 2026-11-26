@@ -4,8 +4,9 @@ Entrada: los equipos de la temporada (`/teams/seasons/{id}`) y los jugadores com
 `/players/{id}?include=statistics.details&filters=playerStatisticSeasons:{temporada}`: un jugador
 con una fila de `statistics` por equipo y temporada, cada una con un arreglo `details` de
 `{type_id, value}`. Un dato que no viene o que no se puede convertir queda en None, nunca en 0
-(RN-008, RN-025). Las métricas derivadas siguen RN-031. La forma de los datos se confirmó con
-respuestas reales el 16/11/2026.
+(RN-008, RN-025), salvo los contadores (goles, asistencias e intercepciones) de un jugador con
+minutos: Sportmonks no los manda cuando valen 0 (RN-031). Las métricas derivadas siguen RN-031.
+La forma de los datos se confirmó con respuestas reales el 16/11/2026.
 """
 
 from dataclasses import dataclass
@@ -168,20 +169,30 @@ def _mapear_estadistica(
     id_posicion = fila.get("position_id")
     if id_posicion is None:
         id_posicion = jugador.get("position_id")
+    minutos = _entero_no_negativo(_valor(detalles, TIPO_MINUTOS))
+    jugo = bool(minutos)
     return EstadisticaSportmonks(
         id_jugador_sportmonks=id_jugador,
         id_equipo_sportmonks=id_equipo,
         posicion=POSICIONES_SPORTMONKS.get(id_posicion),
         partidos_jugados=_entero_no_negativo(_valor(detalles, TIPO_PARTIDOS)),
-        minutos_jugados=_entero_no_negativo(_valor(detalles, TIPO_MINUTOS)),
-        goles=_entero_no_negativo(_valor(detalles, TIPO_GOLES)),
-        asistencias=_entero_no_negativo(_valor(detalles, TIPO_ASISTENCIAS)),
+        minutos_jugados=minutos,
+        goles=_contador(detalles, TIPO_GOLES, jugo),
+        asistencias=_contador(detalles, TIPO_ASISTENCIAS, jugo),
         pases_precision_pct=_porcentaje_de_pases(detalles),
         duelos_totales=duelos_totales,
         duelos_ganados=duelos_ganados,
         rating=_rating(_valor(detalles, TIPO_RATING, "average")),
-        intercepciones=_entero_no_negativo(_valor(detalles, TIPO_INTERCEPCIONES)),
+        intercepciones=_contador(detalles, TIPO_INTERCEPCIONES, jugo),
     )
+
+
+def _contador(detalles: dict[Any, Any], tipo: int, jugo: bool) -> int | None:
+    """RN-031: Sportmonks no manda el tipo de un contador cuando vale 0. Si el jugador tiene
+    minutos y el tipo no viene, es 0; sin minutos queda None (RN-008)."""
+    if tipo not in detalles:
+        return 0 if jugo else None
+    return _entero_no_negativo(_valor(detalles, tipo))
 
 
 def _valor(detalles: dict[Any, Any], tipo: int, clave: str = "total") -> Any:

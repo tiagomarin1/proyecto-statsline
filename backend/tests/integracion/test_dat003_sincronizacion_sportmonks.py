@@ -135,7 +135,7 @@ def test_dat003_guarda_las_metricas_y_calcula_el_porcentaje_de_pases(
     assert e.rating == Decimal("6.90")
 
 
-def test_dat003_las_metricas_que_no_vienen_quedan_en_null(
+def test_dat003_las_metricas_que_no_vienen_quedan_en_null_y_los_contadores_en_cero(
     session: Session, api: SportmonksFalsa, cliente: ClienteSportmonks, primera_nacional: Liga
 ):
     solo_minutos = jugador(3, "Tomás López", filas=[fila(NORTE, T_2026, estadisticas(t119=900))])
@@ -147,7 +147,9 @@ def test_dat003_las_metricas_que_no_vienen_quedan_en_null(
         select(EstadisticaTemporada).join(Jugador).where(Jugador.id_sportmonks == 3)
     ).one()
     assert e.minutos_jugados == 900
-    assert (e.pases_precision_pct, e.duelos_totales, e.rating, e.goles) == (None,) * 4
+    assert (e.pases_precision_pct, e.duelos_totales, e.rating) == (None,) * 3
+    # RN-031: jugó y Sportmonks no mandó los contadores, así que valen 0
+    assert (e.goles, e.asistencias, e.intercepciones) == (0, 0, 0)
 
 
 def test_dat003_un_jugador_que_ya_esta_en_la_base_recibe_el_id_de_sportmonks(
