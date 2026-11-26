@@ -479,6 +479,9 @@ rating              = promedio de la temporada (value.average)
 ```
 
 - Un dato que no viene se guarda `NULL`, nunca 0 (RN-008 y RN-025).
+- **Excepción, los contadores (decisión del equipo, Cilento, 26/11/2026):** Sportmonks no manda el tipo de un contador cuando vale 0. Si el jugador tiene minutos (`minutos_jugados > 0`) y no viene `goles` (tipo 52), `asistencias` (79) o `intercepciones` (100), se guarda **0**. Sin minutos, queda `NULL`. Los porcentajes, los duelos y el rating no son contadores: sin dato siguen en `NULL`.
+  - **Ejemplo:** un arquero con 3.420 minutos sin el tipo 52 → `goles = 0`, y la ficha muestra 0 en lugar de "Dato no disponible". Un jugador con 0 minutos sin el tipo 52 → `goles = NULL`.
+  - API-Football no necesita esta excepción: manda el 0 explícito (medido el 26/11/2026 en la Liga Profesional).
 - Un dato que viola las invariantes del modelo (`duelos_ganados` > `duelos_totales`, o `pases_precision_pct` fuera de 0-100) queda `NULL`, igual que con API-Football.
 - La posición se traduce a los 4 códigos de RN-019. **La tabla de posiciones de Sportmonks está pendiente**: se completa con los datos de la prueba, sin inventarla.
 
