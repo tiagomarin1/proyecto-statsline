@@ -19,7 +19,7 @@
 | `GET /leagues?id={id}` | Temporadas de cada liga, al inicio de la sincronización, para elegir la de RN-027 |
 | `GET /players?league={id}&season={temporada}&page={n}` | Jugadores con estadísticas, 20 por página, paginado con `paging.total` |
 
-**Presupuesto de pedidos:** unos 50 pedidos por liga (hasta 1.000 jugadores) × 6 ligas ≈ 300 por corrida, bien por debajo del cupo. El cliente lee los headers `x-ratelimit-requests-remaining` y frena si quedan menos de 100.
+**Presupuesto de pedidos:** unos 50 pedidos por liga (hasta 1.000 jugadores) × 6 ligas ≈ 300 por corrida, bien por debajo del cupo. El cliente lee los headers `x-ratelimit-requests-remaining` y frena si quedan menos de 100. También respeta el límite por minuto: si `x-ratelimit-remaining` llega a 0 espera un minuto antes del pedido siguiente, y si igual llega `errors.rateLimit` espera un minuto y reintenta (cuenta como uno de los 4 intentos). Hace falta para la trayectoria (DAT-004), que hace miles de pedidos seguidos.
 
 ### IDs de liga y cobertura real (reconocimiento del 28/10/2026)
 

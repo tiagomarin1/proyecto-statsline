@@ -35,14 +35,26 @@ class Configuracion(BaseSettings):
         """Agrega el driver psycopg a la URL que entrega Aiven (postgres://...?sslmode=require).
 
         El resto de la URL, incluido sslmode, se deja igual: libpq lo entiende. La verificación
-        del servidor se configura con DATABASE_SSL_CA (ver app/db.py).
+        del servidor se configura con DATABASE_SSL_CA (ver app/db.py). Los espacios y saltos de
+        línea de los bordes se sacan, como en los tokens: libpq rechaza "sslmode=require\\n".
         """
         if not url:
             return url
+        url = url.strip()
         for prefijo in ("postgres://", "postgresql://"):
             if url.startswith(prefijo):
                 return PREFIJO_POSTGRESQL_PSYCOPG + url.removeprefix(prefijo)
         return url
+
+    @field_validator("api_football_key", "sportmonks_token")
+    @classmethod
+    def recortar_espacios(cls, valor: str) -> str:
+        """Saca espacios y saltos de línea de los bordes: van en un header HTTP.
+
+        Un secret pegado con un salto de línea al final hace que httpx rechace el header en
+        cada pedido (LocalProtocolError), como pasó con SPORTMONKS_TOKEN el 25/11/2026.
+        """
+        return valor.strip()
 
     @model_validator(mode="after")
     def exigir_secret_key_larga_en_produccion(self) -> "Configuracion":

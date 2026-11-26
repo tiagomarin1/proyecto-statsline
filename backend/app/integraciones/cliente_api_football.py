@@ -2,6 +2,9 @@
 
 Reintenta timeouts y errores 5xx con backoff; un `errors` no vacío, un 4xx o el cupo por debajo
 del mínimo son errores sin reintento (RN-025). Ningún mensaje de error incluye la clave.
+
+Límite por minuto: si el header dice que no quedan pedidos en el minuto, espera un minuto antes del
+siguiente; si igual llega el error `rateLimit`, espera un minuto y reintenta (cuenta como intento).
 """
 
 import time
@@ -13,6 +16,9 @@ import httpx
 URL_BASE = "https://v3.football.api-sports.io"
 HEADER_CLAVE = "x-apisports-key"
 HEADER_PEDIDOS_RESTANTES = "x-ratelimit-requests-remaining"
+HEADER_PEDIDOS_RESTANTES_MINUTO = "x-ratelimit-remaining"
+ERROR_LIMITE_POR_MINUTO = "rateLimit"
+SEGUNDOS_ESPERA_LIMITE_POR_MINUTO = 60
 SEGUNDOS_TIMEOUT = 10
 ESPERAS_REINTENTO_SEGUNDOS = (1, 2, 4)
 MINIMO_PEDIDOS_RESTANTES = 100
@@ -34,6 +40,7 @@ class ClienteApiFootball:
         self._clave = clave
         self._dormir = dormir
         self._pedidos_restantes: int | None = None
+        self._pedidos_restantes_minuto: int | None = None
         self.pedidos_usados = 0
         self._http = httpx.Client(
             base_url=url_base,
@@ -84,7 +91,9 @@ class ClienteApiFootball:
         intentos = len(ESPERAS_REINTENTO_SEGUNDOS) + 1
         for intento in range(intentos):
             self._verificar_cupo(descripcion)
+            self._esperar_si_no_queda_cupo_en_el_minuto()
             self.pedidos_usados += 1
+            espera = ESPERAS_REINTENTO_SEGUNDOS[intento] if intento < intentos - 1 else 0
             try:
                 respuesta = self._http.get(ruta, params=parametros)
             except httpx.TimeoutException:
@@ -93,11 +102,15 @@ class ClienteApiFootball:
                 motivo = f"error de conexión ({type(error).__name__})"
             else:
                 self._leer_cupo(respuesta)
-                if respuesta.status_code < 500:
+                if _es_limite_por_minuto(respuesta):
+                    motivo = "límite de pedidos por minuto"
+                    espera = SEGUNDOS_ESPERA_LIMITE_POR_MINUTO
+                elif respuesta.status_code < 500:
                     return self._validar(respuesta, descripcion)
-                motivo = f"HTTP {respuesta.status_code}"
+                else:
+                    motivo = f"HTTP {respuesta.status_code}"
             if intento < intentos - 1:
-                self._dormir(ESPERAS_REINTENTO_SEGUNDOS[intento])
+                self._dormir(espera)
         raise ErrorApiFootball(
             self._sin_clave(
                 f"API-Football falló en {descripcion} tras {intentos} intentos: {motivo}."
@@ -125,6 +138,14 @@ class ClienteApiFootball:
         restantes = respuesta.headers.get(HEADER_PEDIDOS_RESTANTES)
         if restantes is not None and restantes.isdigit():
             self._pedidos_restantes = int(restantes)
+        restantes_minuto = respuesta.headers.get(HEADER_PEDIDOS_RESTANTES_MINUTO)
+        if restantes_minuto is not None and restantes_minuto.isdigit():
+            self._pedidos_restantes_minuto = int(restantes_minuto)
+
+    def _esperar_si_no_queda_cupo_en_el_minuto(self) -> None:
+        if self._pedidos_restantes_minuto == 0:
+            self._dormir(SEGUNDOS_ESPERA_LIMITE_POR_MINUTO)
+            self._pedidos_restantes_minuto = None
 
     def _verificar_cupo(self, descripcion: str) -> None:
         if (
@@ -138,6 +159,18 @@ class ClienteApiFootball:
 
     def _sin_clave(self, mensaje: str) -> str:
         return mensaje.replace(self._clave, "***") if self._clave else mensaje
+
+
+def _es_limite_por_minuto(respuesta: httpx.Response) -> bool:
+    """API-Football responde 200 (o 429) con `errors: {"rateLimit": ...}` si se pasa del minuto."""
+    if respuesta.status_code not in (200, 429):
+        return False
+    try:
+        datos = respuesta.json()
+    except ValueError:
+        return False
+    errores = datos.get("errors") if isinstance(datos, dict) else None
+    return isinstance(errores, dict) and ERROR_LIMITE_POR_MINUTO in errores
 
 
 def _describir(ruta: str, parametros: dict[str, Any]) -> str:

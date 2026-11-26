@@ -128,6 +128,8 @@ python -m app.sincronizacion.transfermarkt --archivo ~/Descargas/players.csv.gz 
 
 La sincronización de API-Football necesita `API_FOOTBALL_KEY` y la de Sportmonks, `SPORTMONKS_TOKEN` (`python -m app.sincronizacion.sportmonks`; son unos 2.500 pedidos y tarda cerca de una hora). Cada liga sale de una sola fuente (RN-029), y cada comando solo toca las suyas. Si tu red no llega a `api-sports.io`, corréla desde GitHub: *Actions → Sincronización diaria → Run workflow*, donde se pueden elegir la fuente, la liga y la temporada. Sale con código 1 si alguna liga falló; el detalle queda en la tabla `sincronizacion`.
 
+La trayectoria (DAT-004, `python -m app.sincronizacion.trayectoria`) no entra en el cron porque la carga inicial son unos 5.300 pedidos de API-Football: se corre a mano desde el mismo workflow eligiendo la fuente `trayectoria`, con un tope de pedidos opcional (por defecto 5.000, RN-034). Si quedan jugadores sin trayectoria, la corrida siguiente los retoma. Para un solo jugador está el input `jugador` (id interno), y `forzar` vuelve a pedir aunque se haya sincronizado hace menos de 30 días. Con `trayectoria`, `liga` y `temporada` no se usan: si vienen completos, la corrida falla antes de gastar cupo.
+
 ## Deploy (Render + Aiven + GitHub Actions)
 
 ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son gratis y ninguna pide tarjeta.
