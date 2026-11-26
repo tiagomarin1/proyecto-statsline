@@ -113,9 +113,9 @@ def _app_con_rutas_de_prueba(tmp_path: Path) -> TestClient:
         ({"edad_max": 50}, "edad_max", "Tiene que ser menor o igual a 45."),
         ({"pases_min": 101}, "pases_min", "Tiene que ser menor o igual a 100."),
         (
-            {"presupuesto_max_eur": 10_000},
+            {"presupuesto_max_eur": 0},
             "presupuesto_max_eur",
-            "Tiene que ser mayor o igual a 20.000.",
+            "Tiene que ser mayor que 0.",
         ),
         ({"liga_id": "abc"}, "liga_id", "Tiene que ser un número entero."),
         ({"recuperaciones_min": "abc"}, "recuperaciones_min", "Tiene que ser un número."),

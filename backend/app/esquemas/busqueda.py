@@ -13,8 +13,9 @@ EDAD_MAXIMA = 45
 PORCENTAJE_MAXIMO = 100
 RECUPERACIONES_MAXIMAS = 15
 MINUTOS_MAXIMOS = 5000
-PRESUPUESTO_MINIMO_EUR = 20_000  # RN-003
-PRESUPUESTO_MAXIMO_EUR = 400_000
+# RN-003: cualquier monto mayor que 0. El tope no es de negocio: perfil_busqueda guarda el
+# presupuesto en un Integer de PostgreSQL, y mil millones de euros supera cualquier valor real
+LIMITE_TECNICO_PRESUPUESTO_EUR = 1_000_000_000
 NOMBRE_LARGO_MAXIMO = 60  # RN-035
 TAMANO_PAGINA_POR_DEFECTO = 6  # RN-021
 TAMANO_PAGINA_MAXIMO = 50
@@ -53,7 +54,7 @@ Recuperaciones = Annotated[
 ]
 Minutos = Annotated[Annotated[int, Field(ge=0, le=MINUTOS_MAXIMOS)] | None, SinFiltroSiVacio]
 Presupuesto = Annotated[
-    Annotated[int, Field(ge=PRESUPUESTO_MINIMO_EUR, le=PRESUPUESTO_MAXIMO_EUR)] | None,
+    Annotated[int, Field(gt=0, le=LIMITE_TECNICO_PRESUPUESTO_EUR)] | None,
     SinFiltroSiVacio,
 ]
 
