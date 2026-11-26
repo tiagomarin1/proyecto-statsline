@@ -15,11 +15,6 @@ export const METRICAS = [
   { nombre: 'minutos_min', label: 'Minutos jugados (mín.)' },
 ];
 
-// RN-003: el back rechaza con 422 cualquier presupuesto fuera de este rango
-export const PRESUPUESTO_MINIMO_EUR = 20_000;
-export const PRESUPUESTO_MAXIMO_EUR = 400_000;
-export const PASO_PRESUPUESTO_EUR = 5_000;
-
 // RN-035: el back rechaza con 422 un nombre más largo
 export const NOMBRE_LARGO_MAXIMO = 60;
 

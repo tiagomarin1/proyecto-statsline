@@ -94,7 +94,8 @@ Usada en: DAT-002, BUS-004, JUG-001, CMP-001.
 - Es un **monto máximo por búsqueda** (`presupuesto_max_eur`), que se compara contra el valor de mercado.
 - El sueldo queda fuera del MVP.
 - El presupuesto del club guardado es R3.
-- **Slider:** de €20.000 a €400.000, en pasos de €5.000 **(supuesto: el rango del prototipo pasado a EUR)**.
+- **Monto:** cualquier monto entero mayor que 0, sin tope (decisión del equipo, Cilento, 26/11/2026). Antes era un slider de €20.000 a €400.000, el rango del prototipo pasado a EUR, que dejaba afuera a casi toda la Liga Profesional (un titular vale millones). Queda un **límite técnico** de €1.000.000.000, porque el perfil guarda el monto en un `Integer`; no es una regla de negocio.
+  - **Ejemplo:** €5.000.000 en la Liga Profesional deja a los jugadores que valen hasta €5.000.000, incluido €5.000.000 (RN-005). €0 o un monto negativo devuelve 422.
 - **El filtro es opcional y arranca apagado (supuesto).** Si el usuario no lo activa, no se excluye a nadie por falta de valor. Si arrancara prendido, en el ascenso, donde casi nadie tendría valor, la búsqueda inicial quedaría vacía.
 
 Usada en: BUS-004, BUS-005.
@@ -361,7 +362,7 @@ Usada en: BUS-005.
 | Pases y duelos | 0 a 100 |
 | Recuperaciones | 0 a 15 |
 | Minutos | 0 a 5000 |
-| Presupuesto | 20.000 a 400.000 |
+| Presupuesto | mayor que 0 (con un límite técnico de 1.000.000.000, RN-003) |
 
 Un valor fuera de rango devuelve 422. Un filtro vacío equivale a "sin filtro".
 

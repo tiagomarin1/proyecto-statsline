@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { Liga } from '../tipos/api';
-import {
-  filtrosDeParams,
-  METRICAS,
-  NOMBRE_LARGO_MAXIMO,
-  PASO_PRESUPUESTO_EUR,
-  PRESUPUESTO_MAXIMO_EUR,
-  PRESUPUESTO_MINIMO_EUR,
-} from '../utilidades/filtros';
+import { filtrosDeParams, METRICAS, NOMBRE_LARGO_MAXIMO } from '../utilidades/filtros';
 import { formatearEur, POSICIONES } from '../utilidades/formato';
 
 /** Lo que se espera después de la última tecla antes de pedir los resultados. */
@@ -171,15 +164,13 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
             className="input"
             id="presupuesto_max_eur"
             type="number"
-            min={PRESUPUESTO_MINIMO_EUR}
-            max={PRESUPUESTO_MAXIMO_EUR}
-            step={PASO_PRESUPUESTO_EUR}
-            aria-describedby="presupuesto_rango"
+            min={1}
+            aria-describedby="presupuesto_ayuda"
             value={valores.presupuesto_max_eur ?? ''}
             onChange={(e) => cambiar('presupuesto_max_eur', e.target.value, false)}
           />
-          <p id="presupuesto_rango" className="muted bf__ayuda">
-            De {formatearEur(PRESUPUESTO_MINIMO_EUR)} a {formatearEur(PRESUPUESTO_MAXIMO_EUR)}.
+          <p id="presupuesto_ayuda" className="muted bf__ayuda">
+            Cualquier monto, en euros.
           </p>
         </div>
       </div>

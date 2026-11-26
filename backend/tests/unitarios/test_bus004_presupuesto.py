@@ -32,12 +32,13 @@ def test_bus004_un_presupuesto_vacio_equivale_a_sin_filtro():
     assert FiltrosBusqueda.model_validate({"presupuesto_max_eur": ""}).presupuesto_max_eur is None
 
 
-@pytest.mark.parametrize("presupuesto", [20_000, 150_000, 400_000])
-def test_bus004_rn024_los_extremos_del_rango_son_validos(presupuesto):
+@pytest.mark.parametrize("presupuesto", [1, 10_000, 400_001, 5_000_000, 1_000_000_000])
+def test_bus004_rn003_cualquier_monto_mayor_que_cero_es_valido(presupuesto):
+    # RN-003 (decisión del equipo, 26/11/2026): sin el rango de EUR 20.000 a 400.000
     assert FiltrosBusqueda(presupuesto_max_eur=presupuesto).presupuesto_max_eur == presupuesto
 
 
-@pytest.mark.parametrize("presupuesto", [19_999, 400_001, -1])
-def test_bus004_rn024_un_presupuesto_fuera_de_rango_es_invalido(presupuesto):
+@pytest.mark.parametrize("presupuesto", [0, -1, 1_000_000_001])
+def test_bus004_rn003_cero_negativos_y_mas_del_limite_tecnico_son_invalidos(presupuesto):
     with pytest.raises(ValidationError):
         FiltrosBusqueda(presupuesto_max_eur=presupuesto)

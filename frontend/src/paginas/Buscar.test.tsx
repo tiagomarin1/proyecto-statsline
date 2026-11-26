@@ -143,16 +143,16 @@ describe('BUS-002: filtro de liga que llega por la URL', () => {
 describe('BUS-004: presupuesto (RN-003)', () => {
   afterEach(() => buscarMock.mockReset());
 
-  it('limita el campo al rango de RN-003 y lo dice', async () => {
+  it('acepta cualquier monto, sin el tope de EUR 400.000 (decisión del equipo, 26/11)', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
+    renderizar('/buscar?presupuesto_max_eur=5000000');
 
     const campo = await screen.findByLabelText('Presupuesto máximo (EUR)');
-    expect(campo).toHaveAttribute('min', '20000');
-    expect(campo).toHaveAttribute('max', '400000');
-    expect(campo).toHaveAttribute('step', '5000');
-    // Mismo formato que el valor de las tarjetas (formatearEur); \s acepta el espacio duro de Intl
-    expect(screen.getByText(/De EUR\s20\.000 a EUR\s400\.000/)).toBeInTheDocument();
+    expect(campo).toHaveValue(5_000_000);
+    expect(campo).toHaveAttribute('min', '1');
+    expect(campo).not.toHaveAttribute('max');
+    expect(screen.getByText('Cualquier monto, en euros.')).toBeInTheDocument();
+    expect(screen.queryByText(/400\.000/)).not.toBeInTheDocument();
   });
 
   it('un 422 muestra el mensaje del campo y no deja los resultados viejos', async () => {
@@ -163,17 +163,15 @@ describe('BUS-004: presupuesto (RN-003)', () => {
         errores: [
           {
             campo: 'presupuesto_max_eur',
-            mensaje: 'Tiene que ser menor o igual a 400.000.',
+            mensaje: 'Tiene que ser mayor que 0.',
           },
         ],
       }),
     );
-    renderizar('/buscar?presupuesto_max_eur=3000000');
+    renderizar('/buscar?presupuesto_max_eur=0');
 
     const alerta = await screen.findByRole('alert');
-    expect(alerta).toHaveTextContent(
-      'Presupuesto máximo (EUR): Tiene que ser menor o igual a 400.000.',
-    );
+    expect(alerta).toHaveTextContent('Presupuesto máximo (EUR): Tiene que ser mayor que 0.');
     expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
   });
 });

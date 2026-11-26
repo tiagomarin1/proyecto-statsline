@@ -123,7 +123,21 @@ def test_bus004_rn016_sin_resultados_sugiere_relajar_el_presupuesto(
     }
 
 
-@pytest.mark.parametrize("presupuesto", [10_000, 400_001])
+def test_bus004_rn003_un_presupuesto_de_millones_filtra_sin_tope(
+    cliente_con_sesion: TestClient, session: Session
+):
+    # RN-003 (decisión del equipo, 26/11/2026): antes el tope era EUR 400.000
+    liga = crear_liga(session)
+    _jugador_con_valor(session, "Vale 4,5M", 4_500_000, liga=liga)
+    _jugador_con_valor(session, "Vale 9M", 9_000_000, liga=liga)
+
+    respuesta = cliente_con_sesion.get(URL, params={"presupuesto_max_eur": 5_000_000})
+
+    assert respuesta.status_code == 200
+    assert _nombres(respuesta) == ["Vale 4,5M"]
+
+
+@pytest.mark.parametrize("presupuesto", [0, -5])
 def test_bus004_rn024_presupuesto_fuera_de_rango_responde_422(
     cliente_con_sesion: TestClient, presupuesto: int
 ):
