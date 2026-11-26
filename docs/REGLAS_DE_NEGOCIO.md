@@ -580,6 +580,17 @@ Usada en: DAT-004.
 
 Usada en: BUS-010.
 
+### RN-036 Link para recuperar la contraseña (decisión del equipo, Cilento, 26/11/2026)
+
+- Se pide con el correo. La respuesta es **siempre la misma**, tenga cuenta o no: "Si el correo tiene una cuenta, te mandamos un link para elegir una contraseña nueva." Así nadie puede averiguar quién está registrado, igual que en el ingreso (RN-022).
+- El link **vence a los 60 minutos** y es de **un solo uso**: cuando se cambia la contraseña, todos los links pedidos antes dejan de servir.
+- La contraseña nueva sigue RN-022 (mínimo 8 caracteres, con los mismos mensajes).
+- Después de cambiarla, la sesión queda iniciada y se va a `/buscar`.
+
+**Ejemplo:** Javier pide el link a las 10:00 y otro a las 10:05. A las 10:20 usa el segundo y cambia la contraseña: el primero ya no sirve (la contraseña cambió). Un link pedido a las 10:00 y abierto a las 11:01 está vencido.
+
+Usada en: AUT-003.
+
 ---
 
 ## Pendientes
