@@ -12,7 +12,14 @@ import { buscarJugadores, listarLigas } from '../servicios/jugadores';
 import { ErrorApi } from '../servicios/api';
 import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { JugadorResumen, Liga, OrdenBusqueda, RespuestaBusqueda } from '../tipos/api';
-import { ETIQUETAS_FILTRO, ORDENES, TAMANO_TABLA, TAMANO_TARJETAS } from '../utilidades/filtros';
+import {
+  ETIQUETAS_FILTRO,
+  motivoOrdenNoDisponible,
+  ORDENES,
+  sinOrdenNoDisponible,
+  TAMANO_TABLA,
+  TAMANO_TARJETAS,
+} from '../utilidades/filtros';
 import { usePantallaChica } from '../utilidades/pantalla';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
@@ -84,11 +91,12 @@ export default function Buscar() {
     return () => document.removeEventListener('keydown', alTeclear);
   }, [elegidoId]);
 
-  /** Aplica los filtros que llegan y conserva el orden; siempre vuelve a la página 1. */
+  /** Aplica los filtros que llegan y conserva el orden si sigue disponible (RN-029); siempre
+   *  vuelve a la página 1. */
   function aplicarFiltros(filtros: Record<string, string>) {
     const nuevos = new URLSearchParams(filtros);
     if (params.get('orden')) nuevos.set('orden', params.get('orden')!);
-    setParams(nuevos);
+    setParams(sinOrdenNoDisponible(nuevos));
   }
 
   function cambiar(clave: string, valor: string | null) {
@@ -96,8 +104,14 @@ export default function Buscar() {
     if (valor === null) nuevos.delete(clave);
     else nuevos.set(clave, valor);
     if (clave !== 'pagina') nuevos.delete('pagina');
-    setParams(nuevos);
+    setParams(sinOrdenNoDisponible(nuevos));
   }
+
+  const ordenesNoDisponibles = Object.fromEntries(
+    (Object.keys(ORDENES) as OrdenBusqueda[])
+      .map((o) => [o, motivoOrdenNoDisponible(o, params)])
+      .filter(([, motivo]) => motivo !== null),
+  ) as Partial<Record<OrdenBusqueda, string>>;
 
   async function alternar(j: JugadorResumen) {
     try {
@@ -161,11 +175,13 @@ export default function Buscar() {
                 value={orden}
                 onChange={(e) => cambiar('orden', e.target.value)}
               >
-                {Object.entries(ORDENES).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
+                {Object.entries(ORDENES)
+                  .filter(([v]) => !(v in ordenesNoDisponibles))
+                  .map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
               </select>
             </label>
           )}
@@ -249,6 +265,7 @@ export default function Buscar() {
                       <TablaJugadores
                         jugadores={respuesta.resultados}
                         orden={orden}
+                        ordenesNoDisponibles={ordenesNoDisponibles}
                         elegidoId={elegido?.id ?? null}
                         seleccionIds={seleccion.map((s) => s.id)}
                         onOrdenar={(o) => cambiar('orden', o)}

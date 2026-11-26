@@ -24,6 +24,12 @@
 - Fábricas de datos: funciones `crear_jugador(...)` y `crear_estadistica(...)` en `tests/fabricas.py`. Nada de datos sueltos por test.
 - Los casos con `NULL` son obligatorios en toda regla que use métricas.
 - El E2E de la demo corre contra un seed fijo (`semillas/demo_e2e.py`), no contra datos sincronizados.
+- **E2E (INF-002):** está en `frontend/e2e/recorrido-demo.spec.ts`, con la configuración en `frontend/playwright.config.ts`. Antes de correrlo tiene que estar levantado:
+  - una base **local** con las migraciones y `python -m semillas.demo_e2e`;
+  - la app en `http://localhost:8000` (`npm run build` y `uvicorn app.main:app`), u otra URL en `E2E_URL`;
+  - `DEMO_CONTRASENA` en el entorno o en `backend/.env`.
+
+  Los pasos completos están en `SETUP.md`. Los selectores van por rol, etiqueta o texto accesible (`getByRole`, `getByLabel`), nunca por clases de CSS. La contraseña no se escribe en el código ni en los reportes, así que el trace queda apagado. Si cambian los fixtures que usa el seed, se actualiza el test en el mismo PR.
 
 ## Cobertura mínima
 
@@ -39,5 +45,5 @@
 cd backend && pytest                       # todo
 cd backend && pytest tests/unitarios       # rápido, sin DB
 cd frontend && npm test                    # Vitest
-cd frontend && npx playwright test         # E2E (app levantada)
+cd frontend && npx playwright test         # E2E (app levantada con el seed, ver SETUP.md)
 ```

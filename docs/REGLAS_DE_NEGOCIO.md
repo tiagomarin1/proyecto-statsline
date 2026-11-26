@@ -94,7 +94,8 @@ Usada en: DAT-002, BUS-004, JUG-001, CMP-001.
 - Es un **monto máximo por búsqueda** (`presupuesto_max_eur`), que se compara contra el valor de mercado.
 - El sueldo queda fuera del MVP.
 - El presupuesto del club guardado es R3.
-- **Slider:** de €20.000 a €400.000, en pasos de €5.000 **(supuesto: el rango del prototipo pasado a EUR)**.
+- **Monto:** cualquier monto entero mayor que 0, sin tope (decisión del equipo, Cilento, 26/11/2026). Antes era un slider de €20.000 a €400.000, el rango del prototipo pasado a EUR, que dejaba afuera a casi toda la Liga Profesional (un titular vale millones). Queda un **límite técnico** de €1.000.000.000, porque el perfil guarda el monto en un `Integer`; no es una regla de negocio.
+  - **Ejemplo:** €5.000.000 en la Liga Profesional deja a los jugadores que valen hasta €5.000.000, incluido €5.000.000 (RN-005). €0 o un monto negativo devuelve 422.
 - **El filtro es opcional y arranca apagado (supuesto).** Si el usuario no lo activa, no se excluye a nadie por falta de valor. Si arrancara prendido, en el ascenso, donde casi nadie tendría valor, la búsqueda inicial quedaría vacía.
 
 Usada en: BUS-004, BUS-005.
@@ -312,7 +313,7 @@ Usada en: DAT-001, BUS-002.
 | Valor (menor primero) | `valor` | ascendente | al final |
 | Edad (menor primero) | `edad` | ascendente | al final |
 | % pases completados | `pases` | descendente | al final |
-| Rating | `rating` | descendente | al final |
+| Rating (solo con una liga elegida, RN-029) | `rating` | descendente | al final |
 
 - Si hay empate, se ordena por `jugador.nombre` ascendente.
 - Las páginas son de **6** resultados, como en el prototipo.
@@ -361,7 +362,7 @@ Usada en: BUS-005.
 | Pases y duelos | 0 a 100 |
 | Recuperaciones | 0 a 15 |
 | Minutos | 0 a 5000 |
-| Presupuesto | 20.000 a 400.000 |
+| Presupuesto | mayor que 0 (con un límite técnico de 1.000.000.000, RN-003) |
 
 Un valor fuera de rango devuelve 422. Un filtro vacío equivale a "sin filtro".
 
@@ -448,7 +449,8 @@ El reparto sale de la prueba de 14 días (16/11/2026): Sportmonks trae rendimien
 - **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
 - **La interfaz no indica la fuente** de las métricas: ni la ficha ni la búsqueda (decisión del PO, 20/11/2026).
 - **Comparar entre fuentes distintas está permitido.** Si en el comparador hay jugadores de ligas con fuentes distintas, se muestra el aviso "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables" (decisión del PO, 20/11/2026; spec CMP-003). El aviso no nombra las fuentes.
-- **Búsqueda que mezcla ligas:** sin aviso por ahora. El PO no lo pidió; si hace falta, es una decisión aparte.
+- **Búsqueda que mezcla ligas:** sin aviso, pero **el orden por rating solo se puede usar con una liga elegida** (decisión del equipo, Cilento, 26/11/2026). Con una liga hay una sola fuente; con "Todas", el rating de Sportmonks y el de API-Football quedarían mezclados en una misma lista ordenada. El orden por % de pases sigue disponible sin liga.
+  - **Ejemplo:** sin liga, ordenar por rating ponía primero a un jugador del Federal A con 8,59 (Sportmonks), arriba de todos los de la Liga Profesional (API-Football). Ahora, sin liga, `GET /jugadores?orden=rating` devuelve 422 (`orden`: "Elegí una liga para ordenar por rating."), y la pantalla no ofrece esa opción. Al quitar la liga mientras se ordena por rating, el orden vuelve a minutos.
 - **Ejemplo:** un jugador de la Liga Profesional con rating 7,10 (API-Football) y uno de Primera Nacional con rating 7,40 (Sportmonks) pueden mostrarse juntos, pero con el aviso: el 7,40 no es "mejor" que el 7,10.
 
 Usada en: DAT-003, CMP-003.
@@ -479,6 +481,9 @@ rating              = promedio de la temporada (value.average)
 ```
 
 - Un dato que no viene se guarda `NULL`, nunca 0 (RN-008 y RN-025).
+- **Excepción, los contadores (decisión del equipo, Cilento, 26/11/2026):** Sportmonks no manda el tipo de un contador cuando vale 0. Si el jugador tiene minutos (`minutos_jugados > 0`) y no viene `goles` (tipo 52), `asistencias` (79) o `intercepciones` (100), se guarda **0**. Sin minutos, queda `NULL`. Los porcentajes, los duelos y el rating no son contadores: sin dato siguen en `NULL`.
+  - **Ejemplo:** un arquero con 3.420 minutos sin el tipo 52 → `goles = 0`, y la ficha muestra 0 en lugar de "Dato no disponible". Un jugador con 0 minutos sin el tipo 52 → `goles = NULL`.
+  - API-Football no necesita esta excepción: manda el 0 explícito (medido el 26/11/2026 en la Liga Profesional).
 - Un dato que viola las invariantes del modelo (`duelos_ganados` > `duelos_totales`, o `pases_precision_pct` fuera de 0-100) queda `NULL`, igual que con API-Football.
 - La posición se traduce a los 4 códigos de RN-019. **La tabla de posiciones de Sportmonks está pendiente**: se completa con los datos de la prueba, sin inventarla.
 
@@ -579,6 +584,17 @@ Usada en: DAT-004.
 - el máximo de 60 caracteres.
 
 Usada en: BUS-010.
+
+### RN-036 Link para recuperar la contraseña (decisión del equipo, Cilento, 26/11/2026)
+
+- Se pide con el correo. La respuesta es **siempre la misma**, tenga cuenta o no: "Si el correo tiene una cuenta, te mandamos un link para elegir una contraseña nueva." Así nadie puede averiguar quién está registrado, igual que en el ingreso (RN-022).
+- El link **vence a los 60 minutos** y es de **un solo uso**: cuando se cambia la contraseña, todos los links pedidos antes dejan de servir.
+- La contraseña nueva sigue RN-022 (mínimo 8 caracteres, con los mismos mensajes).
+- Después de cambiarla, la sesión queda iniciada y se va a `/buscar`.
+
+**Ejemplo:** Javier pide el link a las 10:00 y otro a las 10:05. A las 10:20 usa el segundo y cambia la contraseña: el primero ya no sirve (la contraseña cambió). Un link pedido a las 10:00 y abierto a las 11:01 está vencido.
+
+Usada en: AUT-003.
 
 ---
 

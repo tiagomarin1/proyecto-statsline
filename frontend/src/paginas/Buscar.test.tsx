@@ -143,16 +143,16 @@ describe('BUS-002: filtro de liga que llega por la URL', () => {
 describe('BUS-004: presupuesto (RN-003)', () => {
   afterEach(() => buscarMock.mockReset());
 
-  it('limita el campo al rango de RN-003 y lo dice', async () => {
+  it('acepta cualquier monto, sin el tope de EUR 400.000 (decisión del equipo, 26/11)', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
+    renderizar('/buscar?presupuesto_max_eur=5000000');
 
     const campo = await screen.findByLabelText('Presupuesto máximo (EUR)');
-    expect(campo).toHaveAttribute('min', '20000');
-    expect(campo).toHaveAttribute('max', '400000');
-    expect(campo).toHaveAttribute('step', '5000');
-    // Mismo formato que el valor de las tarjetas (formatearEur); \s acepta el espacio duro de Intl
-    expect(screen.getByText(/De EUR\s20\.000 a EUR\s400\.000/)).toBeInTheDocument();
+    expect(campo).toHaveValue(5_000_000);
+    expect(campo).toHaveAttribute('min', '1');
+    expect(campo).not.toHaveAttribute('max');
+    expect(screen.getByText('Cualquier monto, en euros.')).toBeInTheDocument();
+    expect(screen.queryByText(/400\.000/)).not.toBeInTheDocument();
   });
 
   it('un 422 muestra el mensaje del campo y no deja los resultados viejos', async () => {
@@ -163,17 +163,15 @@ describe('BUS-004: presupuesto (RN-003)', () => {
         errores: [
           {
             campo: 'presupuesto_max_eur',
-            mensaje: 'Tiene que ser menor o igual a 400.000.',
+            mensaje: 'Tiene que ser mayor que 0.',
           },
         ],
       }),
     );
-    renderizar('/buscar?presupuesto_max_eur=3000000');
+    renderizar('/buscar?presupuesto_max_eur=0');
 
     const alerta = await screen.findByRole('alert');
-    expect(alerta).toHaveTextContent(
-      'Presupuesto máximo (EUR): Tiene que ser menor o igual a 400.000.',
-    );
+    expect(alerta).toHaveTextContent('Presupuesto máximo (EUR): Tiene que ser mayor que 0.');
     expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
   });
 });
@@ -335,6 +333,78 @@ describe('UI-002: filtros en vivo, tabla y panel de detalle', () => {
 
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Ordenar por')).toBeInTheDocument();
+  });
+});
+
+describe('BUS-006: rating solo con una liga elegida (RN-029)', () => {
+  afterEach(() => {
+    buscarMock.mockReset();
+    ligasMock.mockResolvedValue([]);
+    vi.unstubAllGlobals();
+  });
+
+  it('sin liga, Rating no se puede ordenar y explica por qué', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    expect(screen.queryByRole('button', { name: /Ordenar por Rating/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /Rating/ })).toHaveAttribute(
+      'title',
+      'Elegí una liga para ordenar por rating.',
+    );
+  });
+
+  it('con una liga elegida, Rating se puede ordenar', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?liga_id=1');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: /Ordenar por Rating/ }));
+
+    await waitFor(() => expect(ultimosFiltros().get('orden')).toBe('rating'));
+  });
+
+  it('al quitar la liga mientras se ordena por rating, vuelve al orden por minutos', async () => {
+    ligasMock.mockResolvedValue(LIGAS);
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?liga_id=1&orden=rating');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Quitar filtro Liga Profesional' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('liga_id')).toBeNull();
+      expect(ultimosFiltros().get('orden')).toBeNull();
+    });
+  });
+
+  it('"Limpiar todo" con orden por rating también vuelve al orden por minutos', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar('/buscar?liga_id=1&orden=rating');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('liga_id')).toBeNull();
+      expect(ultimosFiltros().get('orden')).toBeNull();
+    });
+  });
+
+  it('en pantalla chica, el selector no ofrece Rating sin liga', async () => {
+    vi.stubGlobal('matchMedia', (consulta: string) => ({
+      matches: true,
+      media: consulta,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    const selector = screen.getByLabelText('Ordenar por');
+    expect(within(selector).queryByRole('option', { name: 'Rating' })).not.toBeInTheDocument();
   });
 });
 

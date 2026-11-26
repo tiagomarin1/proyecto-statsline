@@ -56,7 +56,10 @@ export default function Ingresar() {
             />
           </div>
           <div className="field">
-            <label htmlFor="contrasena">Contraseña</label>
+            <div className="field__row">
+              <label htmlFor="contrasena">Contraseña</label>
+              <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
+            </div>
             <input
               className="input"
               id="contrasena"

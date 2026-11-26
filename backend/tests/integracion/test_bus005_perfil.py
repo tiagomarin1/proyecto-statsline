@@ -24,6 +24,15 @@ def _perfil(liga, **cambios) -> dict:
     return {"posicion": "defensor", "liga_id": liga.id, "edad_min": 20, "edad_max": 27} | cambios
 
 
+def test_bus005_rn003_el_perfil_guarda_un_presupuesto_de_millones(
+    cliente_con_sesion: TestClient, liga
+):
+    respuesta = cliente_con_sesion.put(URL, json=_perfil(liga, presupuesto_max_eur=5_000_000))
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["presupuesto_max_eur"] == 5_000_000
+
+
 def _cantidad_de_perfiles(session: Session) -> int:
     return session.scalar(select(func.count()).select_from(PerfilBusqueda))
 
@@ -129,8 +138,8 @@ def test_bus005_liga_inexistente_responde_404(cliente_con_sesion: TestClient, li
     [
         {"edad_min": 30, "edad_max": 25},
         {"edad_min": 14},
-        {"presupuesto_max_eur": 10_000},
-        {"presupuesto_max_eur": 400_001},
+        {"presupuesto_max_eur": 0},
+        {"presupuesto_max_eur": -1},
         {"pases_min": 101},
         {"recuperaciones_min": 16},
         {"posicion": "lateral"},

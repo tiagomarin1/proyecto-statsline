@@ -50,6 +50,8 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | POST | `/auth/ingreso` | — | `{email, contrasena}` | 200 `Usuario` + cookie | 401 `credenciales_invalidas` ("Correo o contraseña incorrectos.") |
 | POST | `/auth/salida` | 🔒 | — | 204, borra la cookie | — |
 | GET | `/auth/yo` | 🔒 | — | 200 `Usuario` | 401 `sin_sesion` |
+| POST | `/auth/recuperacion` | — | `{email}` | 202 `{detalle}`, igual tenga cuenta o no (RN-036). El mail sale después de responder | — |
+| POST | `/auth/recuperacion/confirmar` | — | `{token, contrasena}` | 200 `Usuario` + cookie | 400 `token_invalido` ("El link no es válido o ya venció. Pedí uno nuevo."), 422 `validacion` |
 
 `Usuario` = `{id, nombre, email, rol, club}`. Nunca se devuelve el hash.
 
@@ -71,9 +73,9 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | `edad_min`, `edad_max` | int | BUS-001, RN-009 |
 | `liga_id` | int | BUS-002 |
 | `pases_min`, `duelos_min`, `recuperaciones_min`, `minutos_min` | número | BUS-003, RN-008 |
-| `presupuesto_max_eur` | int | BUS-004, RN-005 |
+| `presupuesto_max_eur` | int, mayor que 0 (hasta 1.000.000.000) | BUS-004, RN-003, RN-005 |
 | `nombre` | texto, hasta 60 caracteres | BUS-010, RN-035 **(propuesta)**. Parte del nombre del jugador. Se manda tal como se escribió: el backend lo normaliza |
-| `orden` | `minutos` \| `valor` \| `edad` \| `pases` \| `rating` | RN-021, por defecto `minutos` |
+| `orden` | `minutos` \| `valor` \| `edad` \| `pases` \| `rating` | RN-021, por defecto `minutos`. `rating` exige `liga_id` (RN-029): sin liga devuelve 422 con `orden` en `errores` |
 | `pagina` | int ≥ 1 | Por defecto 1 |
 | `tamano` | int | Por defecto 6, máximo 50 |
 

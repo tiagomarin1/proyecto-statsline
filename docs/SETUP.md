@@ -23,6 +23,9 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 | `SPORTMONKS_TOKEN` | Solo para la sincronización de Primera Nacional y Torneo Federal A (DAT-003) |
 | `SESION_HORAS` | Duración de la sesión. Por defecto es 8 (ADR-0005) |
 | `DEMO_CONTRASENA` | Contraseña del usuario demo |
+| `BREVO_API_KEY` | Clave de la API de Brevo para mandar el mail de recuperar la contraseña (AUT-003). Sin clave, en desarrollo el mail, con el link, se escribe en el log de uvicorn; en producción solo se registra que falta |
+| `CORREO_REMITENTE` | El remitente del mail, verificado en Brevo |
+| `URL_PUBLICA` | Base de los links de los mails. Por defecto es `http://localhost:8000`; en Render, `https://statsline-4dyy.onrender.com` |
 | `ENTORNO` | `desarrollo`, `test` o `produccion` |
 | `DIRECTORIO_FRONTEND` | Opcional. Carpeta del build de React que sirve FastAPI. Por defecto es `frontend/dist` |
 
@@ -76,9 +79,46 @@ cd frontend
 npm test                                  # Vitest
 npm run lint                              # ESLint
 npm run build                             # chequeo de tipos + build
+npx playwright test                       # E2E de la demo: necesita la app levantada (abajo)
 ```
 
 Más detalle en `TESTING_STRATEGY.md`.
+
+### Test E2E del recorrido de la demo (INF-002)
+
+Un test de Playwright recorre ingresar → filtrar → ficha → comparar → seguimiento con el usuario demo. **No levanta nada solo:** antes de correrlo tiene que estar todo esto.
+
+1. **La base local con el seed fijo**, no con datos sincronizados. El seed solo corre contra una base local (`localhost`, `127.0.0.1` o el contenedor `postgres`) y nunca con `ENTORNO=produccion`:
+
+   ```bash
+   cd backend && source .venv/bin/activate
+   alembic upgrade head
+   python -m semillas.demo_e2e               # 40 jugadores, valores de mercado y el usuario demo
+   ```
+
+   Si la base ya tenía datos sincronizados, los conteos del test no coinciden: usá una base de desarrollo limpia.
+
+2. **La app con el build de React**, servida por FastAPI como en producción:
+
+   ```bash
+   cd frontend && npm run build
+   cd ../backend && uvicorn app.main:app     # http://localhost:8000
+   ```
+
+   También anda contra Vite (`npm run dev`, con uvicorn atrás) con `E2E_URL=http://localhost:5173`.
+
+3. **`DEMO_CONTRASENA`**, la misma con la que se cargó el seed. Si no está en el entorno, el test la toma de `backend/.env`.
+
+4. **Chromium de Playwright**, solo la primera vez: `npx playwright install chromium`.
+
+Después, desde `frontend/`:
+
+```bash
+npx playwright test                       # o: npm run test:e2e
+npx playwright show-report                # reporte HTML de la última corrida
+```
+
+Tarda unos segundos. Se puede repetir sin volver a cargar el seed. Si falla, la consola dice en qué paso, y la captura y el video quedan en `frontend/test-results/`. El trace está apagado a propósito: guardaría la contraseña. Si la app no está levantada o el usuario demo no puede ingresar, falla enseguida con un mensaje que dice qué falta.
 
 ## Cargar datos reales
 
@@ -136,6 +176,16 @@ Render gratis apaga el servicio después de 15 minutos sin tráfico, y Aiven gra
 3. Si llegan alertas falsas de caída (el arranque en frío tarda más que el timeout del monitor), subir el timeout o bajar el intervalo a 14 minutos.
 
 **Si Aiven igual apaga la base:** el host da NXDOMAIN, Render queda en "almost live" y el monitor avisa. Se arregla en console.aiven.io → el servicio → "⋯" → *Power on service* (el host y los datos se conservan; tarda unos 5 minutos). Después, re-ejecutar el job `desplegar` del último CI de `main`: los deploys pedidos mientras la base estaba apagada fallan, y a la base le pueden faltar migraciones.
+
+### 2c. Mail para recuperar la contraseña (AUT-003)
+
+Render gratis bloquea el SMTP saliente (puertos 25, 465 y 587), así que el mail va por la API HTTP de Brevo (plan gratis, 300 mails por día):
+
+1. Crear la cuenta en https://www.brevo.com.
+2. *Senders, domains & dedicated IPs → Senders → Add a sender*, con el correo que va a mandar los mails, y confirmarlo con el código que llega.
+3. *SMTP & API → API keys → Generate a new API key*.
+4. En Render, *Environment*: `BREVO_API_KEY` (la clave) y `CORREO_REMITENTE` (el correo verificado). `URL_PUBLICA` ya la pone `render.yaml`. Guardar y redesplegar.
+5. Probar con "¿Olvidaste tu contraseña?" en `/ingresar`. Si el mail no llega, mirar el log de Render: el error dice si Brevo respondió con un código HTTP. Con un remitente de Gmail, el mail puede caer en spam.
 
 ### 3. Secrets del cron en GitHub
 

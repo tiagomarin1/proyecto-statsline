@@ -81,11 +81,45 @@ def test_bus006_orden_por_pases_y_rating_de_mayor_a_menor(
     _jugador(session, "Bajo", liga=liga, **{metrica: 6})
     _jugador(session, "Alto", liga=liga, **{metrica: 8})
 
-    assert _nombres(cliente_con_sesion.get(URL, params={"orden": orden})) == [
-        "Alto",
-        "Bajo",
-        "Sin dato",
+    respuesta = cliente_con_sesion.get(URL, params={"orden": orden, "liga_id": liga.id})
+
+    assert _nombres(respuesta) == ["Alto", "Bajo", "Sin dato"]
+
+
+def test_bus006_rn029_ordenar_por_rating_sin_liga_responde_422(
+    cliente_con_sesion: TestClient, session: Session, liga
+):
+    # Sin liga se mezclan fuentes, y el rating de cada proveedor no es comparable (RN-029)
+    _jugador(session, "Alto", liga=liga, rating=8)
+
+    respuesta = cliente_con_sesion.get(URL, params={"orden": "rating"})
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["errores"] == [
+        {"campo": "orden", "mensaje": "Elegí una liga para ordenar por rating."}
     ]
+
+
+def test_bus006_rn029_sin_liga_se_puede_ordenar_por_pases(
+    cliente_con_sesion: TestClient, session: Session, liga
+):
+    # Decisión del equipo (26/11/2026): el orden por % de pases queda como estaba
+    _jugador(session, "Alto", liga=liga, pases_precision_pct=90)
+
+    assert cliente_con_sesion.get(URL, params={"orden": "pases"}).status_code == 200
+
+
+def test_bus006_rn029_la_ficha_no_valida_el_orden(
+    cliente_con_sesion: TestClient, session: Session, liga
+):
+    # La ficha recibe los filtros solo para la coincidencia (RN-012): el orden no le importa
+    estadistica = _jugador(session, "Alto", liga=liga, rating=8)
+
+    respuesta = cliente_con_sesion.get(
+        f"{URL}/{estadistica.jugador_id}", params={"orden": "rating"}
+    )
+
+    assert respuesta.status_code == 200
 
 
 def test_bus006_con_empate_se_ordena_por_nombre(
