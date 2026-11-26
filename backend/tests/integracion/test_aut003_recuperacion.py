@@ -4,12 +4,12 @@ import re
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from app.integraciones.cliente_correo import Correo, EnviadorEnMemoria, obtener_enviador
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.config import obtener_configuracion
+from app.integraciones.cliente_correo import Correo, EnviadorEnMemoria, obtener_enviador
 from app.seguridad.dependencias import NOMBRE_COOKIE_SESION
 from app.seguridad.tokens import crear_token_recuperacion
 from tests.fabricas import CONTRASENA_DE_PRUEBA, crear_usuario

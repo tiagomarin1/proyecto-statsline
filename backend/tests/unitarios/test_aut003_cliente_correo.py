@@ -5,6 +5,7 @@ import logging
 
 import httpx
 import pytest
+
 from app.integraciones.cliente_correo import (
     Correo,
     EnviadorBrevo,
