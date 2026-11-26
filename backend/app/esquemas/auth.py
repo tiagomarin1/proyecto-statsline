@@ -25,6 +25,23 @@ class PedidoIngreso(BaseModel):
     contrasena: str | None = None
 
 
+class PedidoRecuperacion(BaseModel):
+    """AUT-003: el correo de la cuenta. Si falta, se responde igual (RN-036)."""
+
+    email: str | None = None
+
+
+class PedidoRestablecer(BaseModel):
+    """AUT-003: el token del link y la contraseña nueva (RN-022)."""
+
+    token: str | None = None
+    contrasena: str | None = None
+
+
+class RespuestaDetalle(BaseModel):
+    detalle: str
+
+
 class RespuestaUsuario(BaseModel):
     """`Usuario` del contrato: nunca incluye el hash de la contraseña."""
 
