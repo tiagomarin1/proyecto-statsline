@@ -2,6 +2,15 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-26
+- **Cierre del MVP (decisión del equipo, Cilento):** pasan a `hecho` DAT-001 a DAT-004, AUT-001 a AUT-003, BUS-001 a BUS-006, BUS-010, JUG-001, JUG-003, CMP-001, CMP-003, SEG-001, UI-001 a UI-003 e INF-002. Todas están mergeadas, con tests en verde, y desplegadas en https://statsline-4dyy.onrender.com. Las reglas que seguían como propuestas (RN-028, RN-031 a RN-035, `Forward` en RN-019 y el paso 2b de RN-002) quedan como decisión del equipo, sin la validación del PO.
+- DAT-003: Sportmonks no manda goles, asistencias ni intercepciones cuando valen 0; si el jugador tiene minutos, se guardan en 0 (RN-031, PR #40). Se re-sincronizaron Primera Nacional y Torneo Federal A antes de que venza la prueba (30/11). Los datos quedan congelados: no se paga Sportmonks ni API-Football.
+- INF-002: el job `e2e` entra al CI (PR #33), en paralelo con los otros, y `desplegar` todavía no lo espera. Reemplaza el "pendiente" de la línea del 14/11.
+- BUS-004: el presupuesto acepta cualquier monto mayor que 0, sin el rango de EUR 20.000 a 400.000 (RN-003, PR #42).
+- BUS-006: el orden por rating solo se puede usar con una liga elegida, porque sin liga se mezclan fuentes (RN-029, PR #43). El orden por % de pases no cambia.
+- AUT-003: recuperar la contraseña por mail, con un link de 60 minutos y de un solo uso (RN-036, PR #44), mandado por la API de Brevo. Para que el mail salga en producción hay que cargar `BREVO_API_KEY` y `CORREO_REMITENTE` en Render (`docs/SETUP.md`, sección 2c).
+- INF-003 (en testing): monitor de UptimeRobot cada 20 minutos para que Render no se duerma, y la sincronización pasa a correrse solo a mano (PR #41).
+
 ## 2026-11-16
 - INF-002: test E2E del recorrido de la demo con Playwright (`frontend/e2e/`). Recorre ingresar → filtrar → ficha → comparar → seguimiento con el usuario demo, contra la app levantada en local y el seed fijo `semillas/demo_e2e.py`. Se corre con `npx playwright test` desde `frontend/`; lo que hay que tener levantado está en `SETUP.md`. La contraseña sale de `DEMO_CONTRASENA` y el trace queda apagado para que no aparezca en los reportes. No cambia el código de la app. **Pendiente:** decidir si entra al CI; la propuesta está en el PR.
 

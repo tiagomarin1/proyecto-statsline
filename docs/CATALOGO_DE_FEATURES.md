@@ -6,7 +6,7 @@
 - **Prioridad:** P0 bloquea la demo; P1 es MVP pero no bloquea; R2 y R3 son releases siguientes.
 - **"Vence"** es la fecha de la tarjeta de Trello, en hora de Argentina.
 
-Todas las specs del MVP v1 están en `spec-aprobada (pendiente de validar por el PO)`: las escribió la IA a partir de las historias de Trello, el prototipo y las reglas cerradas el 27/10. El PO (Almeida) las tiene que revisar antes de pasarlas a `en desarrollo`.
+**Cierre del MVP (26/11/2026):** todas las features del MVP pasan a `hecho` por decisión del equipo (Cilento), con los tests en verde, el E2E de la demo en el CI y todo desplegado en producción. Las reglas que seguían como propuestas quedan como decisión del equipo, sin esperar la validación del PO (ver `REGLAS_DE_NEGOCIO.md`). Las specs se escribieron con IA a partir de las historias de Trello, el prototipo y las reglas cerradas el 27/10.
 
 ## Orden sugerido de implementación
 
@@ -21,64 +21,65 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | INF-001 | Repo, stack, entorno y deploy | hecho | P0 | 27/10 | Cilento + Marin | specs/infraestructura/INF-001.md |
-| INF-002 | Test E2E del recorrido de la demo (Playwright) | en testing (job `e2e` en el CI, en paralelo, desde el 26/11/2026) | P1 | — (nueva) | Cilento | specs/infraestructura/INF-002.md |
+| INF-002 | Test E2E del recorrido de la demo (Playwright) | hecho | P1 | — (nueva) | Cilento | specs/infraestructura/INF-002.md |
+| INF-003 | App despierta con un monitor externo y datos congelados | en testing (falta crear el monitor en UptimeRobot) | P1 | — (nueva) | Cilento | specs/infraestructura/INF-003.md |
 
 ### Módulo: Datos
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| DAT-001 | Sincronizar jugadores desde API-Football | en testing | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
-| DAT-002 | Importar valores de mercado de transfermarkt-datasets | en testing | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
-| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | en testing (implementada; primera corrida en producción el 25/11/2026: Primera Nacional 1.381 y Torneo Federal A 712 registros, temporada 2026, cobertura completa; falta validar RN-031 y decidir el plan pago de Sportmonks, cuya prueba vence el 30/11/2026) | P1 | — (nueva) | — | specs/datos/DAT-003.md |
-| DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | en testing (implementado; carga inicial en producción el 25/11/2026: 5.301 jugadores en 2 corridas desde Actions; falta validar RN-032 a RN-034 con el PO) | P1 | — (nueva) | — | specs/datos/DAT-004.md |
+| DAT-001 | Sincronizar jugadores desde API-Football | hecho | P0 | 29/10 | Cilento + Marin | specs/datos/DAT-001.md |
+| DAT-002 | Importar valores de mercado de transfermarkt-datasets | hecho | P0 | — (nueva) | Cilento + Marin | specs/datos/DAT-002.md |
+| DAT-003 | Sincronizar jugadores del ascenso desde Sportmonks | hecho | P1 | — (nueva) | — | specs/datos/DAT-003.md |
+| DAT-004 | Sincronizar la trayectoria de los jugadores desde API-Football | hecho | P1 | — (nueva) | — | specs/datos/DAT-004.md |
 
 ### Módulo: Autenticación
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| AUT-001 | Registrarse en la plataforma | en testing | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
-| AUT-002 | Iniciar y cerrar sesión | en testing | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
-| AUT-003 | Recuperar la contraseña por mail | en testing (pasa de R2 al MVP, decisión del equipo del 26/11/2026; falta cargar BREVO_API_KEY y CORREO_REMITENTE en Render) | P1 | — | Cilento | specs/autenticacion/AUT-003.md |
+| AUT-001 | Registrarse en la plataforma | hecho | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
+| AUT-002 | Iniciar y cerrar sesión | hecho | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
+| AUT-003 | Recuperar la contraseña por mail | hecho | P1 | — | Cilento | specs/autenticacion/AUT-003.md |
 
 ### Módulo: Búsqueda
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| BUS-001 | Filtrar por posición y edad | en testing | P0 | 2/11 | — | specs/busqueda/BUS-001.md |
-| BUS-002 | Filtrar por liga o competición | en testing | P0 | 2/11 | Garrido + Cilento | specs/busqueda/BUS-002.md |
-| BUS-003 | Filtrar por métricas tácticas | en testing | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
-| BUS-004 | Filtrar por presupuesto | en testing | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
-| BUS-005 | Crear, guardar y cargar el perfil de búsqueda | en testing | P1 | — | — | specs/busqueda/BUS-005.md |
-| BUS-006 | Resultados: orden, paginado, sin resultados y selección | en testing | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
-| BUS-010 | Buscar jugadores por nombre | en testing (falta validar RN-035, propuesta, con el PO) | P1 | — (nueva) | — | specs/busqueda/BUS-010.md |
+| BUS-001 | Filtrar por posición y edad | hecho | P0 | 2/11 | — | specs/busqueda/BUS-001.md |
+| BUS-002 | Filtrar por liga o competición | hecho | P0 | 2/11 | Garrido + Cilento | specs/busqueda/BUS-002.md |
+| BUS-003 | Filtrar por métricas tácticas | hecho | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
+| BUS-004 | Filtrar por presupuesto | hecho | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
+| BUS-005 | Crear, guardar y cargar el perfil de búsqueda | hecho | P1 | — | — | specs/busqueda/BUS-005.md |
+| BUS-006 | Resultados: orden, paginado, sin resultados y selección | hecho | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
+| BUS-010 | Buscar jugadores por nombre | hecho | P1 | — (nueva) | — | specs/busqueda/BUS-010.md |
 
 ### Módulo: Jugador
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| JUG-001 | Ver ficha individual de un jugador | en testing | P0 | 4/11 | Garrido + Marin | specs/jugador/JUG-001.md |
-| JUG-003 | Ver la trayectoria del jugador en su ficha | en testing | P1 | — (nueva) | — | specs/jugador/JUG-003.md |
+| JUG-001 | Ver ficha individual de un jugador | hecho | P0 | 4/11 | Garrido + Marin | specs/jugador/JUG-001.md |
+| JUG-003 | Ver la trayectoria del jugador en su ficha | hecho | P1 | — (nueva) | — | specs/jugador/JUG-003.md |
 
 ### Módulo: Comparación
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| CMP-001 | Comparar 2 o 3 candidatos | en testing | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
-| CMP-003 | Avisar al comparar jugadores de fuentes distintas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-003.md |
+| CMP-001 | Comparar 2 o 3 candidatos | hecho | P0 | 5/11 | Garrido + Cilento | specs/comparacion/CMP-001.md |
+| CMP-003 | Avisar al comparar jugadores de fuentes distintas | hecho | P1 | — (nueva) | — | specs/comparacion/CMP-003.md |
 
 ### Módulo: Seguimiento
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| SEG-001 | Lista de seguimiento | en testing | P1 | — | — | specs/seguimiento/SEG-001.md |
+| SEG-001 | Lista de seguimiento | hecho | P1 | — | — | specs/seguimiento/SEG-001.md |
 
 ### Módulo: Interfaz
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| UI-001 | Rebranding: paleta, logotipo, tipografía y favicon | en testing | P1 | — (nueva) | — | — (sin spec; la fuente es la hoja de marca del 29/10) |
-| UI-002 | Buscar con filtros en vivo, tabla ordenable y panel de detalle | en testing | P1 | — (nueva) | — | specs/interfaz/UI-002.md |
-| UI-003 | Hero de la home con la pelota que recorre la línea | en testing | P1 | — (nueva) | — | specs/interfaz/UI-003.md |
+| UI-001 | Rebranding: paleta, logotipo, tipografía y favicon | hecho | P1 | — (nueva) | — | — (sin spec; la fuente es la hoja de marca del 29/10) |
+| UI-002 | Buscar con filtros en vivo, tabla ordenable y panel de detalle | hecho | P1 | — (nueva) | — | specs/interfaz/UI-002.md |
+| UI-003 | Hero de la home con la pelota que recorre la línea | hecho | P1 | — (nueva) | — | specs/interfaz/UI-003.md |
 
 ### Mapeo con las tarjetas de Trello
 
