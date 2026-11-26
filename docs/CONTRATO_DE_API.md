@@ -50,6 +50,8 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | POST | `/auth/ingreso` | — | `{email, contrasena}` | 200 `Usuario` + cookie | 401 `credenciales_invalidas` ("Correo o contraseña incorrectos.") |
 | POST | `/auth/salida` | 🔒 | — | 204, borra la cookie | — |
 | GET | `/auth/yo` | 🔒 | — | 200 `Usuario` | 401 `sin_sesion` |
+| POST | `/auth/recuperacion` | — | `{email}` | 202 `{detalle}`, igual tenga cuenta o no (RN-036). El mail sale después de responder | — |
+| POST | `/auth/recuperacion/confirmar` | — | `{token, contrasena}` | 200 `Usuario` + cookie | 400 `token_invalido` ("El link no es válido o ya venció. Pedí uno nuevo."), 422 `validacion` |
 
 `Usuario` = `{id, nombre, email, rol, club}`. Nunca se devuelve el hash.
 

@@ -49,6 +49,12 @@ export interface IngresoRequest {
   contrasena: string;
 }
 
+/** AUT-003: el token del link del mail y la contraseña nueva. */
+export interface RestablecerRequest {
+  token: string;
+  contrasena: string;
+}
+
 // --- Ligas ---
 
 export interface Liga {

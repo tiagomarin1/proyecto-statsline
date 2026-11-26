@@ -23,6 +23,9 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 | `SPORTMONKS_TOKEN` | Solo para la sincronización de Primera Nacional y Torneo Federal A (DAT-003) |
 | `SESION_HORAS` | Duración de la sesión. Por defecto es 8 (ADR-0005) |
 | `DEMO_CONTRASENA` | Contraseña del usuario demo |
+| `BREVO_API_KEY` | Clave de la API de Brevo para mandar el mail de recuperar la contraseña (AUT-003). Sin clave, en desarrollo el mail, con el link, se escribe en el log de uvicorn; en producción solo se registra que falta |
+| `CORREO_REMITENTE` | El remitente del mail, verificado en Brevo |
+| `URL_PUBLICA` | Base de los links de los mails. Por defecto es `http://localhost:8000`; en Render, `https://statsline-4dyy.onrender.com` |
 | `ENTORNO` | `desarrollo`, `test` o `produccion` |
 | `DIRECTORIO_FRONTEND` | Opcional. Carpeta del build de React que sirve FastAPI. Por defecto es `frontend/dist` |
 
@@ -162,6 +165,16 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 4. El primer deploy crea las tablas y carga las ligas y el usuario demo. Para verificar, abrir `https://<servicio>.onrender.com/api/v1/salud`.
 
 Render despliega solo `main` y solo con el CI en verde: el auto-deploy de Render está apagado (`autoDeployTrigger: off`) porque Render no recibe los push del repo, y el deploy lo pide el job `desplegar` del CI con el deploy hook (paso 3). Para desplegar a mano: *Manual Deploy → Deploy latest commit* en el panel del servicio. Si el servicio pasa 15 minutos sin tráfico, se apaga, y la primera visita tarda alrededor de un minuto. Antes de una demo, abrí la página unos minutos antes.
+
+### 2c. Mail para recuperar la contraseña (AUT-003)
+
+Render gratis bloquea el SMTP saliente (puertos 25, 465 y 587), así que el mail va por la API HTTP de Brevo (plan gratis, 300 mails por día):
+
+1. Crear la cuenta en https://www.brevo.com.
+2. *Senders, domains & dedicated IPs → Senders → Add a sender*, con el correo que va a mandar los mails, y confirmarlo con el código que llega.
+3. *SMTP & API → API keys → Generate a new API key*.
+4. En Render, *Environment*: `BREVO_API_KEY` (la clave) y `CORREO_REMITENTE` (el correo verificado). `URL_PUBLICA` ya la pone `render.yaml`. Guardar y redesplegar.
+5. Probar con "¿Olvidaste tu contraseña?" en `/ingresar`. Si el mail no llega, mirar el log de Render: el error dice si Brevo respondió con un código HTTP. Con un remitente de Gmail, el mail puede caer en spam.
 
 ### 3. Secrets del cron en GitHub
 

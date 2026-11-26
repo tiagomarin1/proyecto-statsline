@@ -1,20 +1,29 @@
 """Registro e ingreso de usuarios (RN-022). Los mensajes son los del prototipo v1."""
 
+import hmac
 import re
 import secrets
 from dataclasses import dataclass
 from functools import lru_cache
+from html import escape
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errores import ErrorApi, ErrorValidacion
 from app.esquemas.auth import PedidoRegistro
+from app.integraciones.cliente_correo import Correo
 from app.modelos import Usuario
 from app.modelos.base import ahora_utc
 from app.modelos.enums import Rol
 from app.repositorios import usuario as repositorio_usuario
 from app.seguridad.contrasenas import hashear_contrasena, verificar_contrasena
+from app.seguridad.tokens import (
+    MINUTOS_TOKEN_RECUPERACION,
+    crear_token_recuperacion,
+    huella_de_contrasena,
+    leer_token_recuperacion,
+)
 
 LARGO_MINIMO_CONTRASENA = 8
 PATRON_EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -22,6 +31,11 @@ ROLES_VALIDOS = {rol.value for rol in Rol}
 
 MENSAJE_EMAIL_REGISTRADO = "Ese correo ya tiene una cuenta. Probá ingresando."
 MENSAJE_CREDENCIALES_INVALIDAS = "Correo o contraseña incorrectos."
+MENSAJE_RECUPERACION_PEDIDA = (
+    "Si el correo tiene una cuenta, te mandamos un link para elegir una contraseña nueva."
+)
+MENSAJE_TOKEN_INVALIDO = "El link no es válido o ya venció. Pedí uno nuevo."
+ASUNTO_RECUPERACION = "Elegí una contraseña nueva para StatsLine"
 
 
 @dataclass(frozen=True)
@@ -117,4 +131,58 @@ def ingresar(session: Session, email: str | None, contrasena: str | None) -> Usu
     contrasena_correcta = verificar_contrasena(contrasena or "", hash_a_verificar)
     if usuario is None or not contrasena_correcta:
         raise ErrorApi(401, "credenciales_invalidas", MENSAJE_CREDENCIALES_INVALIDAS)
+    return usuario
+
+
+def armar_correo_de_recuperacion(
+    session: Session, email: str | None, url_publica: str
+) -> Correo | None:
+    """AUT-003: el mail con el link para elegir una contraseña nueva, o None si el correo no
+    tiene cuenta. El router responde lo mismo en los dos casos (RN-036)."""
+    usuario = repositorio_usuario.obtener_por_email(session, normalizar_email(email or ""))
+    if usuario is None:
+        return None
+    token = crear_token_recuperacion(usuario.id, usuario.hash_contrasena)
+    link = f"{url_publica.rstrip('/')}/restablecer?token={token}"
+    nombre = usuario.nombre.split(" ")[0]
+    texto = (
+        f"Hola, {nombre}.\n\n"
+        "Pediste elegir una contraseña nueva para tu cuenta de StatsLine. Entrá a este link "
+        f"(vence en {MINUTOS_TOKEN_RECUPERACION} minutos y sirve una sola vez):\n\n"
+        f"{link}\n\n"
+        "Si no lo pediste, ignorá este mail: tu contraseña no cambia.\n\n"
+        "Equipo de StatsLine"
+    )
+    html = (
+        f"<p>Hola, {escape(nombre)}.</p>"
+        "<p>Pediste elegir una contraseña nueva para tu cuenta de StatsLine.</p>"
+        f'<p><a href="{escape(link)}">Elegir una contraseña nueva</a></p>'
+        f"<p>El link vence en {MINUTOS_TOKEN_RECUPERACION} minutos y sirve una sola vez. "
+        f"Si el botón no funciona, copiá esta dirección:<br>{escape(link)}</p>"
+        "<p>Si no lo pediste, ignorá este mail: tu contraseña no cambia.</p>"
+        "<p>Equipo de StatsLine</p>"
+    )
+    return Correo(
+        destinatario=usuario.email,
+        nombre_destinatario=usuario.nombre,
+        asunto=ASUNTO_RECUPERACION,
+        texto=texto,
+        html=html,
+    )
+
+
+def restablecer_contrasena(session: Session, token: str | None, contrasena: str | None) -> Usuario:
+    """AUT-003: cambia la contraseña con el token del link (RN-036). 400 token_invalido si venció,
+    está adulterado o ya se usó; 422 si la contraseña no cumple RN-022."""
+    leido = leer_token_recuperacion(token or "")
+    usuario = repositorio_usuario.obtener_por_id(session, leido[0]) if leido else None
+    if usuario is None or not hmac.compare_digest(
+        huella_de_contrasena(usuario.hash_contrasena), leido[1]
+    ):
+        raise ErrorApi(400, "token_invalido", MENSAJE_TOKEN_INVALIDO)
+    error = _error_contrasena(contrasena or "")
+    if error:
+        raise ErrorValidacion([{"campo": "contrasena", "mensaje": error}])
+    usuario.hash_contrasena = hashear_contrasena(contrasena or "")
+    session.commit()
     return usuario

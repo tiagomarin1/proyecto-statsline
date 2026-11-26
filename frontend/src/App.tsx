@@ -9,7 +9,9 @@ import Comparar from './paginas/Comparar';
 import Ficha from './paginas/Ficha';
 import Ingresar from './paginas/Ingresar';
 import Inicio from './paginas/Inicio';
+import RecuperarContrasena from './paginas/RecuperarContrasena';
 import Registro from './paginas/Registro';
+import RestablecerContrasena from './paginas/RestablecerContrasena';
 import Seguimiento from './paginas/Seguimiento';
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
             <Route path="/" element={<Inicio />} />
             <Route path="/ingresar" element={<Ingresar />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/recuperar" element={<RecuperarContrasena />} />
+            <Route path="/restablecer" element={<RestablecerContrasena />} />
             <Route element={<RutaProtegida />}>
               <Route path="/buscar" element={<Buscar />} />
               <Route path="/comparar" element={<Comparar />} />

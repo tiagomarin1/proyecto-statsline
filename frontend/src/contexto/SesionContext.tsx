@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { pedirApi } from '../servicios/api';
-import type { IngresoRequest, RegistroRequest, Usuario } from '../tipos/api';
+import type { IngresoRequest, RegistroRequest, RestablecerRequest, Usuario } from '../tipos/api';
 
 interface Sesion {
   usuario: Usuario | null;
   cargando: boolean;
   ingresar: (datos: IngresoRequest) => Promise<Usuario>;
   registrarse: (datos: RegistroRequest) => Promise<Usuario>;
+  /** AUT-003: cambia la contraseña con el link del mail y deja la sesión iniciada. */
+  restablecerContrasena: (datos: RestablecerRequest) => Promise<Usuario>;
   salir: () => Promise<void>;
 }
 
@@ -32,7 +34,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('sesion-expirada', alExpirar);
   }, []);
 
-  async function autenticar(ruta: string, datos: IngresoRequest | RegistroRequest) {
+  async function autenticar(
+    ruta: string,
+    datos: IngresoRequest | RegistroRequest | RestablecerRequest,
+  ) {
     const u = await pedirApi<Usuario>(ruta, { method: 'POST', body: JSON.stringify(datos) });
     setUsuario(u);
     return u;
@@ -43,6 +48,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     cargando,
     ingresar: (datos) => autenticar('/auth/ingreso', datos),
     registrarse: (datos) => autenticar('/auth/registro', datos),
+    restablecerContrasena: (datos) => autenticar('/auth/recuperacion/confirmar', datos),
     salir: async () => {
       try {
         await pedirApi<void>('/auth/salida', { method: 'POST' });

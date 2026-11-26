@@ -38,6 +38,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | AUT-001 | Registrarse en la plataforma | en testing | P0 | 6/11 | — | specs/autenticacion/AUT-001.md |
 | AUT-002 | Iniciar y cerrar sesión | en testing | P0 | 6/11 | Cilento + Garrido | specs/autenticacion/AUT-002.md |
+| AUT-003 | Recuperar la contraseña por mail | en testing (pasa de R2 al MVP, decisión del equipo del 26/11/2026; falta cargar BREVO_API_KEY y CORREO_REMITENTE en Render) | P1 | — | Cilento | specs/autenticacion/AUT-003.md |
 
 ### Módulo: Búsqueda
 
@@ -107,7 +108,6 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | JUG-002 | Buscar jugadores similares a uno dado | borrador | RN-013 |
 | CMP-002 | Exportar comparación en PDF | borrador | RN-014 |
 | SEG-002 | Compartir la lista de seguimiento | borrador | |
-| AUT-003 | Recuperar contraseña por email | borrador | |
 | AUT-004 | Ingresar con Google u otras redes | borrador | |
 | BUS-009 | Montos en pesos argentinos | borrador | RN-004 |
 

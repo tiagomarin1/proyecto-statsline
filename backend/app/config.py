@@ -24,6 +24,11 @@ class Configuracion(BaseSettings):
     api_football_key: str = ""
     # Token de Sportmonks (DAT-003). Solo del entorno: nunca va en el repo
     sportmonks_token: str = ""
+    # AUT-003: mail de recuperación por la API de Brevo. Solo del entorno: nunca van en el repo
+    brevo_api_key: str = ""
+    correo_remitente: str = ""
+    # Base de los links que van en los mails (en producción, la URL de Render)
+    url_publica: str = "http://localhost:8000"
     sesion_horas: int = 8
     demo_contrasena: str = ""
     entorno: Literal["desarrollo", "test", "produccion"] = "desarrollo"
@@ -46,7 +51,9 @@ class Configuracion(BaseSettings):
                 return PREFIJO_POSTGRESQL_PSYCOPG + url.removeprefix(prefijo)
         return url
 
-    @field_validator("api_football_key", "sportmonks_token")
+    @field_validator(
+        "api_football_key", "sportmonks_token", "brevo_api_key", "correo_remitente", "url_publica"
+    )
     @classmethod
     def recortar_espacios(cls, valor: str) -> str:
         """Saca espacios y saltos de línea de los bordes: van en un header HTTP.
