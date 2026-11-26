@@ -11,7 +11,7 @@ from datetime import date
 from sqlalchemy import RowMapping, Select, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
-from app.errores import ErrorApi
+from app.errores import ErrorApi, ErrorValidacion
 from app.esquemas.busqueda import (
     FiltrosBusqueda,
     JugadorResumen,
@@ -201,9 +201,21 @@ def a_jugador_resumen(fila: RowMapping, hoy: date) -> JugadorResumen:
     )
 
 
+MENSAJE_RATING_SIN_LIGA = "Elegí una liga para ordenar por rating."
+
+
+def validar_orden(filtros: FiltrosBusqueda) -> None:
+    """RN-029: el orden por rating solo se puede usar con una liga elegida. Cada liga sale de una
+    sola fuente; sin liga se mezclan, y el rating de cada proveedor no es comparable. Solo aplica a
+    la búsqueda: la ficha recibe los filtros nada más que para la coincidencia (RN-012)."""
+    if filtros.orden == OrdenBusqueda.rating and filtros.liga_id is None:
+        raise ErrorValidacion([{"campo": "orden", "mensaje": MENSAJE_RATING_SIN_LIGA}])
+
+
 def buscar_jugadores(
     session: Session, filtros: FiltrosBusqueda, usuario_id: int, hoy: date
 ) -> RespuestaBusqueda:
+    validar_orden(filtros)
     liga = None
     if filtros.liga_id is not None:
         liga = repositorio_liga.obtener_por_id(session, filtros.liga_id)

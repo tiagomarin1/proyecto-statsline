@@ -26,6 +26,8 @@ const COLUMNAS: Columna[] = [
 interface Props {
   jugadores: JugadorResumen[];
   orden: OrdenBusqueda;
+  /** Órdenes que no se pueden usar con los filtros actuales y por qué (RN-029). */
+  ordenesNoDisponibles?: Partial<Record<OrdenBusqueda, string>>;
   elegidoId: number | null;
   seleccionIds: number[];
   onOrdenar: (orden: OrdenBusqueda) => void;
@@ -39,6 +41,7 @@ interface Props {
 export default function TablaJugadores({
   jugadores,
   orden,
+  ordenesNoDisponibles = {},
   elegidoId,
   seleccionIds,
   onOrdenar,
@@ -56,14 +59,16 @@ export default function TablaJugadores({
             </th>
             {COLUMNAS.map((c) => {
               const activa = c.orden !== null && c.orden === orden;
+              const motivo = c.orden ? ordenesNoDisponibles[c.orden] : undefined;
               return (
                 <th
                   key={c.titulo}
                   scope="col"
                   className={`tj__num ${c.clase ?? ''}`}
                   aria-sort={activa ? c.sentido : undefined}
+                  title={motivo}
                 >
-                  {c.orden ? (
+                  {c.orden && !motivo ? (
                     <button
                       className={`tj__orden${activa ? ' is-activa' : ''}`}
                       type="button"

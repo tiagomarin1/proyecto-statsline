@@ -73,7 +73,7 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 | `pases_min`, `duelos_min`, `recuperaciones_min`, `minutos_min` | número | BUS-003, RN-008 |
 | `presupuesto_max_eur` | int | BUS-004, RN-005 |
 | `nombre` | texto, hasta 60 caracteres | BUS-010, RN-035 **(propuesta)**. Parte del nombre del jugador. Se manda tal como se escribió: el backend lo normaliza |
-| `orden` | `minutos` \| `valor` \| `edad` \| `pases` \| `rating` | RN-021, por defecto `minutos` |
+| `orden` | `minutos` \| `valor` \| `edad` \| `pases` \| `rating` | RN-021, por defecto `minutos`. `rating` exige `liga_id` (RN-029): sin liga devuelve 422 con `orden` en `errores` |
 | `pagina` | int ≥ 1 | Por defecto 1 |
 | `tamano` | int | Por defecto 6, máximo 50 |
 
