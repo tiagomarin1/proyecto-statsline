@@ -94,7 +94,8 @@ Usada en: DAT-002, BUS-004, JUG-001, CMP-001.
 - Es un **monto máximo por búsqueda** (`presupuesto_max_eur`), que se compara contra el valor de mercado.
 - El sueldo queda fuera del MVP.
 - El presupuesto del club guardado es R3.
-- **Slider:** de €20.000 a €400.000, en pasos de €5.000 **(supuesto: el rango del prototipo pasado a EUR)**.
+- **Monto:** cualquier monto entero mayor que 0, sin tope (decisión del equipo, Cilento, 26/11/2026). Antes era un slider de €20.000 a €400.000, el rango del prototipo pasado a EUR, que dejaba afuera a casi toda la Liga Profesional (un titular vale millones). Queda un **límite técnico** de €1.000.000.000, porque el perfil guarda el monto en un `Integer`; no es una regla de negocio.
+  - **Ejemplo:** €5.000.000 en la Liga Profesional deja a los jugadores que valen hasta €5.000.000, incluido €5.000.000 (RN-005). €0 o un monto negativo devuelve 422.
 - **El filtro es opcional y arranca apagado (supuesto).** Si el usuario no lo activa, no se excluye a nadie por falta de valor. Si arrancara prendido, en el ascenso, donde casi nadie tendría valor, la búsqueda inicial quedaría vacía.
 
 Usada en: BUS-004, BUS-005.
@@ -361,7 +362,7 @@ Usada en: BUS-005.
 | Pases y duelos | 0 a 100 |
 | Recuperaciones | 0 a 15 |
 | Minutos | 0 a 5000 |
-| Presupuesto | 20.000 a 400.000 |
+| Presupuesto | mayor que 0 (con un límite técnico de 1.000.000.000, RN-003) |
 
 Un valor fuera de rango devuelve 422. Un filtro vacío equivale a "sin filtro".
 
@@ -480,6 +481,9 @@ rating              = promedio de la temporada (value.average)
 ```
 
 - Un dato que no viene se guarda `NULL`, nunca 0 (RN-008 y RN-025).
+- **Excepción, los contadores (decisión del equipo, Cilento, 26/11/2026):** Sportmonks no manda el tipo de un contador cuando vale 0. Si el jugador tiene minutos (`minutos_jugados > 0`) y no viene `goles` (tipo 52), `asistencias` (79) o `intercepciones` (100), se guarda **0**. Sin minutos, queda `NULL`. Los porcentajes, los duelos y el rating no son contadores: sin dato siguen en `NULL`.
+  - **Ejemplo:** un arquero con 3.420 minutos sin el tipo 52 → `goles = 0`, y la ficha muestra 0 en lugar de "Dato no disponible". Un jugador con 0 minutos sin el tipo 52 → `goles = NULL`.
+  - API-Football no necesita esta excepción: manda el 0 explícito (medido el 26/11/2026 en la Liga Profesional).
 - Un dato que viola las invariantes del modelo (`duelos_ganados` > `duelos_totales`, o `pases_precision_pct` fuera de 0-100) queda `NULL`, igual que con API-Football.
 - La posición se traduce a los 4 códigos de RN-019. **La tabla de posiciones de Sportmonks está pendiente**: se completa con los datos de la prueba, sin inventarla.
 

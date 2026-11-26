@@ -15,11 +15,6 @@ export const METRICAS = [
   { nombre: 'minutos_min', label: 'Minutos jugados (mín.)' },
 ];
 
-// RN-003: el back rechaza con 422 cualquier presupuesto fuera de este rango
-export const PRESUPUESTO_MINIMO_EUR = 20_000;
-export const PRESUPUESTO_MAXIMO_EUR = 400_000;
-export const PASO_PRESUPUESTO_EUR = 5_000;
-
 // RN-029: sin una liga elegida se mezclan fuentes y el rating de cada proveedor no es comparable
 export const MENSAJE_RATING_SIN_LIGA = 'Elegí una liga para ordenar por rating.';
 
