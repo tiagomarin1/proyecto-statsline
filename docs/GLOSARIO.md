@@ -43,6 +43,8 @@ Convenciones:
 | Aviso | `aviso` | Mensaje para el usuario que confirma una acción, por ejemplo al guardar en la lista de seguimiento (RN-026) | mensaje (para esto), toast | campo |
 | Promedio de la posición | `promedio_posicion` | Promedio de una métrica entre los jugadores de la misma posición (RN-015) | — | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
+| Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |
+| Enviador de correo | `enviador` | Lo que manda los mails: Brevo en producción, el log en desarrollo y la memoria en los tests (AUT-003) | mailer, sender | `EnviadorCorreo` |
 | Rol | `rol` | `director_tecnico`, `director_deportivo`, `dirigente` u `ojeador` | perfil (para esto), cargo | enum |
 | Sincronización | `sincronizacion` | Proceso batch que trae datos de API-Football o de Transfermarkt a PostgreSQL | ingesta, import, sync | `Sincronizacion` |
 | Fichaje | — | Incorporación concretada de un jugador. **La plataforma no gestiona fichajes**, solo apoya la decisión | contratación, pase | — |

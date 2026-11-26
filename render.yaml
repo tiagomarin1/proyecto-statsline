@@ -23,6 +23,13 @@ services:
         generateValue: true
       - key: DEMO_CONTRASENA
         sync: false
+      # AUT-003: mail de recuperación por la API de Brevo (Render gratis bloquea el SMTP)
+      - key: BREVO_API_KEY
+        sync: false
+      - key: CORREO_REMITENTE
+        sync: false # Un remitente verificado en Brevo
+      - key: URL_PUBLICA
+        value: https://statsline-4dyy.onrender.com
       - key: SESION_HORAS
         value: "8"
       - key: ENTORNO
