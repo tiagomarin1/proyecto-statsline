@@ -64,7 +64,7 @@ Usada en: BUS-003, JUG-001, CMP-001.
 
 **Ejemplo:** API-Football trae "Nahuel Ferreyra", nacido el 2003-04-12. En el CSV hay una sola fila "Nahuel Ferreyra" con esa fecha y valor 85000. Resultado: `valor_mercado_eur = 85000`.
 
-**Paso 2b: cruce por palabras (propuesta, 28/10).** Si el paso 2 no encuentra ninguna fila:
+**Paso 2b: cruce por palabras (decisión del equipo, Cilento, 26/11/2026; propuesta del 28/10).** Si el paso 2 no encuentra ninguna fila:
 
 - se buscan las filas con `date_of_birth` igual a `jugador.fecha_nacimiento`;
 - cuyo nombre normalizado tenga **al menos 2 palabras**;
@@ -280,7 +280,7 @@ Usada en: BUS-003, JUG-001, CMP-001.
 | Defender | `defensor` | Defensor |
 | Midfielder | `mediocampista` | Mediocampista |
 | Attacker | `delantero` | Delantero |
-| Forward **(propuesta, 28/10)** | `delantero` | Delantero |
+| Forward (decisión del equipo, Cilento, 26/11/2026) | `delantero` | Delantero |
 | otro o vacío | `None` | Dato no disponible |
 
 Las 10 posiciones del prototipo se reemplazan por estas 4 (decidido).
@@ -420,7 +420,7 @@ si ninguna cumple: se usa la más nueva y la liga queda sin_datos o basica segú
 
 Implementada en DAT-001 (`servicios/temporada.py` y `elegir_temporada` en `sincronizacion/api_football.py`).
 
-### RN-028 Cobertura esperada de cada liga para la demo (propuesta, 28/10)
+### RN-028 Cobertura esperada de cada liga para la demo (decisión del equipo, Cilento, 26/11/2026; propuesta del 28/10)
 
 Con los datos de hoy y aplicando RN-020 sobre la temporada de RN-027:
 
@@ -469,7 +469,7 @@ Para no duplicar a un jugador que pasa de una liga a otra:
 
 Usada en: DAT-003.
 
-### RN-031 Datos de Sportmonks que se derivan o se traducen (propuesta, 14/11/2026)
+### RN-031 Datos de Sportmonks que se derivan o se traducen (decisión del equipo, Cilento, 26/11/2026; propuesta del 14/11/2026)
 
 ```
 pases_precision_pct = el porcentaje que trae Sportmonks (tipo 1584), si es válido (0 a 100)
@@ -492,7 +492,7 @@ rating              = promedio de la temporada (value.average)
 Usada en: DAT-003.
 
 
-### RN-032 Cómo se arma la trayectoria que se muestra (propuesta, 14/11/2026)
+### RN-032 Cómo se arma la trayectoria que se muestra (decisión del equipo, Cilento, 26/11/2026; propuesta del 14/11/2026)
 
 - Las temporadas de cada club se agrupan en **tramos de años consecutivos**. Si hay un hueco, son tramos separados. Los tramos de un club van del más reciente al más viejo.
 - Los clubes se ordenan por su **último año, del más reciente al más viejo**. Los clubes sin años van al final, con "Sin año".
@@ -514,7 +514,7 @@ Villa Dálmine              2013–2015
 
 Usada en: JUG-003.
 
-### RN-033 Qué no cuenta como club en la trayectoria (propuesta, 14/11/2026)
+### RN-033 Qué no cuenta como club en la trayectoria (decisión del equipo, Cilento, 26/11/2026; propuesta del 14/11/2026)
 
 - Las **selecciones nacionales** no se guardan ni se muestran. API-Football no las marca como tales, así que se reconocen por el nombre: un nombre igual a un país, con o sin categoría ("U17", "U20", "U23"), se descarta.
 - Los equipos **juveniles y de reserva** de un club ("Club U20", "Club II", "Club Reserve") sí se muestran, tal como vienen.
@@ -526,7 +526,7 @@ Usada en: JUG-003.
 
 Usada en: DAT-004, JUG-003.
 
-### RN-034 Actualización de la trayectoria (propuesta, 14/11/2026)
+### RN-034 Actualización de la trayectoria (decisión del equipo, Cilento, 26/11/2026; propuesta del 14/11/2026)
 
 - Se hace **un pedido por jugador** (`/players/teams`).
 - Un jugador se vuelve a pedir si **nunca se sincronizó o si pasaron más de 30 días** desde la última vez. Con `--forzar` se pide siempre.
@@ -537,7 +537,7 @@ Usada en: DAT-004, JUG-003.
 
 Usada en: DAT-004.
 
-### RN-035 Búsqueda por nombre (propuesta, 14/11/2026)
+### RN-035 Búsqueda por nombre (decisión del equipo, Cilento, 26/11/2026; propuesta del 14/11/2026)
 
 **Normalización.** El texto que escribe el usuario y el nombre del jugador se normalizan igual que en RN-002 (paso 1): minúsculas, sin tildes, sin signos y con espacios simples. Es la misma función (`normalizar_nombre`), no una copia.
 
@@ -577,7 +577,7 @@ Usada en: DAT-004.
 | `rias` | `rias` | Ninguno: "rias" no es el comienzo de ninguna palabra | 0 |
 | `...` | (vacío) | Sin filtro: los 4 | 4 |
 
-**A validar con el PO:**
+**Se había dejado para validar con el PO** (cerrado por el equipo el 26/11/2026: queda como está propuesto, desde el comienzo de la palabra, sin mínimo de caracteres y con un máximo de 60):
 
 - si la coincidencia tiene que ser desde el comienzo de la palabra (lo propuesto) o en cualquier parte. Con "en cualquier parte", `rias` encontraría a S. Arias, pero la inicial de `S. Ari` coincidiría con cualquier nombre que tenga una "s";
 - si hace falta un mínimo de 2 o 3 caracteres;
@@ -600,14 +600,14 @@ Usada en: AUT-003.
 
 ## Pendientes
 
-- **PO:** validar RN-035 **(propuesta)**: búsqueda por nombre (BUS-010).
+- ~~**PO:** validar RN-035: búsqueda por nombre (BUS-010).~~ Cerrada como decisión del equipo, Cilento, 26/11/2026.
 - ~~**PO y equipo:** validar ADR-0011, RN-029 y RN-030.~~ Resueltas el 20/11/2026: ADR-0011 aceptada, RN-029 aprobada con el reparto de fuentes de arriba y RN-030 aprobada tal como estaba.
-- **PO:** validar RN-031 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasan de `basica` a `completa` (medido el 16/11/2026 en Federal A).
+- ~~**PO:** validar RN-031 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasan de `basica` a `completa` (medido el 16/11/2026 en Federal A).~~ Cerradas como decisión del equipo, Cilento, 26/11/2026. RN-031 suma los contadores en 0 de Sportmonks.
 
 - ~~**Backend:** confirmar los campos de API-Football, sobre todo si `passes.accuracy` viene como % o como cantidad, y los IDs de las 6 ligas.~~ Resuelto el 28/10: `passes.accuracy` es un %, y los IDs son 128, 129, 131, 132, 133 y 134.
 - ~~**PO:** validar RN-027.~~ Decidida el 29/10: el ascenso usa 2025 hasta que 2026 tenga 100 jugadores con minutos.
-- **PO:** validar RN-028 **(propuesta)**, el mapeo de `Forward` en RN-019 y el cruce por palabras de RN-002 (paso 2b).
-- **PO, antes del Demo Day:** el valor de mercado casi no cubre el ascenso (RN-002, cobertura medida). Decidir si la demo del presupuesto se apoya en la Liga Profesional.
+- ~~**PO:** validar RN-028, el mapeo de `Forward` en RN-019 y el cruce por palabras de RN-002 (paso 2b).~~ Cerradas como decisión del equipo, Cilento, 26/11/2026.
+- ~~**PO, antes del Demo Day:** el valor de mercado casi no cubre el ascenso (RN-002, cobertura medida). Decidir si la demo del presupuesto se apoya en la Liga Profesional.~~ Desde el 26/11/2026 el presupuesto no tiene tope (RN-003), así que la demo se apoya en la Liga Profesional, que es la que tiene valores.
 - ~~**Backend:** verificar la cobertura de transfermarkt-datasets en las ligas argentinas.~~ Medida el 28/10 en DAT-002 (ver RN-002).
 - **Diseño:** ajustar el prototipo:
   - pasar a EUR;
