@@ -8,9 +8,9 @@ name: Sincronización diaria
 permissions:
   contents: read
 
+# Solo a mano (INF-003, decisión del equipo del 26/11/2026): los datos quedan congelados con la última
+# corrida. Si las claves vencieron, la corrida falla sin tocar los datos (RN-025)
 on:
-  schedule:
-    - cron: "0 6 * * *" # 03:00 de Argentina
   workflow_dispatch:
     inputs:
       fuente:

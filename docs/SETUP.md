@@ -142,7 +142,8 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 | App | Render, servicio `statsline` (`render.yaml`) | Construye el `Dockerfile` de la raíz. Al arrancar corre `python -m app.preparar_base` (migraciones y semillas, con un bloqueo de PostgreSQL) y después `uvicorn`. El healthcheck es `/api/v1/salud` |
 | PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Si pasa en `main`, el job `desplegar` llama al deploy hook de Render |
-| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Todos los días a las 03:00 de Argentina, las 6 ligas con la temporada que elige RN-027. A mano: *Actions → Sincronización diaria → Run workflow*, con liga y temporada opcionales |
+| Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Solo a mano desde el 26/11/2026 (INF-003): *Actions → Sincronización diaria → Run workflow*, con fuente, liga y temporada opcionales. Los datos quedan congelados con la última corrida |
+| Monitor | UptimeRobot, plan gratis (INF-003) | Le pega a `/api/v1/salud` cada 20 minutos para que Render no se duerma y avisa por mail si la app se cae |
 
 ### 1. Base en Aiven
 
@@ -166,6 +167,16 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 
 Render despliega solo `main` y solo con el CI en verde: el auto-deploy de Render está apagado (`autoDeployTrigger: off`) porque Render no recibe los push del repo, y el deploy lo pide el job `desplegar` del CI con el deploy hook (paso 3). Para desplegar a mano: *Manual Deploy → Deploy latest commit* en el panel del servicio. Si el servicio pasa 15 minutos sin tráfico, se apaga, y la primera visita tarda alrededor de un minuto. Antes de una demo, abrí la página unos minutos antes.
 
+### 2b. Monitor para que la app no se duerma (INF-003)
+
+Render gratis apaga el servicio después de 15 minutos sin tráfico, y Aiven gratis apaga la base si no tiene actividad. Para evitarlo, un monitor de UptimeRobot le pega al health check, que también consulta la base:
+
+1. Crear la cuenta en https://uptimerobot.com (plan gratis).
+2. *New monitor* → tipo **HTTP(s)**, URL `https://statsline-4dyy.onrender.com/api/v1/salud`, intervalo **20 minutos**, alertas por mail.
+3. Si llegan alertas falsas de caída (el arranque en frío tarda más que el timeout del monitor), subir el timeout o bajar el intervalo a 14 minutos.
+
+**Si Aiven igual apaga la base:** el host da NXDOMAIN, Render queda en "almost live" y el monitor avisa. Se arregla en console.aiven.io → el servicio → "⋯" → *Power on service* (el host y los datos se conservan; tarda unos 5 minutos). Después, re-ejecutar el job `desplegar` del último CI de `main`: los deploys pedidos mientras la base estaba apagada fallan, y a la base le pueden faltar migraciones.
+
 ### 2c. Mail para recuperar la contraseña (AUT-003)
 
 Render gratis bloquea el SMTP saliente (puertos 25, 465 y 587), así que el mail va por la API HTTP de Brevo (plan gratis, 300 mails por día):
@@ -188,7 +199,7 @@ En el repo: *Settings → Secrets and variables → Actions*. Los carga el dueñ
 | `SPORTMONKS_TOKEN` | El token de Sportmonks (my.sportmonks.com). Sin él, el job de Sportmonks falla y las dos ligas que salen de ahí no se actualizan |
 | `RENDER_DEPLOY_HOOK` | El deploy hook del servicio: en Render, *Settings → Deploy Hook*. Es secreto: con esa URL cualquiera puede desplegar. Si falta, el CI no despliega y deja un aviso |
 
-Para correrla a mano: pestaña *Actions → Sincronización diaria → Run workflow*. GitHub desactiva los workflows programados si el repo pasa 60 días sin actividad.
+Para correrla: pestaña *Actions → Sincronización diaria → Run workflow*. Desde el 26/11/2026 no corre sola (INF-003).
 
 ### Conectarse a la base de producción desde la máquina
 
