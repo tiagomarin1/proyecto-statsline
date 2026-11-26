@@ -103,6 +103,64 @@ jobs:
         if: always()
         run: docker logs statsline
 
+  e2e:
+    # INF-002: recorrido de la demo con Playwright contra la app levantada y el seed fijo.
+    # Corre en paralelo y desplegar todavía no lo espera (decisión del equipo, 26/11/2026)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: statsline_dev
+          POSTGRES_USER: statsline
+          POSTGRES_PASSWORD: statsline
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U statsline -d statsline_dev"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+    env:
+      DATABASE_URL: postgresql+psycopg://statsline:statsline@127.0.0.1:5432/statsline_dev
+      SECRET_KEY: clave-solo-para-el-ci
+      # No es secreta: solo existe en esta base efímera
+      DEMO_CONTRASENA: contrasena-del-ci
+      ENTORNO: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e ./backend
+      - name: Build del frontend y Chromium
+        working-directory: frontend
+        run: npm ci && npm run build && npx playwright install --with-deps chromium
+      - name: Base y seed fijo
+        working-directory: backend
+        run: alembic upgrade head && python -m semillas.demo_e2e
+      - name: Levantar la app
+        working-directory: backend
+        run: |
+          uvicorn app.main:app --port 8000 &
+          for intento in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api/v1/salud; then break; fi
+            sleep 1
+          done
+      - run: npx playwright test
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+
   desplegar:
     # Render no recibe los push del repo, así que el deploy lo dispara el CI con el deploy hook del servicio
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

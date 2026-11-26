@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-16
+- INF-002: test E2E del recorrido de la demo con Playwright (`frontend/e2e/`). Recorre ingresar → filtrar → ficha → comparar → seguimiento con el usuario demo, contra la app levantada en local y el seed fijo `semillas/demo_e2e.py`. Se corre con `npx playwright test` desde `frontend/`; lo que hay que tener levantado está en `SETUP.md`. La contraseña sale de `DEMO_CONTRASENA` y el trace queda apagado para que no aparezca en los reportes. No cambia el código de la app. **Pendiente:** decidir si entra al CI; la propuesta está en el PR.
+
 ## 2026-11-14
 - BUS-010: búsqueda de jugadores por nombre. Buscar suma el campo "Nombre del jugador", que se aplica solo, queda en la URL y tiene su chip; `GET /jugadores` acepta `nombre` (hasta 60 caracteres) y lo combina con los demás filtros. La comparación sigue RN-035 **(propuesta, pendiente de validar con el PO)**: sin tildes ni mayúsculas, contra `nombre`, `nombre_pila` y `apellido`, y cada palabra escrita tiene que ser el comienzo de una palabra del nombre. No cambia el modelo ni hay migraciones; el índice para esta búsqueda queda anotado como pendiente en la spec.
 - UI-003: hero nuevo en la home. Una pelota real rueda de izquierda a derecha por la línea de una cancha mientras se hace scroll, con el hero fijado entre 220 % y 300 % del alto, y a su paso aparecen puntos y tarjetas de datos. Se hace con `gsap` y `@gsap/react`, mueve solo `transform` y `opacity`, y con movimiento reducido (`prefers-reduced-motion`) queda estático y completo. Los chips de ligas pasan a ser informativos (antes cambiaban la maqueta, que se eliminó). Las cifras de las tarjetas son ilustrativas. **Pendiente:** confirmar la licencia y el autor de las dos fotos antes de publicar. Los prototipos de referencia están en `prototipos-landing/`.
