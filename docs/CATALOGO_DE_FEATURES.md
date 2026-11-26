@@ -21,7 +21,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
 | INF-001 | Repo, stack, entorno y deploy | hecho | P0 | 27/10 | Cilento + Marin | specs/infraestructura/INF-001.md |
-| INF-002 | Test E2E del recorrido de la demo (Playwright) | en testing (falta decidir si entra al CI) | P1 | — (nueva) | Cilento | specs/infraestructura/INF-002.md |
+| INF-002 | Test E2E del recorrido de la demo (Playwright) | en testing (job `e2e` en el CI, en paralelo, desde el 26/11/2026) | P1 | — (nueva) | Cilento | specs/infraestructura/INF-002.md |
 
 ### Módulo: Datos
 
