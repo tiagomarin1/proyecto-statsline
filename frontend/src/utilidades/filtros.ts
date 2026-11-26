@@ -15,6 +15,24 @@ export const METRICAS = [
   { nombre: 'minutos_min', label: 'Minutos jugados (mín.)' },
 ];
 
+// RN-029: sin una liga elegida se mezclan fuentes y el rating de cada proveedor no es comparable
+export const MENSAJE_RATING_SIN_LIGA = 'Elegí una liga para ordenar por rating.';
+
+/** Por qué no se puede ordenar así con los filtros de la URL, o null si se puede. */
+export function motivoOrdenNoDisponible(
+  orden: OrdenBusqueda,
+  params: URLSearchParams,
+): string | null {
+  return orden === 'rating' && !params.get('liga_id') ? MENSAJE_RATING_SIN_LIGA : null;
+}
+
+/** Saca el orden de la URL si con los filtros nuevos ya no está disponible (vuelve a minutos). */
+export function sinOrdenNoDisponible(params: URLSearchParams): URLSearchParams {
+  const orden = params.get('orden') as OrdenBusqueda | null;
+  if (orden && motivoOrdenNoDisponible(orden, params)) params.delete('orden');
+  return params;
+}
+
 // RN-035: el back rechaza con 422 un nombre más largo
 export const NOMBRE_LARGO_MAXIMO = 60;
 
@@ -40,6 +58,7 @@ export const ETIQUETAS_FILTRO: Record<string, string> = {
   edad_min: 'Edad mínima',
   edad_max: 'Edad máxima',
   presupuesto_max_eur: 'Presupuesto máximo (EUR)',
+  orden: 'Ordenar por',
   ...Object.fromEntries(METRICAS.map((m) => [m.nombre, m.label])),
 };
 

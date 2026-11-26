@@ -313,7 +313,7 @@ Usada en: DAT-001, BUS-002.
 | Valor (menor primero) | `valor` | ascendente | al final |
 | Edad (menor primero) | `edad` | ascendente | al final |
 | % pases completados | `pases` | descendente | al final |
-| Rating | `rating` | descendente | al final |
+| Rating (solo con una liga elegida, RN-029) | `rating` | descendente | al final |
 
 - Si hay empate, se ordena por `jugador.nombre` ascendente.
 - Las páginas son de **6** resultados, como en el prototipo.
@@ -449,7 +449,8 @@ El reparto sale de la prueba de 14 días (16/11/2026): Sportmonks trae rendimien
 - **Cada liga tiene una sola fuente** (`liga.fuente`). Nunca se mezclan en una misma liga.
 - **La interfaz no indica la fuente** de las métricas: ni la ficha ni la búsqueda (decisión del PO, 20/11/2026).
 - **Comparar entre fuentes distintas está permitido.** Si en el comparador hay jugadores de ligas con fuentes distintas, se muestra el aviso "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables" (decisión del PO, 20/11/2026; spec CMP-003). El aviso no nombra las fuentes.
-- **Búsqueda que mezcla ligas:** sin aviso por ahora. El PO no lo pidió; si hace falta, es una decisión aparte.
+- **Búsqueda que mezcla ligas:** sin aviso, pero **el orden por rating solo se puede usar con una liga elegida** (decisión del equipo, Cilento, 26/11/2026). Con una liga hay una sola fuente; con "Todas", el rating de Sportmonks y el de API-Football quedarían mezclados en una misma lista ordenada. El orden por % de pases sigue disponible sin liga.
+  - **Ejemplo:** sin liga, ordenar por rating ponía primero a un jugador del Federal A con 8,59 (Sportmonks), arriba de todos los de la Liga Profesional (API-Football). Ahora, sin liga, `GET /jugadores?orden=rating` devuelve 422 (`orden`: "Elegí una liga para ordenar por rating."), y la pantalla no ofrece esa opción. Al quitar la liga mientras se ordena por rating, el orden vuelve a minutos.
 - **Ejemplo:** un jugador de la Liga Profesional con rating 7,10 (API-Football) y uno de Primera Nacional con rating 7,40 (Sportmonks) pueden mostrarse juntos, pero con el aviso: el 7,40 no es "mejor" que el 7,10.
 
 Usada en: DAT-003, CMP-003.
