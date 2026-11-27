@@ -917,11 +917,11 @@ select.input::-ms-expand { display: none; }
 .reveal--2 { animation-delay: .15s; }
 @keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-/* Beneficios ("Por qué StatsLine") y pasos de "Cómo funciona" (UI-011): la misma microanimación */
-.feature, .como__paso { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
-.feature:hover, .como__paso:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--accent); }
+/* Tarjetas de "Por qué StatsLine" (UI-011, UI-014): suben al pasar el mouse */
+.feature { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
+.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
-  .feature:hover, .como__paso:hover { transform: none; }
+  .feature:hover { transform: none; }
 }
 .feature__i {
   width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
