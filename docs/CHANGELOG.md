@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (nombre del usuario con mayúscula inicial)
+- UI-012 (en testing): el nombre del usuario se muestra con mayúscula inicial ("tiago marin" → "Tiago Marin") en el menú, en el celular y en escritorio, y en los avisos "Hola, Tiago." y "Cuenta creada. Bienvenido, Tiago."; no cambia lo guardado. Lo hacen `nombrePropio` y `primerNombre` (`utilidades/formato.ts`): las partículas van en minúscula ("María de la Cruz"), las partes con guion o apóstrofe se tratan por separado ("Ana-María", "O'Brien") y una palabra que ya mezcla mayúsculas y minúsculas no se toca ("McDonald"). No se aplica al club ni a los jugadores, y no cambia lo que se manda a la API. Solo frontend: sin backend ni migraciones.
+
 ## 2026-11-27 (segunda tanda de mejoras)
 - JUG-004 (en testing): la API suma `nombre_completo` (nombre de pila y apellido, o lo que haya, o el `nombre` de la fuente; **RN-038**) en búsqueda, seguimiento, ficha y comparación, y la interfaz lo muestra en todos lados: tarjetas, ficha, comparación, barra de selección, buscador, avisos de seguimiento, PDF e iniciales del avatar. Sin columnas nuevas ni migraciones. La búsqueda por nombre no cambia.
 - UI-013 (en testing): títulos y cifras destacadas en Archivo extendido (el ancho del logotipo), con tokens en `base.css`. No se carga ninguna fuente nueva.

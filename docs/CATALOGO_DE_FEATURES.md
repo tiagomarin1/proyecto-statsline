@@ -102,7 +102,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | JUG-004 | Nombre y apellido completos en todo el sistema | en testing | P1 | — (nueva) | — | specs/jugador/JUG-004.md |
 | UI-013 | Tipografía: Archivo extendido en títulos y cifras | en testing | P1 | — (nueva) | — | specs/interfaz/UI-013.md |
-| UI-012 | Navegación: etiquetas y barra de escritorio flotante | en testing | P1 | — (nueva) | — | specs/interfaz/UI-012.md |
+| UI-012 | Navegación: etiquetas, barra de escritorio flotante y nombre del usuario con mayúscula inicial | en testing | P1 | — (nueva) | — | specs/interfaz/UI-012.md |
 | UI-011 | Hero más grande, animación de entrada y "Cómo funciona" animado | en testing | P1 | — (nueva) | — | specs/interfaz/UI-011.md |
 | CMP-007 | Comparación en filas apiladas y resumen final | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-007.md |
 | CMP-002 | Exportar la comparación en PDF (pasa de R2 al MVP) | en testing | P1 | — | — | specs/comparacion/CMP-002.md |
