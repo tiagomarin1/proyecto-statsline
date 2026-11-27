@@ -89,6 +89,8 @@ export interface Metricas {
 export interface JugadorResumen {
   id: number;
   nombre: string;
+  /** JUG-004, RN-038: nombre de pila y apellido; es lo que muestra la interfaz */
+  nombre_completo: string;
   posicion: Posicion | null;
   edad: number | null;
   equipo: string;
@@ -172,6 +174,8 @@ export interface ClubEnTrayectoria {
 export interface FichaJugador {
   id: number;
   nombre: string;
+  /** JUG-004, RN-038: nombre de pila y apellido; es lo que muestra la interfaz */
+  nombre_completo: string;
   posicion: Posicion | null;
   edad: number | null;
   fecha_nacimiento: string | null;
@@ -196,6 +200,8 @@ export interface ComparacionRequest {
 export interface JugadorComparacion {
   id: number;
   nombre: string;
+  /** JUG-004, RN-038: nombre de pila y apellido; es lo que muestra la interfaz */
+  nombre_completo: string;
   posicion: Posicion | null;
   edad: number | null;
   equipo: string;

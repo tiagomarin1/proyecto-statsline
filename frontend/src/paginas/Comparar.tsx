@@ -190,7 +190,7 @@ export default function Comparar() {
   const jugadoresFila = (metrica: string) =>
     jugadores.map((j, i) => ({
       id: j.id,
-      nombre: j.nombre,
+      nombre: j.nombre_completo,
       oculto: ocultos.includes(j.id),
       promedio: promedios[i]?.[metrica as keyof Metricas] ?? null,
     }));
@@ -230,9 +230,9 @@ export default function Comparar() {
                 onMouseLeave={() => setFocoJugador(null)}
               >
                 <span className={`avatar avatar--${j.posicion ?? 'nd'}`} aria-hidden="true">
-                  {iniciales(j.nombre)}
+                  {iniciales(j.nombre_completo)}
                 </span>
-                <h3>{j.nombre}</h3>
+                <h3>{j.nombre_completo}</h3>
                 <p className="pos">
                   {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} ·{' '}
                   {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}
@@ -291,11 +291,11 @@ export default function Comparar() {
               const oculto = ocultos.includes(j.id);
               return (
                 <li key={j.id}>
-                  <span className="cmp__editar-nombre">{j.nombre}</span>
+                  <span className="cmp__editar-nombre">{j.nombre_completo}</span>
                   <button
                     type="button"
                     className="btn btn--ghost btn--sm"
-                    aria-label={`Cambiar a ${j.nombre}`}
+                    aria-label={`Cambiar a ${j.nombre_completo}`}
                     onClick={() => setBuscando({ reemplaza: j.id })}
                   >
                     Cambiar
@@ -304,7 +304,7 @@ export default function Comparar() {
                     <button
                       type="button"
                       className="btn btn--ghost btn--sm"
-                      aria-label={`Quitar a ${j.nombre}`}
+                      aria-label={`Quitar a ${j.nombre_completo}`}
                       onClick={() => cambiarIds(ids.filter((x) => x !== j.id))}
                     >
                       Quitar
@@ -315,7 +315,7 @@ export default function Comparar() {
                     role="switch"
                     className="sw"
                     aria-checked={!oculto}
-                    aria-label={`Mostrar a ${j.nombre}`}
+                    aria-label={`Mostrar a ${j.nombre_completo}`}
                     disabled={!oculto && visibles.length <= 2}
                     onClick={() => alternar(j.id)}
                   >
@@ -432,7 +432,7 @@ export default function Comparar() {
               filas={filas}
               jugadores={jugadores.map((j) => ({
                 id: j.id,
-                nombre: j.nombre,
+                nombre: j.nombre_completo,
                 oculto: ocultos.includes(j.id),
               }))}
             />
@@ -468,7 +468,7 @@ export default function Comparar() {
             <ul className="vcard__lista">
               {ganadas.map(([j, n]) => (
                 <li key={j.id}>
-                  <span>{j.nombre}</span>
+                  <span>{j.nombre_completo}</span>
                   <b className="num">{valorAnimado(n, progreso)}</b>
                 </li>
               ))}
@@ -482,7 +482,7 @@ export default function Comparar() {
                 <b className="num">{formatearEur(diferencia_valor_eur)}</b>
                 <p>
                   {masBarato
-                    ? `${masBarato.nombre} es el más barato de la comparación.`
+                    ? `${masBarato.nombre_completo} es el más barato de la comparación.`
                     : 'Entre el más caro y el más barato.'}
                 </p>
               </>

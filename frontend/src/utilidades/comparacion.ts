@@ -75,7 +75,7 @@ export function porcentajeBarra(
 
 interface JugadorValor {
   id: number;
-  nombre: string;
+  nombre_completo: string;
   valor_mercado_eur: number | null;
 }
 
@@ -84,7 +84,7 @@ export function resumenComparacion(
   filas: Pick<FilaComparacion, 'mejor'>[],
   jugadores: JugadorValor[],
 ): string {
-  const letras = jugadores.map((j) => j.nombre);
+  const letras = jugadores.map((j) => j.nombre_completo);
   const ganadas = jugadores.map((j) => filas.filter((f) => f.mejor.includes(j.id)).length);
   const tope = Math.max(...ganadas);
   const lideres = letras.filter((_, i) => ganadas[i] === tope);

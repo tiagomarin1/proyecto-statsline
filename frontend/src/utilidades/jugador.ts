@@ -5,6 +5,7 @@ export function resumenDeFicha(f: FichaJugador): JugadorResumen {
   return {
     id: f.id,
     nombre: f.nombre,
+    nombre_completo: f.nombre_completo,
     posicion: f.posicion,
     edad: f.edad,
     equipo: f.equipo,

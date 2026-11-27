@@ -73,7 +73,7 @@ export default function BuscadorJugador({ excluirIds, onElegir, onCerrar }: Prop
           {resultados.map((j) => (
             <li key={j.id}>
               <button type="button" onClick={() => onElegir(j)}>
-                <b>{j.nombre}</b>
+                <b>{j.nombre_completo}</b>
                 <span>
                   {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} · {j.equipo}
                 </span>

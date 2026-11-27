@@ -42,10 +42,10 @@ export default function TarjetaJugador({
     <article className={`card pcard${seleccionado ? ' is-sel' : ''}`}>
       <header className="pcard__cab">
         <span className={`avatar avatar--${j.posicion ?? 'nd'}`} aria-hidden="true">
-          {iniciales(j.nombre)}
+          {iniciales(j.nombre_completo)}
         </span>
         <div className="pcard__quien">
-          <h3 className="pcard__nombre">{j.nombre}</h3>
+          <h3 className="pcard__nombre">{j.nombre_completo}</h3>
           <p className="pcard__sub">
             {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} ·{' '}
             {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}
@@ -113,7 +113,7 @@ export default function TarjetaJugador({
           <label className="pcard__cmp">
             <input
               type="checkbox"
-              aria-label={`Comparar a ${j.nombre}`}
+              aria-label={`Comparar a ${j.nombre_completo}`}
               checked={seleccionado ?? false}
               onChange={() => onAlternarSeleccion(j)}
             />

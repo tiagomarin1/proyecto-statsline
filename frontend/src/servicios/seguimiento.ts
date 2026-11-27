@@ -15,13 +15,13 @@ export const dejarDeSeguir = (jugador_id: number) =>
 /** Agrega o quita según el estado actual y devuelve el texto para el aviso. */
 export async function alternarSeguimiento(jugador: {
   id: number;
-  nombre: string;
+  nombre_completo: string;
   en_seguimiento: boolean;
 }) {
   if (jugador.en_seguimiento) {
     await dejarDeSeguir(jugador.id);
-    return `${jugador.nombre} salió de la lista de seguimiento.`;
+    return `${jugador.nombre_completo} salió de la lista de seguimiento.`;
   }
   const { aviso } = await seguirJugador(jugador.id);
-  return aviso ?? `${jugador.nombre} quedó guardado en la lista de seguimiento.`;
+  return aviso ?? `${jugador.nombre_completo} quedó guardado en la lista de seguimiento.`;
 }

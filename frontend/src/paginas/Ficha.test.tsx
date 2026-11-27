@@ -66,7 +66,8 @@ describe('JUG-001: ficha del jugador', () => {
       const { state, pathname } = useLocation();
       return (
         <p>
-          {pathname} {(state as { comparar?: { nombre: string } } | null)?.comparar?.nombre}
+          {pathname}{' '}
+          {(state as { comparar?: { nombre_completo: string } } | null)?.comparar?.nombre_completo}
         </p>
       );
     }

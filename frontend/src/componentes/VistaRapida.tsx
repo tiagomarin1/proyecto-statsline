@@ -31,7 +31,7 @@ export default function VistaRapida({ seleccion }: { seleccion: JugadorResumen[]
         <span />
         {seleccion.map((j) => (
           <div key={j.id} className="vr__col">
-            <b>{j.nombre}</b>
+            <b>{j.nombre_completo}</b>
             <span>{j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}</span>
             <span>
               {j.valor_mercado_eur !== null ? (
@@ -57,7 +57,7 @@ export default function VistaRapida({ seleccion }: { seleccion: JugadorResumen[]
                   <span
                     key={j.id}
                     className={`vr__v${gana ? ' is-best' : ''}`}
-                    aria-label={`${f.etiqueta}, ${j.nombre}: ${valor}${gana ? ', Mejor' : ''}`}
+                    aria-label={`${f.etiqueta}, ${j.nombre_completo}: ${valor}${gana ? ', Mejor' : ''}`}
                   >
                     <Dato valor={v} sufijo={f.sufijo} />
                   </span>

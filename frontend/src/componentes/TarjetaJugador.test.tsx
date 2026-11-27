@@ -56,6 +56,25 @@ describe('UI-010: tarjeta de jugador', () => {
     expect(avatar).toHaveClass('avatar--defensor');
   });
 
+  it('JUG-004: usa el nombre completo y no el abreviado de la fuente, también en las iniciales', () => {
+    const { container } = ver(
+      {
+        ...JUGADOR,
+        nombre: 'M. Rojo',
+        nombre_completo: 'Faustino Marcos Alberto Rojo',
+      },
+      { onAlternarSeleccion: vi.fn() },
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Faustino Marcos Alberto Rojo' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('M. Rojo')).toBeNull();
+    expect(container.querySelector('.avatar')).toHaveTextContent('FM');
+    expect(
+      screen.getByRole('checkbox', { name: 'Comparar a Faustino Marcos Alberto Rojo' }),
+    ).toBeInTheDocument();
+  });
+
   it('muestra todos los datos con formato argentino', () => {
     ver();
     expect(screen.getByText('EUR 850.000')).toBeInTheDocument();
