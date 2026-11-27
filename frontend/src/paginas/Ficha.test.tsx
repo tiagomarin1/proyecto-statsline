@@ -83,3 +83,77 @@ describe('JUG-001: ficha del jugador', () => {
     expect(await screen.findByText('/buscar Ana Gómez')).toBeInTheDocument();
   });
 });
+
+describe('UI-006: ficha por pestañas en el celular', () => {
+  const COINCIDENCIA = {
+    cumple: 1,
+    total: 1,
+    criterios: [{ criterio: 'posicion', estado: 'cumple' as const, texto: 'Juega de Defensor' }],
+  };
+
+  function renderizar(ficha: FichaJugador) {
+    obtenerFichaMock.mockResolvedValue(ficha);
+    return render(
+      <MemoryRouter initialEntries={['/ficha/1']}>
+        <AvisosProvider>
+          <Routes>
+            <Route path="/ficha/:id" element={<Ficha />} />
+          </Routes>
+        </AvisosProvider>
+      </MemoryRouter>,
+    );
+  }
+  const chica = (matches: boolean) =>
+    vi.stubGlobal('matchMedia', (q: string) => ({
+      matches: q.includes('max-width: 767px') ? matches : false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    obtenerFichaMock.mockReset();
+  });
+
+  it('en pantalla ancha no hay pestañas y se ve todo', async () => {
+    chica(false);
+    renderizar({ ...FICHA, coincidencia: COINCIDENCIA });
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.getByText('Métricas de rendimiento')).toBeInTheDocument();
+    expect(screen.getByText('Coincidencia con tu búsqueda')).toBeInTheDocument();
+  });
+
+  it('en celular muestra una pestaña por vez, empezando por Métricas', async () => {
+    chica(true);
+    renderizar({ ...FICHA, coincidencia: COINCIDENCIA });
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.getByRole('tablist', { name: 'Secciones de la ficha' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Métricas', selected: true })).toBeInTheDocument();
+    expect(screen.getByText('Métricas de rendimiento')).toBeInTheDocument();
+    expect(screen.queryByText('Coincidencia con tu búsqueda')).toBeNull();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Coincidencia' }));
+    expect(screen.getByText('Coincidencia con tu búsqueda')).toBeInTheDocument();
+    expect(screen.queryByText('Métricas de rendimiento')).toBeNull();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Trayectoria' }));
+    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
+    expect(screen.queryByText('Coincidencia con tu búsqueda')).toBeNull();
+  });
+
+  it('sin filtros no hay pestaña Coincidencia', async () => {
+    chica(true);
+    renderizar(FICHA);
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.queryByRole('tab', { name: 'Coincidencia' })).toBeNull();
+    expect(screen.getAllByRole('tab').length).toBe(2);
+  });
+
+  it('las flechas del teclado cambian de pestaña', async () => {
+    chica(true);
+    renderizar(FICHA);
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Métricas' }), { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'Trayectoria', selected: true })).toBeInTheDocument();
+  });
+});

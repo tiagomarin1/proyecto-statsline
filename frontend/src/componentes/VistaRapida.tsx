@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 import type { JugadorResumen } from '../tipos/api';
 import { mejorYPeor } from '../utilidades/comparacion';
 import { formatearEur } from '../utilidades/formato';
@@ -19,7 +21,12 @@ export default function VistaRapida({ seleccion }: { seleccion: JugadorResumen[]
     <section className="vr" aria-label="Vista rápida de la comparación">
       <div
         className="vr__grilla"
-        style={{ gridTemplateColumns: `140px repeat(${seleccion.length}, 1fr)` }}
+        style={
+          {
+            gridTemplateColumns: `140px repeat(${seleccion.length}, 1fr)`,
+            '--cols': seleccion.length,
+          } as CSSProperties
+        }
       >
         <span />
         {seleccion.map((j) => (

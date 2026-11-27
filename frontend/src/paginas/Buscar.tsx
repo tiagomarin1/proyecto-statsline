@@ -282,6 +282,8 @@ export default function Buscar() {
         resumenPerfil={perfilGuardado && resumenDePerfil(perfilGuardado, ligas)}
         errorPerfil={errorPerfil}
         camposInvalidos={camposInvalidos}
+        chica={pantallaChica}
+        totalResultados={respuesta?.total ?? null}
       />
 
       <div className="results">

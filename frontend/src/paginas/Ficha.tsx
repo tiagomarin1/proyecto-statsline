@@ -11,6 +11,7 @@ import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { FichaJugador, Metricas } from '../tipos/api';
 import { formatearEur, POSICIONES } from '../utilidades/formato';
 import { resumenDeFicha } from '../utilidades/jugador';
+import { usePantallaChica } from '../utilidades/pantalla';
 
 const METRICAS: { clave: keyof Metricas; label: string; sufijo?: string }[] = [
   { clave: 'partidos_jugados', label: 'Partidos jugados' },
@@ -44,6 +45,8 @@ export default function Ficha() {
   const { id = '' } = useParams();
   const [filtros] = useSearchParams();
   const navegar = useNavigate();
+  const chica = usePantallaChica();
+  const [pestana, setPestana] = useState<'metricas' | 'coincidencia' | 'trayectoria'>('metricas');
   const avisar = useAvisar();
   const [ficha, setFicha] = useState<FichaJugador | null>(null);
   const [error, setError] = useState('');
@@ -92,6 +95,17 @@ export default function Ficha() {
   if (!ficha) return <Esqueleto tipo="ficha" />;
 
   const { metricas, promedios_posicion: promedios, valor_mercado: valor, coincidencia } = ficha;
+  // UI-006: en celular cada sección va en su pestaña; en pantalla ancha se ve todo junto
+  const ver = (seccion: typeof pestana) => !chica || pestana === seccion;
+  const pestanas = [
+    { clave: 'metricas', etiqueta: 'Métricas' },
+    ...(coincidencia ? [{ clave: 'coincidencia', etiqueta: 'Coincidencia' }] : []),
+    { clave: 'trayectoria', etiqueta: 'Trayectoria' },
+  ] as { clave: typeof pestana; etiqueta: string }[];
+  const moverPestana = (e: React.KeyboardEvent, i: number) => {
+    const paso = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (paso) setPestana(pestanas[(i + paso + pestanas.length) % pestanas.length].clave);
+  };
 
   return (
     <div className="wrap app">
@@ -146,62 +160,89 @@ export default function Ficha() {
           </div>
         </section>
 
-        <div className="ficha__grid">
-          <section className="card mlist">
-            <div style={{ padding: '16px 18px 10px' }}>
-              <h2>Métricas de rendimiento</h2>
-              <p className="muted" style={{ fontSize: 13.5, marginTop: 4 }}>
-                La barra es el valor del jugador; la marca vertical, el promedio de la posición.
-              </p>
-            </div>
-            {METRICAS.map((m) => {
-              const valor = metricas[m.clave];
-              const promedio = promedios[m.clave];
-              if (valor === null) {
+        {chica && (
+          <div className="ptabs" role="tablist" aria-label="Secciones de la ficha">
+            {pestanas.map((p, i) => (
+              <button
+                key={p.clave}
+                type="button"
+                role="tab"
+                id={`tab-${p.clave}`}
+                aria-selected={pestana === p.clave}
+                aria-controls="panel-ficha"
+                tabIndex={pestana === p.clave ? 0 : -1}
+                onClick={() => setPestana(p.clave)}
+                onKeyDown={(e) => moverPestana(e, i)}
+              >
+                {p.etiqueta}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div
+          className={`ficha__grid${chica ? ' ficha__grid--tab' : ''}`}
+          id="panel-ficha"
+          role={chica ? 'tabpanel' : undefined}
+          aria-labelledby={chica ? `tab-${pestana}` : undefined}
+        >
+          {ver('metricas') && (
+            <section className="card mlist">
+              <div style={{ padding: '16px 18px 10px' }}>
+                <h2>Métricas de rendimiento</h2>
+                <p className="muted" style={{ fontSize: 13.5, marginTop: 4 }}>
+                  La barra es el valor del jugador; la marca vertical, el promedio de la posición.
+                </p>
+              </div>
+              {METRICAS.map((m) => {
+                const valor = metricas[m.clave];
+                const promedio = promedios[m.clave];
+                if (valor === null) {
+                  return (
+                    <div key={m.clave} className="mitem">
+                      <div className="mitem__top">
+                        <span>{m.label}</span>
+                        <b>
+                          <Dato valor={null} />
+                        </b>
+                      </div>
+                      <p className="mitem__foot">{ficha.liga.nombre} no publica esta métrica.</p>
+                    </div>
+                  );
+                }
+                const tope = topeMetrica(m.clave, m.sufijo, valor, promedio);
                 return (
                   <div key={m.clave} className="mitem">
                     <div className="mitem__top">
                       <span>{m.label}</span>
-                      <b>
-                        <Dato valor={null} />
+                      <b className="num">
+                        {valor}
+                        {m.sufijo ?? ''}
                       </b>
                     </div>
-                    <p className="mitem__foot">{ficha.liga.nombre} no publica esta métrica.</p>
+                    <div className="mitem__bar">
+                      <div
+                        className="mitem__fill"
+                        style={{ width: `${Math.min(100, (valor / tope) * 100)}%` }}
+                      />
+                      {promedio !== null && (
+                        <span
+                          className="mitem__avg"
+                          style={{ left: `${Math.min(99, (promedio / tope) * 100)}%` }}
+                        />
+                      )}
+                    </div>
+                    <p className="mitem__foot">
+                      Promedio de la posición: <Dato valor={promedio} sufijo={m.sufijo} />
+                    </p>
                   </div>
                 );
-              }
-              const tope = topeMetrica(m.clave, m.sufijo, valor, promedio);
-              return (
-                <div key={m.clave} className="mitem">
-                  <div className="mitem__top">
-                    <span>{m.label}</span>
-                    <b className="num">
-                      {valor}
-                      {m.sufijo ?? ''}
-                    </b>
-                  </div>
-                  <div className="mitem__bar">
-                    <div
-                      className="mitem__fill"
-                      style={{ width: `${Math.min(100, (valor / tope) * 100)}%` }}
-                    />
-                    {promedio !== null && (
-                      <span
-                        className="mitem__avg"
-                        style={{ left: `${Math.min(99, (promedio / tope) * 100)}%` }}
-                      />
-                    )}
-                  </div>
-                  <p className="mitem__foot">
-                    Promedio de la posición: <Dato valor={promedio} sufijo={m.sufijo} />
-                  </p>
-                </div>
-              );
-            })}
-          </section>
+              })}
+            </section>
+          )}
 
           <div className="ficha__lateral">
-            {coincidencia && (
+            {coincidencia && ver('coincidencia') && (
               <section className="card match">
                 <h3>Coincidencia con tu búsqueda</h3>
                 <p className="muted">
@@ -217,7 +258,7 @@ export default function Ficha() {
                 ))}
               </section>
             )}
-            <Trayectoria trayectoria={ficha.trayectoria} />
+            {ver('trayectoria') && <Trayectoria trayectoria={ficha.trayectoria} />}
           </div>
         </div>
       </div>
