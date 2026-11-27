@@ -3,6 +3,10 @@
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
 ## 2026-11-27
+- UI-004 hecho: página pública `/terminos` con los términos y condiciones (incluye los derechos de la Ley 25.326), link a los términos desde el registro, y en el pie de todas las páginas "Términos" y "Escribinos por WhatsApp" con el mensaje ya escrito (PR #46).
+- JUG-001 y CMP-001: la interfaz deja de mostrar la temporada de los datos en la ficha, el comparador y el panel de detalle; la API la sigue devolviendo (decisión del equipo, PR #47).
+- INF-003 hecho: monitor de UptimeRobot (plan gratis) contra `/api/v1/salud` cada **5 minutos**, con alertas por mail. El plan gratis no tiene 20 minutos, y con 5 Render no se duerme nunca y sigue sin costo.
+- AUT-003 en producción: Brevo (plan gratis) con un remitente verificado y una clave restringida a emails transaccionales; `BREVO_API_KEY`, `CORREO_REMITENTE` y `URL_PUBLICA` están cargadas en Render. Se probó el mail de recuperación de punta a punta.
 - BUS-005: la pantalla Buscar suma "Guardar perfil de búsqueda" y "Cargar perfil guardado", con el resumen "Perfil guardado: Defensor · 20-27 años · Primera Nacional" debajo de los filtros. Hasta ahora solo existía la API (`GET` y `PUT /perfil-busqueda`). Lo obligatorio lo sigue validando el backend (RN-023): si falta posición, liga o rango de edad, se marca el campo y se muestra su mensaje. Guardar con un perfil ya guardado lo reemplaza y avisa "Reemplaza al anterior: en el MVP hay un solo perfil". Cargarlo reemplaza los filtros de la pantalla (el nombre de BUS-010 no es parte del perfil) y conserva el orden. Solo frontend: el contrato de API no cambia. **Pendiente:** la ficha sigue calculando la coincidencia (RN-012) con los filtros de la URL; si se entra sin filtros no usa el perfil guardado.
 
 ## 2026-11-26

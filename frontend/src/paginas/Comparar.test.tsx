@@ -97,6 +97,15 @@ describe('CMP-001: comparar jugadores', () => {
     expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
   });
 
+  it('no muestra la temporada: el subtítulo es "Métricas lado a lado"', async () => {
+    compararMock.mockResolvedValue(RESPUESTA);
+    renderizarEn('/comparar?ids=1,2');
+
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.queryByText(/Temporada/)).toBeNull();
+    expect(screen.getByText('Métricas lado a lado')).toBeInTheDocument();
+  });
+
   it('CMP-003: avisa cuando los jugadores vienen de fuentes distintas y compara igual', async () => {
     compararMock.mockResolvedValue({ ...RESPUESTA, aviso_fuentes: AVISO });
     renderizarEn('/comparar?ids=1,2');

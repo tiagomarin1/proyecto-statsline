@@ -22,7 +22,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 |---|---|---|---|---|---|---|
 | INF-001 | Repo, stack, entorno y deploy | hecho | P0 | 27/10 | Cilento + Marin | specs/infraestructura/INF-001.md |
 | INF-002 | Test E2E del recorrido de la demo (Playwright) | hecho | P1 | — (nueva) | Cilento | specs/infraestructura/INF-002.md |
-| INF-003 | App despierta con un monitor externo y datos congelados | en testing (falta crear el monitor en UptimeRobot) | P1 | — (nueva) | Cilento | specs/infraestructura/INF-003.md |
+| INF-003 | App despierta con un monitor externo y datos congelados | hecho | P1 | — (nueva) | Cilento | specs/infraestructura/INF-003.md |
 
 ### Módulo: Datos
 
@@ -80,6 +80,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | UI-001 | Rebranding: paleta, logotipo, tipografía y favicon | hecho | P1 | — (nueva) | — | — (sin spec; la fuente es la hoja de marca del 29/10) |
 | UI-002 | Buscar con filtros en vivo, tabla ordenable y panel de detalle | hecho | P1 | — (nueva) | — | specs/interfaz/UI-002.md |
 | UI-003 | Hero de la home con la pelota que recorre la línea | hecho | P1 | — (nueva) | — | specs/interfaz/UI-003.md |
+| UI-004 | Términos y condiciones y canal de contacto por WhatsApp | hecho | P1 | — (nueva) | — | specs/interfaz/UI-004.md |
 
 ### Mapeo con las tarjetas de Trello
 
