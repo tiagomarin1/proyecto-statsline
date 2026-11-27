@@ -54,6 +54,8 @@ Convenciones:
 | Menú de navegación | `menu_navegacion` | Panel que se abre con el botón de tres rayas. En el celular tiene todas las opciones (UI-008); en escritorio, las secundarias: tu nombre y club, Ayuda, Términos, WhatsApp y Salir (UI-012). Reemplaza al "menú móvil" | hamburguesa, drawer, burger, menu_movil | — |
 | Barra-isla | `topbar` | Barra de navegación flotante de escritorio, del ancho del contenedor, con esquinas redondeadas, que queda pegada arriba (UI-012) | navbar, header | — |
 | Ayuda | (solo UI) | Opción del menú que abre el tour de bienvenida. Se llamaba "Ver tour" (UI-012) | — | — |
+| Mini demo | `mini_demo` | Pedacito animado de la app, con cifras de ejemplo, que reemplaza al ícono en cada tarjeta de "Por qué StatsLine" (UI-014) | ilustración, widget | — |
+| Demo guiada | `demo_guiada` | "Cómo funciona" de la home: los tres pasos como pestañas y una ventana de la app que avanza sola (UI-014) | tour (el tour es otra cosa, UI-007), carrusel, slider | — |
 | Título escrito | `titulo_escrito` | El título del hero que se escribe letra por letra al cargar la home (UI-011) | typewriter | — |
 | Tarjeta de jugador | `tarjeta_jugador` | Card con todos los datos de un candidato, usada en los resultados y en el seguimiento (UI-010) | ficha corta, fila | — |
 | Nombre propio | `nombrePropio` | Cómo se muestra el nombre del usuario: con mayúscula inicial, partículas en minúscula y sin tocar lo que ya mezcla mayúsculas ("tiago marin" → "Tiago Marin"). Solo al mostrarlo; lo guardado no cambia (UI-012). No se aplica al club ni a los jugadores | capitalizar, title case | función del frontend |
