@@ -1,7 +1,16 @@
-import type { PerfilBusqueda } from '../tipos/api';
+import type { PerfilBusqueda, PerfilBusquedaRequest } from '../tipos/api';
+import { ErrorApi, pedirApi } from './api';
 
-// BUS-005: todavía sin implementar. Existe para que los tests en rojo compilen.
-export const obtenerPerfil = (): Promise<PerfilBusqueda | null> => Promise.resolve(null);
+/** BUS-005: el perfil guardado del usuario, o null si todavía no guardó ninguno (404 sin_perfil). */
+export async function obtenerPerfil(): Promise<PerfilBusqueda | null> {
+  try {
+    return await pedirApi<PerfilBusqueda>('/perfil-busqueda');
+  } catch (e) {
+    if (e instanceof ErrorApi && e.codigo === 'sin_perfil') return null;
+    throw e;
+  }
+}
 
-export const guardarPerfil = (perfil: PerfilBusqueda): Promise<PerfilBusqueda> =>
-  Promise.reject(new Error(`Sin implementar: ${perfil.posicion}`));
+/** Crea el perfil o reemplaza al anterior: hay uno solo por usuario (RN-023). */
+export const guardarPerfil = (perfil: PerfilBusquedaRequest) =>
+  pedirApi<PerfilBusqueda>('/perfil-busqueda', { method: 'PUT', body: JSON.stringify(perfil) });

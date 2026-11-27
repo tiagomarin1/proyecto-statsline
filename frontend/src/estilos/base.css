@@ -948,6 +948,14 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
 .bf__campo select.input { padding-right: 36px; background-position: right 12px center; }
 .bf__par { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bf__ayuda { font-size: 12px; }
+.bf__campo .input[aria-invalid="true"] { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
+/* BUS-005: resumen del perfil guardado y sus dos botones */
+.bf__perfil {
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between;
+  padding-top: 12px; border-top: 1px solid var(--line);
+}
+.bf__resumen { margin: 0; font-size: 14px; min-width: 0; }
+.bf__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .bf__mas > summary { cursor: pointer; font-size: 14px; font-weight: 500; color: var(--accent); width: fit-content; }
 .bf__chips {
   list-style: none; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line);

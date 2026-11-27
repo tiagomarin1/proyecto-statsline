@@ -49,7 +49,7 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | BUS-002 | Filtrar por liga o competición | hecho | P0 | 2/11 | Garrido + Cilento | specs/busqueda/BUS-002.md |
 | BUS-003 | Filtrar por métricas tácticas | hecho | P0 | 3/11 | Cilento + Garrido | specs/busqueda/BUS-003.md |
 | BUS-004 | Filtrar por presupuesto | hecho | P0 | 3/11 | Marin + Garrido | specs/busqueda/BUS-004.md |
-| BUS-005 | Crear, guardar y cargar el perfil de búsqueda | hecho | P1 | — | — | specs/busqueda/BUS-005.md |
+| BUS-005 | Crear, guardar y cargar el perfil de búsqueda | hecho (pantalla agregada el 27/11) | P1 | — | — | specs/busqueda/BUS-005.md |
 | BUS-006 | Resultados: orden, paginado, sin resultados y selección | hecho | P0 | — (nueva) | — | specs/busqueda/BUS-006.md |
 | BUS-010 | Buscar jugadores por nombre | hecho | P1 | — (nueva) | — | specs/busqueda/BUS-010.md |
 
