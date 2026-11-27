@@ -10,16 +10,27 @@ import TarjetaJugador from '../componentes/TarjetaJugador';
 import { useAvisar } from '../contexto/AvisosContext';
 import { buscarJugadores, listarLigas } from '../servicios/jugadores';
 import { ErrorApi } from '../servicios/api';
+import { guardarPerfil, obtenerPerfil } from '../servicios/perfilBusqueda';
 import { alternarSeguimiento } from '../servicios/seguimiento';
-import type { JugadorResumen, Liga, OrdenBusqueda, RespuestaBusqueda } from '../tipos/api';
+import type {
+  JugadorResumen,
+  Liga,
+  OrdenBusqueda,
+  PerfilBusqueda,
+  PerfilBusquedaRequest,
+  Posicion,
+  RespuestaBusqueda,
+} from '../tipos/api';
 import {
   ETIQUETAS_FILTRO,
   motivoOrdenNoDisponible,
+  NOMBRES_FILTRO,
   ORDENES,
   sinOrdenNoDisponible,
   TAMANO_TABLA,
   TAMANO_TARJETAS,
 } from '../utilidades/filtros';
+import { POSICIONES } from '../utilidades/formato';
 import { usePantallaChica } from '../utilidades/pantalla';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
@@ -30,6 +41,43 @@ function mensajeDeError(e: unknown) {
 }
 
 const MAX_COMPARAR = 3;
+
+/** Campos obligatorios del perfil (RN-023), como los nombra el 422 del backend. */
+const OBLIGATORIOS_PERFIL = ['posicion', 'liga_id', 'edad'];
+
+/** BUS-005: los filtros del formulario como cuerpo del PUT. Lo vacío va en null. */
+function perfilDeFiltros(filtros: Record<string, string>): PerfilBusquedaRequest {
+  const numero = (nombre: string) =>
+    filtros[nombre] === undefined ? null : Number(filtros[nombre]);
+  return {
+    posicion: (filtros.posicion as Posicion | undefined) ?? null,
+    liga_id: numero('liga_id'),
+    edad_min: numero('edad_min'),
+    edad_max: numero('edad_max'),
+    presupuesto_max_eur: numero('presupuesto_max_eur'),
+    pases_min: numero('pases_min'),
+    duelos_min: numero('duelos_min'),
+    recuperaciones_min: numero('recuperaciones_min'),
+    minutos_min: numero('minutos_min'),
+  };
+}
+
+/** "Cargar perfil guardado" copia sus valores a los filtros (RN-023); los null no son filtros. */
+function filtrosDePerfil(perfil: PerfilBusqueda): Record<string, string> {
+  const filtros: Record<string, string> = {};
+  for (const nombre of NOMBRES_FILTRO) {
+    // `nombre` (BUS-010) es un filtro pero no es parte del perfil: ahí queda undefined
+    const valor = perfil[nombre as keyof PerfilBusqueda] as
+      PerfilBusqueda[keyof PerfilBusqueda] | undefined;
+    if (valor !== null && valor !== undefined) filtros[nombre] = String(valor);
+  }
+  return filtros;
+}
+
+function resumenDePerfil(perfil: PerfilBusqueda, ligas: Liga[]) {
+  const liga = ligas.find((l) => l.id === perfil.liga_id)?.nombre ?? `Liga ${perfil.liga_id}`;
+  return `Perfil guardado: ${POSICIONES[perfil.posicion]} · ${perfil.edad_min}-${perfil.edad_max} años · ${liga}`;
+}
 
 /** Los filtros viven en la URL: se pueden compartir y sobreviven al "volver" desde la ficha. */
 export default function Buscar() {
@@ -46,6 +94,10 @@ export default function Buscar() {
   const [seleccion, setSeleccion] = useState<JugadorResumen[]>([]);
   // Jugador cuyo detalle está abierto en el panel (UI-002)
   const [elegidoId, setElegidoId] = useState<number | null>(null);
+  // BUS-005: el perfil guardado (uno por usuario, RN-023) y lo que falta para guardar uno
+  const [perfilGuardado, setPerfilGuardado] = useState<PerfilBusqueda | null>(null);
+  const [errorPerfil, setErrorPerfil] = useState('');
+  const [camposInvalidos, setCamposInvalidos] = useState<string[]>([]);
 
   const orden = (params.get('orden') as OrdenBusqueda | null) ?? 'minutos';
   const elegido = respuesta?.resultados.find((j) => j.id === elegidoId) ?? null;
@@ -54,6 +106,10 @@ export default function Buscar() {
     listarLigas()
       .then(setLigas)
       .catch(() => setLigas([]));
+    // Si no se puede leer, la pantalla sigue andando: solo no se ofrece cargarlo
+    obtenerPerfil()
+      .then(setPerfilGuardado)
+      .catch(() => setPerfilGuardado(null));
   }, []);
 
   useEffect(() => {
@@ -94,9 +150,40 @@ export default function Buscar() {
   /** Aplica los filtros que llegan y conserva el orden si sigue disponible (RN-029); siempre
    *  vuelve a la página 1. */
   function aplicarFiltros(filtros: Record<string, string>) {
+    // Al tocar los filtros, lo que faltaba para guardar el perfil deja de marcarse
+    setErrorPerfil('');
+    setCamposInvalidos([]);
     const nuevos = new URLSearchParams(filtros);
     if (params.get('orden')) nuevos.set('orden', params.get('orden')!);
     setParams(sinOrdenNoDisponible(nuevos));
+  }
+
+  /** BUS-005: guarda o reemplaza el perfil. Lo obligatorio lo valida el backend (RN-023), que
+   *  devuelve el mensaje con todo lo que falta. */
+  async function guardarPerfilDeBusqueda(filtros: Record<string, string>) {
+    setErrorPerfil('');
+    setCamposInvalidos([]);
+    const habiaPerfil = perfilGuardado !== null;
+    try {
+      setPerfilGuardado(await guardarPerfil(perfilDeFiltros(filtros)));
+      avisar(
+        habiaPerfil
+          ? 'Perfil guardado. Reemplaza al anterior: en el MVP hay un solo perfil.'
+          : 'Perfil de búsqueda guardado.',
+      );
+    } catch (e) {
+      if (!(e instanceof ErrorApi)) {
+        avisar('No se pudo guardar el perfil de búsqueda.');
+        return;
+      }
+      const campos = e.errores?.map((x) => x.campo) ?? [];
+      setCamposInvalidos(campos);
+      // El 422 de RN-023 ya trae la frase completa; otros 422 (por ejemplo, un rango de edad al
+      // revés) se muestran campo por campo, como en la búsqueda
+      setErrorPerfil(
+        campos.some((c) => OBLIGATORIOS_PERFIL.includes(c)) ? e.message : mensajeDeError(e),
+      );
+    }
   }
 
   function cambiar(clave: string, valor: string | null) {
@@ -159,7 +246,18 @@ export default function Buscar() {
         </div>
       </div>
 
-      <BarraFiltros params={params} ligas={ligas} onCambiar={aplicarFiltros} />
+      <BarraFiltros
+        params={params}
+        ligas={ligas}
+        onCambiar={aplicarFiltros}
+        onGuardarPerfil={guardarPerfilDeBusqueda}
+        onCargarPerfil={
+          perfilGuardado ? () => aplicarFiltros(filtrosDePerfil(perfilGuardado)) : undefined
+        }
+        resumenPerfil={perfilGuardado && resumenDePerfil(perfilGuardado, ligas)}
+        errorPerfil={errorPerfil}
+        camposInvalidos={camposInvalidos}
+      />
 
       <div className="results">
         <div className="results__bar">

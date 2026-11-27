@@ -238,8 +238,11 @@ export interface PerfilBusqueda {
   minutos_min: number | null;
 }
 
-/** Body del PUT (sin id; el backend crea o reemplaza) */
-export type PerfilBusquedaRequest = PerfilBusqueda;
+/** Body del PUT (sin id; el backend crea o reemplaza). Posición, liga y edad pueden ir en null:
+ * el backend responde 422 con el mensaje de RN-023 que dice todo lo que falta. */
+export type PerfilBusquedaRequest = {
+  [K in keyof PerfilBusqueda]: PerfilBusqueda[K] | null;
+};
 
 // --- Seguimiento ---
 

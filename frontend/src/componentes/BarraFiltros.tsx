@@ -13,6 +13,16 @@ interface Props {
   ligas: Liga[];
   /** Recibe todos los filtros que quedan activos, sin los vacíos. */
   onCambiar: (filtros: Record<string, string>) => void;
+  /** BUS-005: recibe los filtros tal como están en el formulario, aunque falte aplicarlos. */
+  onGuardarPerfil?: (filtros: Record<string, string>) => void;
+  /** BUS-005: solo llega si hay un perfil guardado. */
+  onCargarPerfil?: () => void;
+  /** "Perfil guardado: Defensor · 20-27 años · Primera Nacional" */
+  resumenPerfil?: string | null;
+  /** RN-023: el mensaje de lo que falta para guardar el perfil. */
+  errorPerfil?: string;
+  /** Campos que se marcan como inválidos (`edad` marca los dos extremos del rango). */
+  camposInvalidos?: string[];
 }
 
 /** Etiqueta del chip de un filtro activo. */
@@ -46,7 +56,16 @@ function etiquetaChip(nombre: string, valor: string, ligas: Liga[]): string {
 
 /** Filtros que se aplican solos: los selectores al instante, y el nombre y los números al dejar
  * de tipear. */
-export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
+export default function BarraFiltros({
+  params,
+  ligas,
+  onCambiar,
+  onGuardarPerfil,
+  onCargarPerfil,
+  resumenPerfil,
+  errorPerfil,
+  camposInvalidos = [],
+}: Props) {
   const aplicados = filtrosDeParams(params);
   const clave = JSON.stringify(aplicados);
   const [valores, setValores] = useState(aplicados);
@@ -81,6 +100,19 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
     onCambiar(restantes);
   }
 
+  /** BUS-005: guarda lo que se ve en el formulario. Si había algo esperando a aplicarse (se
+   * acaba de tipear), se aplica ya, así el perfil y la lista quedan iguales. */
+  function guardarPerfil() {
+    clearTimeout(temporizador.current);
+    const filtros = actuales.current;
+    if (JSON.stringify(filtros) !== clave) onCambiar(filtros);
+    onGuardarPerfil?.(filtros);
+  }
+
+  // `true` o nada: sin la marca, el atributo no se escribe
+  const invalido = (...campos: string[]) =>
+    campos.some((c) => camposInvalidos.includes(c)) || undefined;
+
   const hayMetricas = METRICAS.some((m) => valores[m.nombre] !== undefined);
   const chips = Object.entries(aplicados);
 
@@ -106,6 +138,7 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
           <select
             className="input"
             id="posicion"
+            aria-invalid={invalido('posicion')}
             value={valores.posicion ?? ''}
             onChange={(e) => cambiar('posicion', e.target.value, true)}
           >
@@ -122,6 +155,7 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
           <select
             className="input"
             id="liga_id"
+            aria-invalid={invalido('liga_id')}
             value={valores.liga_id ?? ''}
             onChange={(e) => cambiar('liga_id', e.target.value, true)}
           >
@@ -143,6 +177,7 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
               max={45}
               placeholder="Desde"
               aria-label="Edad mínima"
+              aria-invalid={invalido('edad', 'edad_min')}
               value={valores.edad_min ?? ''}
               onChange={(e) => cambiar('edad_min', e.target.value, false)}
             />
@@ -153,6 +188,7 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
               max={45}
               placeholder="Hasta"
               aria-label="Edad máxima"
+              aria-invalid={invalido('edad', 'edad_max')}
               value={valores.edad_max ?? ''}
               onChange={(e) => cambiar('edad_max', e.target.value, false)}
             />
@@ -195,6 +231,30 @@ export default function BarraFiltros({ params, ligas, onCambiar }: Props) {
           ))}
         </div>
       </details>
+
+      {onGuardarPerfil && (
+        <div className="bf__perfil">
+          <p className="muted bf__resumen">
+            {resumenPerfil ?? 'Todavía no guardaste un perfil de búsqueda.'}
+          </p>
+          <div className="bf__acciones">
+            {onCargarPerfil && (
+              <button className="btn btn--ghost btn--sm" type="button" onClick={onCargarPerfil}>
+                Cargar perfil guardado
+              </button>
+            )}
+            <button className="btn btn--primary btn--sm" type="button" onClick={guardarPerfil}>
+              Guardar perfil de búsqueda
+            </button>
+          </div>
+        </div>
+      )}
+      {errorPerfil && (
+        <div className="alert" role="alert">
+          <span className="alert__i">!</span>
+          <span>{errorPerfil}</span>
+        </div>
+      )}
 
       {chips.length > 0 && (
         <ul className="bf__chips" aria-label="Filtros aplicados">

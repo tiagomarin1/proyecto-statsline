@@ -1,14 +1,19 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import type { JugadorResumen, Liga, RespuestaBusqueda } from '../tipos/api';
+import type { JugadorResumen, Liga, PerfilBusqueda, RespuestaBusqueda } from '../tipos/api';
 import Buscar from './Buscar';
 import { ErrorApi } from '../servicios/api';
 import { buscarJugadores, listarLigas } from '../servicios/jugadores';
+import { guardarPerfil, obtenerPerfil } from '../servicios/perfilBusqueda';
 
 vi.mock('../servicios/jugadores', () => ({
   buscarJugadores: vi.fn(),
   listarLigas: vi.fn().mockResolvedValue([]),
+}));
+vi.mock('../servicios/perfilBusqueda', () => ({
+  obtenerPerfil: vi.fn().mockResolvedValue(null),
+  guardarPerfil: vi.fn(),
 }));
 vi.mock('../servicios/seguimiento', () => ({ alternarSeguimiento: vi.fn() }));
 const avisarMock = vi.fn();
@@ -562,5 +567,169 @@ describe('BUS-010: búsqueda por nombre (RN-035)', () => {
       'No pudimos conectar con el servidor.',
     );
     expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+  });
+});
+
+describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
+  const obtenerPerfilMock = vi.mocked(obtenerPerfil);
+  const guardarPerfilMock = vi.mocked(guardarPerfil);
+
+  const PERFIL: PerfilBusqueda = {
+    posicion: 'defensor',
+    liga_id: 2,
+    edad_min: 20,
+    edad_max: 27,
+    presupuesto_max_eur: null,
+    pases_min: 80,
+    duelos_min: null,
+    recuperaciones_min: null,
+    minutos_min: null,
+  };
+  const RESUMEN = 'Perfil guardado: Defensor · 20-27 años · Primera Nacional';
+
+  beforeEach(() => {
+    ligasMock.mockResolvedValue(LIGAS);
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+  });
+
+  afterEach(() => {
+    buscarMock.mockReset();
+    avisarMock.mockReset();
+    guardarPerfilMock.mockReset();
+    obtenerPerfilMock.mockReset();
+    obtenerPerfilMock.mockResolvedValue(null);
+    ligasMock.mockResolvedValue([]);
+  });
+
+  it('guarda los filtros de la pantalla como perfil, con los opcionales vacíos en null', async () => {
+    guardarPerfilMock.mockResolvedValue(PERFIL);
+    renderizar(
+      '/buscar?posicion=defensor&liga_id=2&edad_min=20&edad_max=27&pases_min=80&orden=pases',
+    );
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    await waitFor(() => expect(guardarPerfilMock).toHaveBeenCalledWith(PERFIL));
+    await waitFor(() => expect(avisarMock).toHaveBeenCalledWith('Perfil de búsqueda guardado.'));
+    expect(await screen.findByText(RESUMEN)).toBeInTheDocument();
+  });
+
+  it('con un campo obligatorio vacío lo marca y muestra el mensaje de RN-023', async () => {
+    guardarPerfilMock.mockRejectedValue(
+      new ErrorApi(422, {
+        detalle: 'Para guardar el perfil falta elegir la liga.',
+        codigo: 'validacion',
+        errores: [{ campo: 'liga_id', mensaje: 'Falta elegir la liga.' }],
+      }),
+    );
+    renderizar('/buscar?posicion=defensor&edad_min=20&edad_max=27');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    expect(
+      await screen.findByText('Para guardar el perfil falta elegir la liga.'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Liga')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Posición')).not.toHaveAttribute('aria-invalid');
+    expect(avisarMock).not.toHaveBeenCalled();
+  });
+
+  it('si falta el rango de edad marca los dos campos de edad', async () => {
+    guardarPerfilMock.mockRejectedValue(
+      new ErrorApi(422, {
+        detalle: 'Para guardar el perfil falta elegir el rango de edad.',
+        codigo: 'validacion',
+        errores: [{ campo: 'edad', mensaje: 'Falta elegir el rango de edad.' }],
+      }),
+    );
+    renderizar('/buscar?posicion=defensor&liga_id=2&edad_min=20');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    await screen.findByText('Para guardar el perfil falta elegir el rango de edad.');
+    expect(screen.getByLabelText('Edad mínima')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Edad máxima')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('guarda lo recién escrito aunque todavía no se haya aplicado a la búsqueda', async () => {
+    guardarPerfilMock.mockResolvedValue(PERFIL);
+    renderizar('/buscar?posicion=defensor&liga_id=2&edad_min=20');
+    await screen.findByText('Jugador 1');
+
+    fireEvent.change(screen.getByLabelText('Edad máxima'), { target: { value: '27' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    await waitFor(() =>
+      expect(guardarPerfilMock).toHaveBeenCalledWith(expect.objectContaining({ edad_max: 27 })),
+    );
+  });
+
+  it('sin perfil guardado no ofrece cargarlo', async () => {
+    renderizar();
+    await screen.findByText('Jugador 1');
+
+    expect(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Cargar perfil guardado' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('muestra el resumen del perfil guardado y al cargarlo aplica sus filtros', async () => {
+    obtenerPerfilMock.mockResolvedValue(PERFIL);
+    renderizar('/buscar?nombre=Rojo&presupuesto_max_eur=500000&orden=pases');
+
+    expect(await screen.findByText(RESUMEN)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cargar perfil guardado' }));
+
+    await waitFor(() => {
+      const filtros = ultimosFiltros();
+      expect(filtros.get('posicion')).toBe('defensor');
+      expect(filtros.get('liga_id')).toBe('2');
+      expect(filtros.get('edad_min')).toBe('20');
+      expect(filtros.get('edad_max')).toBe('27');
+      expect(filtros.get('pases_min')).toBe('80');
+      // El perfil reemplaza a los filtros que había: el nombre no es parte del perfil
+      expect(filtros.get('nombre')).toBeNull();
+      expect(filtros.get('presupuesto_max_eur')).toBeNull();
+      expect(filtros.get('orden')).toBe('pases');
+    });
+    expect(screen.getByLabelText('Edad mínima')).toHaveValue(20);
+  });
+
+  it('guardar con un perfil ya guardado lo reemplaza y lo avisa', async () => {
+    obtenerPerfilMock.mockResolvedValue(PERFIL);
+    const nuevo: PerfilBusqueda = { ...PERFIL, posicion: 'delantero', liga_id: 1, pases_min: null };
+    guardarPerfilMock.mockResolvedValue(nuevo);
+    renderizar('/buscar?posicion=delantero&liga_id=1&edad_min=20&edad_max=27');
+    await screen.findByText(RESUMEN);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    await waitFor(() =>
+      expect(avisarMock).toHaveBeenCalledWith(
+        'Perfil guardado. Reemplaza al anterior: en el MVP hay un solo perfil.',
+      ),
+    );
+    expect(
+      await screen.findByText('Perfil guardado: Delantero · 20-27 años · Liga Profesional'),
+    ).toBeInTheDocument();
+  });
+
+  it('si guardar falla por otra causa lo avisa y no cambia el perfil guardado', async () => {
+    obtenerPerfilMock.mockResolvedValue(PERFIL);
+    guardarPerfilMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    renderizar('/buscar?posicion=delantero&liga_id=1&edad_min=20&edad_max=27');
+    await screen.findByText(RESUMEN);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
+
+    await waitFor(() =>
+      expect(avisarMock).toHaveBeenCalledWith('No se pudo guardar el perfil de búsqueda.'),
+    );
+    expect(screen.getByText(RESUMEN)).toBeInTheDocument();
   });
 });
