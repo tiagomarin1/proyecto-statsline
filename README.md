@@ -4,7 +4,7 @@ Plataforma para que clubes de fútbol chicos y medianos comparen jugadores por r
 
 **Equipo 04 · UADE · 2026** · Backlog en Trello: https://trello.com/b/r9whF8Jq
 
-**App publicada:** https://statsline-4dyy.onrender.com · estado de la API: [`/api/v1/salud`](https://statsline-4dyy.onrender.com/api/v1/salud). Es el plan gratis de Render: si estuvo 15 minutos sin uso, la primera visita tarda alrededor de un minuto (ADR-0009).
+**App publicada:** https://statsline.onrender.com · estado de la API: [`/api/v1/salud`](https://statsline.onrender.com/api/v1/salud). Es el plan gratis de Render: si estuvo 15 minutos sin uso, la primera visita tarda alrededor de un minuto (ADR-0009).
 
 > Antes se llamaba ScoutIAndo. El prototipo v1 y el tablero de Trello todavía usan ese nombre.
 

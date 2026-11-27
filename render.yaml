@@ -29,7 +29,7 @@ services:
       - key: CORREO_REMITENTE
         sync: false # Un remitente verificado en Brevo
       - key: URL_PUBLICA
-        value: https://statsline-4dyy.onrender.com
+        value: https://statsline.onrender.com
       - key: SESION_HORAS
         value: "8"
       - key: ENTORNO
