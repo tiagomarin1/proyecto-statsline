@@ -96,10 +96,10 @@ export default function BarraFiltros({
   useEffect(() => {
     if (!abierta) return;
     hoja.current?.focus();
-    const previo = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const previo = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previo;
+      document.documentElement.style.overflow = previo;
     };
   }, [abierta]);
 

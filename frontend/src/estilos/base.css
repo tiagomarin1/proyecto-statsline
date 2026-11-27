@@ -883,23 +883,9 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
 }
 
 @media (max-width: 767px) {
-  .nav--site a:not(.nav__cta), .nav--app a { display: none; }
-  .nav--site.is-open, .nav--app.is-open {
-    position: absolute;
-    top: 100%; left: 0; right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    padding: 10px var(--gutter-r) 14px var(--gutter);
-    background: var(--sl-grafito);
-    border-bottom: 1px solid rgba(241, 239, 234, .14);
-  }
-  .nav--site.is-open a, .nav--app.is-open a { display: flex; min-height: 46px; }
-  .nav--site.is-open .nav__sep, .nav--app.is-open .nav__sep { display: none; }
-  .nav--app:not(.is-open) .nav__sep { display: none; }
-  .burger { display: inline-flex; margin-left: auto; }
-  .nav { margin-left: 0; }
-  .topbar__in { position: relative; }
+  /* UI-008: sin sesión queda solo el botón de registro; el resto va en el menú hamburguesa */
+  .nav--site a:not(.nav__cta), .nav--app { display: none; }
+  .nav { margin-left: auto; }
 
 
   .steps, .planes { grid-template-columns: minmax(0, 1fr); }

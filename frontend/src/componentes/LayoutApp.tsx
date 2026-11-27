@@ -6,6 +6,7 @@ import { useSesion } from '../contexto/SesionContext';
 import { LINK_WHATSAPP } from '../utilidades/contacto';
 import { marcarTourVisto, tourVisto } from '../utilidades/persistencia';
 import { Logo } from './Logo';
+import MenuMovil from './MenuMovil';
 import Tour from './Tour';
 
 export default function LayoutApp() {
@@ -63,12 +64,17 @@ export default function LayoutApp() {
               </Link>
             </nav>
           )}
+          <MenuMovil
+            usuario={usuario}
+            onVerTour={() => setTourAbierto(true)}
+            onSalir={cerrarSesion}
+          />
         </div>
       </header>
 
       {usuario && tourAbierto && <Tour onCerrar={cerrarTour} />}
 
-      <main key={pathname} className="main main--in">
+      <main key={pathname} className={`main main--in${pathname === '/' ? ' main--inicio' : ''}`}>
         <Outlet />
       </main>
 

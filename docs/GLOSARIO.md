@@ -48,6 +48,7 @@ Convenciones:
 | Plantilla de búsqueda | `plantilla_busqueda` | Conjunto de filtros listo para aplicar en Buscar (UI-007) | preset, atajo de filtros | — |
 | Tour | `tour` | Guía de 3 pasos para el usuario nuevo (UI-007) | onboarding (en el código) | — |
 | Progreso del flujo | `progreso_flujo` | Barra Buscar · Elegir · Comparar (UI-007) | stepper, wizard | — |
+| Menú móvil | `menu_movil` | Panel con todas las opciones de navegación que se abre con el botón de tres rayas en pantallas de menos de 768 px (UI-008) | hamburguesa, drawer, burger | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |
 | Enviador de correo | `enviador` | Lo que manda los mails: Brevo en producción, el log en desarrollo y la memoria en los tests (AUT-003) | mailer, sender | `EnviadorCorreo` |

@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (navegación móvil)
+- UI-008 (en testing): en el celular la barra de arriba pasa a ser una píldora flotante con un botón de menú (hamburguesa) que abre un panel con todas las opciones: Buscar, Seguimiento, Ver tour, Términos, WhatsApp y Salir (o Inicio, Ingresar y Registrarse sin sesión). Antes, con sesión iniciada, el celular no tenía cómo ir a Buscar ni a Seguimiento: el CSS ocultaba los links y no había botón de menú. La barra de escritorio no cambia. Solo frontend.
+
 ## 2026-11-27 (rediseño del hero)
 - UI-003: el hero se reordena para que no quede espacio vacío, sobre todo en el celular. Suma la etiqueta "Para clubes del fútbol argentino", el botón principal a ancho completo en mobile, una **tarjeta de ejemplo de comparación** con barras que se llenan solas al cargar (rótulo "Ejemplo", cifras ilustrativas), las ligas en una sola fila deslizable y un indicador "Ver cómo funciona". En el celular el hero **ya no se fija** con el scroll: la pelota está a la vista y rueda a medida que el hero sale de pantalla. En escritorio se mantiene el pin y la tarjeta ocupa la segunda columna. Se sacan las 4 tarjetas flotantes con puntos. Solo frontend.
 
