@@ -29,7 +29,7 @@ export default function PanelJugador({
             {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}
           </span>
           <span>
-            {j.equipo} · {j.liga.nombre} · {j.temporada}
+            {j.equipo} · {j.liga.nombre}
           </span>
         </div>
         <button className="pj__cerrar" type="button" aria-label="Cerrar detalle" onClick={onCerrar}>
