@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (filtros alineados)
+- UI-009: en los filtros de Buscar, el cuadro de "Presupuesto máximo (EUR)" quedaba 24 px más arriba que los demás por la ayuda "Cualquier monto, en euros." que tiene debajo. Ahora los campos comparten la grilla (rótulo, cuadro y ayuda, con subgrid): todos los cuadros de una fila quedan a la misma altura, también en "Métricas tácticas" cuando un rótulo ocupa dos renglones. Solo frontend.
+
 ## 2026-11-27 (pie de página en el celular)
 - UI-006 (en testing): en pantallas de menos de 768 px el pie va en una sola columna alineada a la izquierda: logo, "Datos de ligas del fútbol argentino", los links (de 44 px de alto) y, separado por una línea, "Equipo 04 · UADE". Antes los elementos quedaban sueltos y la nota alineada a la derecha. En escritorio no cambia. Solo frontend.
 
