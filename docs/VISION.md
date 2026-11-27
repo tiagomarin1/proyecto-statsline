@@ -61,7 +61,7 @@ Se miden en la fase de Evaluación, en las primeras dos semanas de diciembre.
 - **No** incluye en el MVP v1:
   - Score (R2);
   - jugadores similares (R2);
-  - exportar PDF y reportes (R2);
+  - reportes (R2); el PDF de la comparación pasó al MVP el 27/11/2026 (CMP-002);
   - recuperar contraseña (R2);
   - montos en pesos (R2);
   - datos del club (R3).
