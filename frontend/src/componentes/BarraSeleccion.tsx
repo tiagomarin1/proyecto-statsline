@@ -24,7 +24,7 @@ export default function BarraSeleccion({ seleccion, onQuitar, onLimpiar, onCompa
         ) : (
           seleccion.map((j) => (
             <span key={j.id} className="chip chip--accent">
-              {j.nombre_completo}
+              <span title={j.nombre_completo}>{j.nombre_completo}</span>
               <button
                 type="button"
                 aria-label={`Quitar a ${j.nombre_completo} de la comparación`}

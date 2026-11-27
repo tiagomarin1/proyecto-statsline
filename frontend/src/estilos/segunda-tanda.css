@@ -514,3 +514,62 @@ h1 {
     transform: none;
   }
 }
+
+/* ============ UI-009 (ajuste): chips de filtros y etiquetas de la selección más chicos ============ */
+
+.bf__chips,
+.selbar__names {
+  gap: 6px;
+}
+.bf__chips .chip,
+.selbar__names .chip {
+  min-height: 28px;
+  padding: 3px 4px 3px 10px;
+  gap: 4px;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+/* La "×" se ve chica pero su área de toque mide al menos 24 x 24 px (WCAG 2.2, 2.5.8) */
+.bf__chips .chip button,
+.selbar__names .chip button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.bf__chips .chip button::after,
+.selbar__names .chip button::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+.bf__chips .chip button:hover,
+.selbar__names .chip button:hover {
+  background: rgba(126, 97, 24, 0.16);
+}
+.bf__chips .btn--sm {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+/* el nombre completo puede ser largo: la etiqueta se corta con "…" y lo dice entero el title */
+.selbar__names .chip > span {
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
