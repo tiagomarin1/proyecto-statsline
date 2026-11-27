@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MemoryRouter } from 'react-router-dom';
 
 import { HeroLinea } from './HeroLinea';
+import { reiniciarTituloEscrito } from './TituloEscrito';
 
 type Modo = 'escritorio' | 'movil' | 'reducido';
 
@@ -36,6 +37,7 @@ function renderizar(conSesion = false) {
   );
 }
 
+beforeEach(() => reiniciarTituloEscrito());
 afterEach(() => {
   ScrollTrigger.killAll();
 });
@@ -141,7 +143,9 @@ describe('UI-003: hero de la home', () => {
     expect(within(tarjeta).getByText('Jugador B')).toBeInTheDocument();
     expect(within(tarjeta).getAllByRole('listitem')).toHaveLength(3);
     expect(within(tarjeta).getByText('A gana en 2 de 3 métricas')).toBeInTheDocument();
-    expect(within(tarjeta).getByText(/más barato/)).toBeInTheDocument();
+    // CMP-007: ya no se habla de quién es más barato
+    expect(within(tarjeta).queryByText(/barato/)).toBeNull();
+    expect(within(tarjeta).getByText('Jugador B gana en % duelos')).toBeInTheDocument();
   });
 
   it('las barras de la tarjeta no se anuncian a los lectores de pantalla', () => {
@@ -188,5 +192,46 @@ describe('UI-003: hero de la home', () => {
     renderizar(true);
     const cta = document.querySelector('.hero__cta') as HTMLElement;
     expect(within(cta).getAllByRole('link')).toHaveLength(1);
+  });
+
+  it('UI-011: con movimiento permitido el resto entra escalonado después del título', () => {
+    vi.useFakeTimers();
+    simularPantalla('escritorio');
+    const { container } = renderizar();
+    const hero = container.querySelector('section.hero') as HTMLElement;
+    expect(hero).toHaveAttribute('data-entrada', 'escribiendo');
+    const escalonados = [...container.querySelectorAll('.hero-entra')];
+    // etiqueta, bajada, botones, tarjeta, ligas e indicador, en ese orden
+    expect(escalonados.map((e) => e.className.split(' ')[0])).toEqual([
+      'hero__etiqueta',
+      'hero__lead',
+      'hero__cta',
+      'ejemplo',
+      'ligas',
+      'hero__scroll',
+    ]);
+    escalonados.forEach((e, i) =>
+      expect((e as HTMLElement).style.getPropertyValue('--orden')).toBe(String(i)),
+    );
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(hero).toHaveAttribute('data-entrada', 'listo');
+    vi.useRealTimers();
+  });
+
+  it('UI-011: con movimiento reducido el hero aparece completo, sin entrada', () => {
+    simularPantalla('reducido');
+    const { container } = renderizar();
+    expect(container.querySelector('section.hero')).not.toHaveAttribute('data-entrada');
+    expect(container.querySelectorAll('.tit__l.is-oculta')).toHaveLength(0);
+  });
+
+  it('UI-011: el título tiene el texto completo accesible', () => {
+    simularPantalla('escritorio');
+    renderizar();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Fichá con datos, no a ojo.' }),
+    ).toBeInTheDocument();
   });
 });
