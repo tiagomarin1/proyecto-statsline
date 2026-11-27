@@ -6,7 +6,8 @@ import TarjetaJugador from './TarjetaJugador';
 
 const JUGADOR: JugadorResumen = {
   id: 7,
-  nombre: 'Nahuel Ferreyra',
+  nombre: 'N. Ferreyra',
+  nombre_completo: 'Nahuel Ferreyra',
   posicion: 'defensor',
   edad: 23,
   equipo: 'Deportivo Norte',

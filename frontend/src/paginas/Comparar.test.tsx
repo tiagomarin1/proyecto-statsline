@@ -20,7 +20,8 @@ const RESPUESTA: RespuestaComparacion = {
   jugadores: [
     {
       id: 1,
-      nombre: 'Ana Gómez',
+      nombre: 'A. Gómez',
+      nombre_completo: 'Ana Gómez',
       posicion: 'defensor',
       edad: 24,
       equipo: 'Club A',
@@ -30,7 +31,8 @@ const RESPUESTA: RespuestaComparacion = {
     },
     {
       id: 2,
-      nombre: 'Beto Ruiz',
+      nombre: 'B. Ruiz',
+      nombre_completo: 'Beto Ruiz',
       posicion: 'defensor',
       edad: 23,
       equipo: 'Club B',
@@ -132,7 +134,8 @@ const TRES: RespuestaComparacion = {
     ...RESPUESTA.jugadores,
     {
       id: 3,
-      nombre: 'Caro Díaz',
+      nombre: 'C. Díaz',
+      nombre_completo: 'Caro Díaz',
       posicion: 'defensor',
       edad: 25,
       equipo: 'Club C',
@@ -364,7 +367,14 @@ describe('CMP-005: armar la comparación sin volver a Buscar', () => {
     compararMock.mockResolvedValue(TRES);
     buscarMock.mockResolvedValue({
       resultados: [
-        { id: 9, nombre: 'Dani Soto', equipo: 'Club D', posicion: 'defensor', edad: 22 },
+        {
+          id: 9,
+          nombre: 'D. Soto',
+          nombre_completo: 'Dani Soto',
+          equipo: 'Club D',
+          posicion: 'defensor',
+          edad: 22,
+        },
       ],
     } as never);
     renderizarEn('/comparar?ids=1,2,3');

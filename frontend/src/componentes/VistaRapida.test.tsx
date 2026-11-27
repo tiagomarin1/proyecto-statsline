@@ -14,7 +14,8 @@ const base = {
 const A = {
   ...base,
   id: 1,
-  nombre: 'Ana',
+  nombre: 'A.',
+  nombre_completo: 'Ana',
   edad: 22,
   pases_precision_pct: 87,
   duelos_ganados_pct: 61,
@@ -25,7 +26,8 @@ const A = {
 const B = {
   ...A,
   id: 2,
-  nombre: 'Beto',
+  nombre: 'B.',
+  nombre_completo: 'Beto',
   edad: 25,
   pases_precision_pct: 83,
   duelos_ganados_pct: null,

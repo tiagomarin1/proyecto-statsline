@@ -6,7 +6,8 @@ import BarraSeleccion from './BarraSeleccion';
 const j = (id: number, nombre: string) =>
   ({
     id,
-    nombre,
+    nombre: `${nombre[0]}.`,
+    nombre_completo: nombre,
     edad: 22,
     posicion: 'defensor',
     equipo: 'Club',

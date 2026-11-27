@@ -56,8 +56,8 @@ describe('CMP-004: resumen en una frase', () => {
     { metrica: 'asistencias', etiqueta: 'Asistencias', valores: [3, 1], mejor: [1], peor: [2] },
   ];
   const jugadores = [
-    { id: 1, nombre: 'Ana Gómez', valor_mercado_eur: 1_500_000 },
-    { id: 2, nombre: 'Beto Ruiz', valor_mercado_eur: 900_000 },
+    { id: 1, nombre: 'A. Gómez', nombre_completo: 'Ana Gómez', valor_mercado_eur: 1_500_000 },
+    { id: 2, nombre: 'B. Ruiz', nombre_completo: 'Beto Ruiz', valor_mercado_eur: 900_000 },
   ];
 
   it('cuenta las métricas ganadas y nombra al más barato', () => {

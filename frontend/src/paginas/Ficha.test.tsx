@@ -22,7 +22,8 @@ const SIN_METRICAS = {
 
 const FICHA: FichaJugador = {
   id: 1,
-  nombre: 'Ana Gómez',
+  nombre: 'A. Gómez',
+  nombre_completo: 'Ana Gómez',
   posicion: 'defensor',
   edad: 24,
   fecha_nacimiento: null,
@@ -208,7 +209,8 @@ describe('UI-010: ficha rediseñada', () => {
 
   const CON_DATOS: FichaJugador = {
     ...FICHA,
-    nombre: 'Nahuel Ferreyra',
+    nombre: 'N. Ferreyra',
+    nombre_completo: 'Nahuel Ferreyra',
     nacionalidad: 'Argentina',
     valor_mercado: { eur: 850000, fecha: '2026-07-06', fuente: 'Transfermarkt' },
     metricas: {
