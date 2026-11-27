@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (pie de página en el celular)
+- UI-006 (en testing): en pantallas de menos de 768 px el pie va en una sola columna alineada a la izquierda: logo, "Datos de ligas del fútbol argentino", los links (de 44 px de alto) y, separado por una línea, "Equipo 04 · UADE". Antes los elementos quedaban sueltos y la nota alineada a la derecha. En escritorio no cambia. Solo frontend.
+
 ## 2026-11-27 (barra intermedia en amarillo)
 - CMP-007 (en testing): en la comparación, la barra del jugador que no es Mejor ni Peor pasa de gris a amarillo (token `--medio`, con su versión para modo oscuro); verde el Mejor y rojo el Peor siguen igual. La leyenda suma "Intermedio" y el PDF (CMP-002) usa los mismos colores. Solo frontend.
 
