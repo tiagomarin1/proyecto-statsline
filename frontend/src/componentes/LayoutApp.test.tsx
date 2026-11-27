@@ -383,3 +383,18 @@ describe('UI-012: nombre del usuario con mayúscula inicial', () => {
     expect(within(menu).getByText('AFA')).toBeInTheDocument();
   });
 });
+
+describe('UI-006: pie de página', () => {
+  it('tiene el logo, la nota, los links y el equipo, cada uno con su clase para ordenarlos en el celular', () => {
+    localStorage.setItem('statsline_tour_visto', '1');
+    const { container } = ver();
+    const pie = screen.getByRole('contentinfo');
+    expect(within(pie).getByRole('link', { name: /statsline/i })).toHaveAttribute('href', '/');
+    expect(within(pie).getByText('Datos de ligas del fútbol argentino')).toHaveClass('foot__note');
+    const links = within(pie).getByRole('navigation', { name: 'Enlaces del pie' });
+    expect(within(links).getByRole('link', { name: 'Términos' })).toBeInTheDocument();
+    expect(within(links).getByRole('link', { name: /WhatsApp/ })).toBeInTheDocument();
+    expect(within(pie).getByText('Equipo 04 · UADE')).toHaveClass('foot__equipo');
+    expect(container.querySelector('.foot__in')).not.toBeNull();
+  });
+});

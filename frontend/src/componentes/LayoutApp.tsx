@@ -76,7 +76,7 @@ export default function LayoutApp() {
           <Link className="logo logo--sm" to="/">
             <Logo />
           </Link>
-          <span>Equipo 04 · UADE</span>
+          <span className="foot__equipo">Equipo 04 · UADE</span>
           <span className="foot__note">Datos de ligas del fútbol argentino</span>
           <nav className="foot__links" aria-label="Enlaces del pie">
             <Link to="/terminos">Términos</Link>

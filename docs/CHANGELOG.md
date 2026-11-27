@@ -2,6 +2,15 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (home: mini demos y demo guiada)
+- UI-014 (en testing): las dos secciones de la home debajo del hero dejan de ser tres tarjetas iguales. "Por qué StatsLine" pasa a ser un bento: la razón de los filtros ocupa la tarjeta grande y cada razón muestra una mini demo de la app (chips que se aplican y los primeros candidatos, barras verde, amarilla y roja, la estrella del seguimiento) en lugar de un ícono. "Cómo funciona" pasa a ser una demo guiada: los tres pasos son pestañas y una ventana de la app avanza sola cada 4 segundos cuando la sección está en pantalla, con "Pausar demo"; elegir un paso la frena y las flechas del teclado recorren los pasos. Las cifras son de ejemplo ("Jugador A/B/C", rótulo "Ejemplo"). Con movimiento reducido nada se mueve solo. Solo frontend.
+
+## 2026-11-27 (filtros alineados)
+- UI-009: en los filtros de Buscar, el cuadro de "Presupuesto máximo (EUR)" quedaba 24 px más arriba que los demás por la ayuda "Cualquier monto, en euros." que tiene debajo. Ahora los campos comparten la grilla (rótulo, cuadro y ayuda, con subgrid): todos los cuadros de una fila quedan a la misma altura, también en "Métricas tácticas" cuando un rótulo ocupa dos renglones. Solo frontend.
+
+## 2026-11-27 (pie de página en el celular)
+- UI-006 (en testing): en pantallas de menos de 768 px el pie va en una sola columna alineada a la izquierda: logo, "Datos de ligas del fútbol argentino", los links (de 44 px de alto) y, separado por una línea, "Equipo 04 · UADE". Antes los elementos quedaban sueltos y la nota alineada a la derecha. En escritorio no cambia. Solo frontend.
+
 ## 2026-11-27 (barra intermedia en amarillo)
 - CMP-007 (en testing): en la comparación, la barra del jugador que no es Mejor ni Peor pasa de gris a amarillo (token `--medio`, con su versión para modo oscuro); verde el Mejor y rojo el Peor siguen igual. La leyenda suma "Intermedio" y el PDF (CMP-002) usa los mismos colores. Solo frontend.
 
