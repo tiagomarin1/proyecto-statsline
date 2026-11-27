@@ -2,6 +2,11 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (Buscar en dos pasos, tarjetas y comparación en columnas)
+- UI-009 (en testing): Buscar se parte en dos pantallas. La primera son solo los filtros, con "Ver resultados" como botón principal y "Guardar perfil de búsqueda" como secundario; recién al tocar "Ver resultados" se piden y muestran los candidatos, con "Modificar filtros" para volver. Se eliminan las plantillas de búsqueda, los filtros en vivo, la tabla, el panel de detalle y el panel de filtros que sube desde abajo.
+- UI-010 (en testing): tarjeta de jugador rediseñada con avatar, todos los datos y barras en los porcentajes, usada en Buscar y en Seguimiento (que ahora también permite comparar). La barra de selección dice "Jugadores a comparar" con etiquetas más chicas. La ficha suma datos clave, métricas con número grande y diferencia contra el promedio.
+- CMP-006 (en testing): la comparación muestra a los jugadores en columnas de izquierda a derecha (también en el celular) y cada métrica con una celda por jugador: número en grande, barra proporcional a ese número, "Mejor" en verde y "Peor" en rojo. Se muestra siempre el nombre completo (se terminó el "A · L."). La línea del promedio sale de las barras (queda en el tooltip y en una casilla). **RN-037** actualiza la escala de las barras. **Pendiente:** si la fuente abrevia el nombre ("L. Magallán"), mostrar el nombre de pila completo requiere un campo nuevo en la API.
+
 ## 2026-11-27 (navegación móvil)
 - UI-008 (en testing): en el celular la barra de arriba pasa a ser una píldora flotante con un botón de menú (hamburguesa) que abre un panel con todas las opciones: Buscar, Seguimiento, Ver tour, Términos, WhatsApp y Salir (o Inicio, Ingresar y Registrarse sin sesión). Antes, con sesión iniciada, el celular no tenía cómo ir a Buscar ni a Seguimiento: el CSS ocultaba los links y no había botón de menú. La barra de escritorio no cambia. Solo frontend.
 
