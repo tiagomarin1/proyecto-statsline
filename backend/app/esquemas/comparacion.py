@@ -13,6 +13,7 @@ class PedidoComparacion(BaseModel):
 class JugadorComparado(BaseModel):
     id: int
     nombre: str
+    nombre_completo: str  # JUG-004, RN-038
     posicion: Posicion | None
     edad: int | None
     equipo: str

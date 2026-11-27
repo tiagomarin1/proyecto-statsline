@@ -15,6 +15,7 @@ from app.modelos import Jugador, Seguimiento
 from app.repositorios import jugador as repositorio_jugador
 from app.repositorios import seguimiento as repositorio_seguimiento
 from app.servicios.busqueda import a_jugador_resumen, consulta_base
+from app.servicios.nombre_completo import nombre_completo
 
 # Más que suficiente para una lista personal; se pagina en el frontend si hiciera falta
 MAXIMO_JUGADORES_EN_LISTA = 500
@@ -28,6 +29,11 @@ def aviso_guardado(nombre: str) -> str:
 def aviso_quitado(nombre: str) -> str:
     """RN-026."""
     return f"{nombre} salió de la lista de seguimiento."
+
+
+def _nombre_completo(jugador: Jugador) -> str:
+    """RN-026: los avisos usan el nombre completo (RN-038)."""
+    return nombre_completo(jugador.nombre, jugador.nombre_pila, jugador.apellido)
 
 
 def listar(session: Session, usuario_id: int, hoy: date) -> list[JugadorResumen]:
@@ -55,7 +61,9 @@ def guardar(session: Session, usuario_id: int, jugador_id: int) -> tuple[Respues
         raise ErrorApi(404, "jugador_inexistente", "No encontramos a ese jugador.")
     agregado = repositorio_seguimiento.agregar(session, usuario_id, jugador_id)
     session.commit()
-    return RespuestaGuardado(jugador_id=jugador_id, aviso=aviso_guardado(jugador.nombre)), agregado
+    return RespuestaGuardado(
+        jugador_id=jugador_id, aviso=aviso_guardado(_nombre_completo(jugador))
+    ), agregado
 
 
 def quitar(session: Session, usuario_id: int, jugador_id: int) -> None:

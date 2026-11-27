@@ -35,6 +35,7 @@ from app.servicios.estadistica_vigente import (
     recuperaciones_por_partido,
     redondear,
 )
+from app.servicios.nombre_completo import nombre_completo
 from app.servicios.presupuesto import filtrar_por_presupuesto, sin_valor_de_mercado
 
 # Filtro de BUS-003 → columna de la consulta con la que se compara (RN-001)
@@ -77,6 +78,8 @@ def consulta_base(usuario_id: int) -> Select:
         select(
             Jugador.id,
             Jugador.nombre,
+            Jugador.nombre_pila,
+            Jugador.apellido,
             Jugador.fecha_nacimiento,
             Jugador.valor_mercado_eur,
             vigente.c.posicion,
@@ -182,6 +185,7 @@ def a_jugador_resumen(fila: RowMapping, hoy: date) -> JugadorResumen:
     return JugadorResumen(
         id=fila["id"],
         nombre=fila["nombre"],
+        nombre_completo=nombre_completo(fila["nombre"], fila["nombre_pila"], fila["apellido"]),
         posicion=fila["posicion"],
         edad=calcular_edad(fila["fecha_nacimiento"], hoy),
         equipo=fila["equipo"],
