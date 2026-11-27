@@ -56,7 +56,7 @@ export default function Inicio() {
         </div>
       </section>
 
-      <section className="band band--paso" aria-label="Cómo funciona">
+      <section id="como-funciona" className="band band--paso" aria-label="Cómo funciona">
         <div className="wrap">
           <div className="section__head">
             <span className="eyebrow">Cómo funciona</span>

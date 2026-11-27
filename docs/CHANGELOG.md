@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (rediseño del hero)
+- UI-003: el hero se reordena para que no quede espacio vacío, sobre todo en el celular. Suma la etiqueta "Para clubes del fútbol argentino", el botón principal a ancho completo en mobile, una **tarjeta de ejemplo de comparación** con barras que se llenan solas al cargar (rótulo "Ejemplo", cifras ilustrativas), las ligas en una sola fila deslizable y un indicador "Ver cómo funciona". En el celular el hero **ya no se fija** con el scroll: la pelota está a la vista y rueda a medida que el hero sale de pantalla. En escritorio se mantiene el pin y la tarjeta ocupa la segunda columna. Se sacan las 4 tarjetas flotantes con puntos. Solo frontend.
+
 ## 2026-11-27 (release de cierre del MVP)
 - CMP-004 (en testing): las barras de Comparar son interactivas. Entran animadas al aparecer en pantalla, tienen tooltip (valor, diferencia contra los otros y contra el promedio de la posición) al pasar, tocar o enfocar con Tab, resaltado cruzado de métrica y de jugador, marca del promedio de la posición (RN-015, se pide a la ficha de cada jugador), destaque del "Mejor", resumen en una frase, filtros de la tabla (grupo, "Solo diferencias grandes", "Ocultar métricas sin datos"), interruptor para ocultar un jugador (RN-006 se recalcula con los visibles) y vista Radar. **RN-037 (propuesta)** fija el umbral del 10 %, los grupos y la escala. El percentil contra la posición queda pendiente. Solo frontend: el contrato de API no cambia.
 - CMP-005 (en testing): en Comparar se puede cambiar, quitar o sumar un jugador por nombre (BUS-010) sin volver a Buscar, y copiar el link. "Comparar con…" en la ficha y en el panel de detalle, y "Vista rápida" en la barra de selección. Exportar PDF sigue en CMP-002 (R2).

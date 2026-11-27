@@ -34,4 +34,12 @@ describe('INF-001: home', () => {
     expect(seccion).toHaveTextContent('Compará');
     expect(seccion.querySelectorAll('li')).toHaveLength(3);
   });
+
+  it('UI-003: la sección "Cómo funciona" es el destino del indicador del hero', () => {
+    renderizarEn('/');
+    expect(screen.getByRole('region', { name: 'Cómo funciona' })).toHaveAttribute(
+      'id',
+      'como-funciona',
+    );
+  });
 });
