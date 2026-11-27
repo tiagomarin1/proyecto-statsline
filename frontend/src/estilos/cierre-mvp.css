@@ -312,3 +312,126 @@
     transform: none;
   }
 }
+
+/* ===== CMP-005: comparar más rápido ===== */
+.cmp__rapido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.cmp__link {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.cmp__link input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  font: inherit;
+  background: var(--surface);
+}
+.bj {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  animation: tip-in var(--mov-medio) var(--mov-curva);
+}
+.bj__fila {
+  display: flex;
+  gap: 8px;
+}
+.bj__fila input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  font: inherit;
+  background: var(--bg);
+}
+.bj__msg {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-muted);
+}
+.bj__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.bj__lista button {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background var(--mov-rapido) ease,
+    transform var(--mov-rapido) var(--mov-curva);
+}
+.bj__lista button:hover {
+  background: var(--accent-soft);
+}
+.bj__lista button:active {
+  transform: scale(0.99);
+}
+.bj__lista span {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.vr {
+  flex-basis: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  animation: tip-in var(--mov-medio) var(--mov-curva);
+}
+.vr__grilla {
+  display: grid;
+  gap: 6px 12px;
+  align-items: center;
+}
+.vr__fila {
+  display: contents;
+}
+.vr__col {
+  display: grid;
+  gap: 1px;
+  font-size: 13px;
+}
+.vr__col b {
+  font-size: 15px;
+}
+.vr__lbl {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.vr__v {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  width: fit-content;
+}
+.vr__v.is-best {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

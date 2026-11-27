@@ -1,14 +1,15 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import type { RespuestaComparacion } from '../tipos/api';
 import Comparar from './Comparar';
 import { compararJugadores } from '../servicios/comparaciones';
-import { obtenerFicha } from '../servicios/jugadores';
+import { buscarJugadores, obtenerFicha } from '../servicios/jugadores';
 
 vi.mock('../servicios/comparaciones', () => ({ compararJugadores: vi.fn() }));
 const compararMock = vi.mocked(compararJugadores);
-vi.mock('../servicios/jugadores', () => ({ obtenerFicha: vi.fn() }));
+vi.mock('../servicios/jugadores', () => ({ obtenerFicha: vi.fn(), buscarJugadores: vi.fn() }));
+const buscarMock = vi.mocked(buscarJugadores);
 const fichaMock = vi.mocked(obtenerFicha);
 
 function liga() {
@@ -321,5 +322,73 @@ describe('CMP-004: barras interactivas', () => {
     expect(screen.getByRole('img', { name: 'A, % pases completados, 87, Mejor' })).not.toHaveClass(
       'is-dim',
     );
+  });
+});
+
+describe('CMP-005: armar la comparación sin volver a Buscar', () => {
+  beforeEach(() => {
+    fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
+  });
+  afterEach(() => {
+    compararMock.mockReset();
+    fichaMock.mockReset();
+    buscarMock.mockReset();
+  });
+
+  it('"Cambiar" busca por nombre y rearma la comparación con el elegido en su lugar', async () => {
+    compararMock.mockResolvedValue(TRES);
+    buscarMock.mockResolvedValue({
+      resultados: [
+        { id: 9, nombre: 'Dani Soto', equipo: 'Club D', posicion: 'defensor', edad: 22 },
+      ],
+    } as never);
+    renderizarEn('/comparar?ids=1,2,3');
+    fireEvent.click(await screen.findByRole('button', { name: 'Cambiar a Beto Ruiz' }));
+    fireEvent.change(screen.getByLabelText('Buscar jugador por nombre'), {
+      target: { value: 'dan' },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: /Dani Soto/ }));
+    await waitFor(() => expect(compararMock).toHaveBeenLastCalledWith([1, 9, 3]));
+  });
+
+  it('"Quitar" pasa de 3 a 2, y con 2 no hay "Quitar"', async () => {
+    compararMock.mockResolvedValueOnce(TRES).mockResolvedValue(RESPUESTA);
+    renderizarEn('/comparar?ids=1,2,3');
+    fireEvent.click(await screen.findByRole('button', { name: 'Quitar a Caro Díaz' }));
+    await waitFor(() => expect(compararMock).toHaveBeenLastCalledWith([1, 2]));
+    await screen.findByRole('button', { name: 'Sumar jugador' });
+    expect(screen.queryByRole('button', { name: /^Quitar a / })).toBeNull();
+  });
+
+  it('"Sumar jugador" aparece con 2 y no con 3', async () => {
+    compararMock.mockResolvedValue(RESPUESTA);
+    const { unmount } = renderizarEn('/comparar?ids=1,2');
+    expect(await screen.findByRole('button', { name: 'Sumar jugador' })).toBeInTheDocument();
+    unmount();
+    compararMock.mockResolvedValue(TRES);
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Caro Díaz' });
+    expect(screen.queryByRole('button', { name: 'Sumar jugador' })).toBeNull();
+  });
+
+  it('"Copiar link" copia la URL y avisa "Link copiado"', async () => {
+    compararMock.mockResolvedValue(RESPUESTA);
+    const escribir = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText: escribir } });
+    renderizarEn('/comparar?ids=1,2');
+    fireEvent.click(await screen.findByRole('button', { name: 'Copiar link' }));
+    expect(await screen.findByText('Link copiado')).toBeInTheDocument();
+    expect(escribir).toHaveBeenCalledWith(expect.stringContaining('/comparar?ids=1,2'));
+  });
+
+  it('si no se puede copiar muestra el link para copiarlo a mano', async () => {
+    compararMock.mockResolvedValue(RESPUESTA);
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error('x')) },
+    });
+    renderizarEn('/comparar?ids=1,2');
+    fireEvent.click(await screen.findByRole('button', { name: 'Copiar link' }));
+    const campo = await screen.findByLabelText('Link de la comparación');
+    expect((campo as HTMLInputElement).value).toContain('/comparar?ids=1,2');
   });
 });

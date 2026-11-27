@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AvisosProvider } from '../contexto/AvisosContext';
 import { obtenerFicha } from '../servicios/jugadores';
@@ -57,5 +57,29 @@ describe('JUG-001: ficha del jugador', () => {
     expect(screen.getByText('Liga Profesional')).toBeInTheDocument();
     expect(screen.queryByText(/Temporada/)).toBeNull();
     expect(screen.queryByText(/2026/)).toBeNull();
+  });
+
+  it('CMP-005: "Comparar con…" lleva a Buscar con el jugador listo para comparar', async () => {
+    obtenerFichaMock.mockResolvedValue(FICHA);
+    function Destino() {
+      const { state, pathname } = useLocation();
+      return (
+        <p>
+          {pathname} {(state as { comparar?: { nombre: string } } | null)?.comparar?.nombre}
+        </p>
+      );
+    }
+    render(
+      <MemoryRouter initialEntries={['/ficha/1?posicion=defensor']}>
+        <AvisosProvider>
+          <Routes>
+            <Route path="/ficha/:id" element={<Ficha />} />
+            <Route path="/buscar" element={<Destino />} />
+          </Routes>
+        </AvisosProvider>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Comparar con…' }));
+    expect(await screen.findByText('/buscar Ana Gómez')).toBeInTheDocument();
   });
 });

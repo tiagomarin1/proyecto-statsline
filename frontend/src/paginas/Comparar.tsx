@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
 import FilaMetrica from '../componentes/FilaMetrica';
+import BuscadorJugador from '../componentes/BuscadorJugador';
 import RadarComparacion from '../componentes/RadarComparacion';
 import { ErrorApi } from '../servicios/api';
 import { compararJugadores } from '../servicios/comparaciones';
@@ -30,7 +31,9 @@ function idsDeUrl(params: URLSearchParams): number[] {
 }
 
 export default function Comparar() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const ubicacion = useLocation();
+  const linkComparacion = `${window.location.origin}${ubicacion.pathname}${ubicacion.search}`;
   const ids = idsDeUrl(params);
   const [datos, setDatos] = useState<RespuestaComparacion | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -44,6 +47,9 @@ export default function Comparar() {
   const [focoMetrica, setFocoMetrica] = useState<string | null>(null);
   const [focoJugador, setFocoJugador] = useState<number | null>(null);
   const progreso = useProgreso(!cargando);
+  // CMP-005: cambiar o sumar un jugador sin volver a Buscar, y copiar el link
+  const [buscando, setBuscando] = useState<{ reemplaza: number | null } | null>(null);
+  const [copiado, setCopiado] = useState<'si' | 'manual' | null>(null);
 
   const clave = ids.join(',');
   useEffect(() => {
@@ -86,6 +92,22 @@ export default function Comparar() {
       vigente = false;
     };
   }, [datos]);
+
+  /** La comparación vive en la URL: cambiarla rearma todo y "Atrás" vuelve a la anterior. */
+  function cambiarIds(nuevos: number[]) {
+    setBuscando(null);
+    setParams({ ids: nuevos.join(',') });
+  }
+
+  async function copiarLink() {
+    try {
+      await navigator.clipboard.writeText(linkComparacion);
+      setCopiado('si');
+      setTimeout(() => setCopiado(null), 3000);
+    } catch {
+      setCopiado('manual');
+    }
+  }
 
   if (ids.length < 2) {
     return (
@@ -240,6 +262,24 @@ export default function Comparar() {
                   </Link>
                   <button
                     type="button"
+                    className="btn btn--ghost btn--sm"
+                    aria-label={`Cambiar a ${j.nombre}`}
+                    onClick={() => setBuscando({ reemplaza: j.id })}
+                  >
+                    Cambiar
+                  </button>
+                  {jugadores.length === 3 && (
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      aria-label={`Quitar a ${j.nombre}`}
+                      onClick={() => cambiarIds(ids.filter((x) => x !== j.id))}
+                    >
+                      Quitar
+                    </button>
+                  )}
+                  <button
+                    type="button"
                     role="switch"
                     className="sw"
                     aria-checked={!oculto}
@@ -257,6 +297,45 @@ export default function Comparar() {
             );
           })}
         </div>
+
+        <div className="cmp__rapido">
+          {jugadores.length < 3 && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setBuscando({ reemplaza: null })}
+            >
+              Sumar jugador
+            </button>
+          )}
+          <button type="button" className="btn btn--ghost btn--sm" onClick={copiarLink}>
+            Copiar link
+          </button>
+          {copiado === 'si' && (
+            <span className="chip chip--good" role="status">
+              Link copiado
+            </span>
+          )}
+        </div>
+        {copiado === 'manual' && (
+          <label className="cmp__link">
+            Link de la comparación
+            <input readOnly value={linkComparacion} onFocus={(e) => e.currentTarget.select()} />
+          </label>
+        )}
+        {buscando && (
+          <BuscadorJugador
+            excluirIds={ids}
+            onCerrar={() => setBuscando(null)}
+            onElegir={(j) =>
+              cambiarIds(
+                buscando.reemplaza === null
+                  ? [...ids, j.id]
+                  : ids.map((x) => (x === buscando.reemplaza ? j.id : x)),
+              )
+            }
+          />
+        )}
 
         <section className="card">
           <div className="cmp__barra">

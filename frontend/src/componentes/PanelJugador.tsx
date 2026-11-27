@@ -10,6 +10,8 @@ interface Props {
   filtros: string;
   onCerrar: () => void;
   onAlternarSeguimiento: (jugador: JugadorResumen) => void;
+  /** CMP-005: deja al jugador seleccionado para compararlo con otro */
+  onCompararCon?: (jugador: JugadorResumen) => void;
 }
 
 /** Detalle del jugador elegido en la tabla, para verlo sin salir de la lista. */
@@ -18,6 +20,7 @@ export default function PanelJugador({
   filtros,
   onCerrar,
   onAlternarSeguimiento,
+  onCompararCon,
 }: Props) {
   return (
     <aside className="card pj" aria-label={`Detalle de ${j.nombre}`}>
@@ -89,6 +92,11 @@ export default function PanelJugador({
         >
           {j.en_seguimiento ? 'Quitar de seguimiento' : 'Seguir'}
         </button>
+        {onCompararCon && (
+          <button className="btn btn--ghost btn--sm" type="button" onClick={() => onCompararCon(j)}>
+            Comparar con…
+          </button>
+        )}
       </div>
     </aside>
   );

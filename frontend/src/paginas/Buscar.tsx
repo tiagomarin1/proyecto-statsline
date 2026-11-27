@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import BarraFiltros from '../componentes/BarraFiltros';
 import BarraSeleccion from '../componentes/BarraSeleccion';
@@ -83,6 +83,7 @@ function resumenDePerfil(perfil: PerfilBusqueda, ligas: Liga[]) {
 export default function Buscar() {
   const [params, setParams] = useSearchParams();
   const navegar = useNavigate();
+  const ubicacion = useLocation();
   const avisar = useAvisar();
   const pantallaChica = usePantallaChica();
   const [ligas, setLigas] = useState<Liga[]>([]);
@@ -92,6 +93,17 @@ export default function Buscar() {
   // Selección para comparar (CMP-001). Guarda el jugador entero para que la barra lo muestre
   // aunque cambie de página de resultados.
   const [seleccion, setSeleccion] = useState<JugadorResumen[]>([]);
+  // CMP-005: "Comparar con…" desde la ficha o el panel llega con el jugador de origen
+  const origen = (ubicacion.state as { comparar?: JugadorResumen } | null)?.comparar;
+  useEffect(() => {
+    if (!origen) return;
+    setSeleccion((s) =>
+      s.some((x) => x.id === origen.id) ? s : [...s, origen].slice(0, MAX_COMPARAR),
+    );
+    avisar('Elegí a quién compararlo');
+    navegar(`${ubicacion.pathname}${ubicacion.search}`, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origen?.id]);
   // Jugador cuyo detalle está abierto en el panel (UI-002)
   const [elegidoId, setElegidoId] = useState<number | null>(null);
   // BUS-005: el perfil guardado (uno por usuario, RN-023) y lo que falta para guardar uno
@@ -227,6 +239,19 @@ export default function Buscar() {
       return;
     }
     setSeleccion([...seleccion, j]);
+  }
+
+  /** CMP-005: desde el panel, deja al jugador seleccionado y pide elegir al otro */
+  function compararCon(j: JugadorResumen) {
+    if (!seleccion.some((s) => s.id === j.id)) {
+      if (seleccion.length >= MAX_COMPARAR) {
+        avisar(`Se pueden comparar hasta ${MAX_COMPARAR} jugadores a la vez.`);
+        return;
+      }
+      setSeleccion([...seleccion, j]);
+    }
+    setElegidoId(null);
+    avisar('Elegí a quién compararlo');
   }
 
   function compararSeleccion() {
@@ -377,6 +402,7 @@ export default function Buscar() {
                           filtros={params.toString()}
                           onCerrar={() => setElegidoId(null)}
                           onAlternarSeguimiento={alternar}
+                          onCompararCon={compararCon}
                         />
                       )}
                     </div>

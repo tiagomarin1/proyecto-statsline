@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
 import Trayectoria from '../componentes/Trayectoria';
@@ -9,6 +9,7 @@ import { obtenerFicha } from '../servicios/jugadores';
 import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { FichaJugador, Metricas } from '../tipos/api';
 import { formatearEur, POSICIONES } from '../utilidades/formato';
+import { resumenDeFicha } from '../utilidades/jugador';
 
 const METRICAS: { clave: keyof Metricas; label: string; sufijo?: string }[] = [
   { clave: 'partidos_jugados', label: 'Partidos jugados' },
@@ -41,6 +42,7 @@ function topeMetrica(
 export default function Ficha() {
   const { id = '' } = useParams();
   const [filtros] = useSearchParams();
+  const navegar = useNavigate();
   const avisar = useAvisar();
   const [ficha, setFicha] = useState<FichaJugador | null>(null);
   const [error, setError] = useState('');
@@ -122,6 +124,17 @@ export default function Ficha() {
                 </span>
               )}
             </div>
+            <button
+              className="btn btn--sm btn--ghost"
+              type="button"
+              onClick={() =>
+                navegar(`/buscar?${filtros}`, {
+                  state: { comparar: resumenDeFicha(ficha) },
+                })
+              }
+            >
+              Comparar con…
+            </button>
             <button
               className={`btn btn--sm ${ficha.en_seguimiento ? 'btn--ghost' : 'btn--primary'}`}
               type="button"

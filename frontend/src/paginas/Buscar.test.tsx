@@ -733,3 +733,21 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
     expect(screen.getByText(RESUMEN)).toBeInTheDocument();
   });
 });
+
+describe('CMP-005: llegar a Buscar desde "Comparar con…"', () => {
+  beforeEach(() => {
+    avisarMock.mockReset();
+    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
+  });
+
+  it('deja al jugador de origen seleccionado y avisa a quién compararlo', async () => {
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/buscar', state: { comparar: jugador(9) } }]}>
+        <Buscar />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByLabelText('Jugadores seleccionados para comparar')).toBeTruthy();
+    expect(screen.getByText('Jugador 9')).toBeInTheDocument();
+    await waitFor(() => expect(avisarMock).toHaveBeenCalledWith('Elegí a quién compararlo'));
+  });
+});
