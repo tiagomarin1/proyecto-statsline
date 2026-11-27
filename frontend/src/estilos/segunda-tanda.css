@@ -390,6 +390,9 @@ h1 {
   background: var(--fg-faint);
   transition: width var(--mov-lento, 0.6s) var(--mov-curva);
 }
+.fila-cmp.is-medio .fila-cmp__barra {
+  background: var(--medio);
+}
 .fila-cmp.is-best .fila-cmp__barra {
   background: var(--good);
 }
