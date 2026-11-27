@@ -42,6 +42,12 @@ Convenciones:
 | Cruce con Transfermarkt | `cruce` | Búsqueda de la fila de transfermarkt-datasets de un jugador (RN-002). Resultado: `cruzado`, `sin_coincidencia`, `ambiguo` o `sin_fecha` | match, matcheo | — |
 | Aviso | `aviso` | Mensaje para el usuario que confirma una acción, por ejemplo al guardar en la lista de seguimiento (RN-026) | mensaje (para esto), toast | campo |
 | Promedio de la posición | `promedio_posicion` | Promedio de una métrica entre los jugadores de la misma posición (RN-015) | — | — |
+| Diferencia grande | `diferencia_grande` | Fila de la comparación donde el mejor supera al peor en al menos 10 % del mayor (RN-037) | — | — |
+| Marca del promedio | `marca_promedio` | Línea vertical sobre la barra que indica el promedio de la posición (RN-015) | — | — |
+| Jugador oculto | `jugador_oculto` | Jugador que se atenúa en la comparación y deja de contar para el resumen (RN-037) | — | — |
+| Plantilla de búsqueda | `plantilla_busqueda` | Conjunto de filtros listo para aplicar en Buscar (UI-007) | preset, atajo de filtros | — |
+| Tour | `tour` | Guía de 3 pasos para el usuario nuevo (UI-007) | onboarding (en el código) | — |
+| Progreso del flujo | `progreso_flujo` | Barra Buscar · Elegir · Comparar (UI-007) | stepper, wizard | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |
 | Enviador de correo | `enviador` | Lo que manda los mails: Brevo en producción, el log en desarrollo y la memoria en los tests (AUT-003) | mailer, sender | `EnviadorCorreo` |

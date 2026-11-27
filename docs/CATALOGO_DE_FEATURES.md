@@ -82,6 +82,16 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | UI-003 | Hero de la home con la pelota que recorre la línea | hecho | P1 | — (nueva) | — | specs/interfaz/UI-003.md |
 | UI-004 | Términos y condiciones y canal de contacto por WhatsApp | hecho | P1 | — (nueva) | — | specs/interfaz/UI-004.md |
 
+### Release de cierre del MVP (27/11/2026, pedido del equipo)
+
+| ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
+|---|---|---|---|---|---|---|
+| CMP-004 | Barras de comparación interactivas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-004.md |
+| CMP-005 | Comparar más rápido: cambiar jugador, vista rápida, copiar link | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-005.md |
+| UI-005 | Microanimaciones y movimiento coherente | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-005.md |
+| UI-006 | Responsive en celular | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
+| UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
+
 ### Mapeo con las tarjetas de Trello
 
 | Tarjeta de Trello | ID |
