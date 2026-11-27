@@ -5,6 +5,7 @@ import Dato from '../componentes/Dato';
 import Esqueleto from '../componentes/Esqueleto';
 import FilaMetrica from '../componentes/FilaMetrica';
 import BuscadorJugador from '../componentes/BuscadorJugador';
+import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import RadarComparacion from '../componentes/RadarComparacion';
 import { ErrorApi } from '../servicios/api';
 import { compararJugadores } from '../servicios/comparaciones';
@@ -19,6 +20,7 @@ import {
   resumenComparacion,
 } from '../utilidades/comparacion';
 import { useProgreso, valorAnimado } from '../utilidades/movimiento';
+import { linkAResultados } from '../utilidades/persistencia';
 import { formatearEur, POSICIONES } from '../utilidades/formato';
 
 const LETRAS = ['A', 'B', 'C'];
@@ -139,7 +141,7 @@ export default function Comparar() {
           <span>{error || 'No pudimos armar la comparación.'}</span>
         </div>
         <div className="actions" style={{ marginTop: 16 }}>
-          <Link className="btn btn--ghost" to="/buscar">
+          <Link className="btn btn--ghost" to={linkAResultados()}>
             Volver a resultados
           </Link>
         </div>
@@ -198,6 +200,7 @@ export default function Comparar() {
 
   return (
     <div className="wrap app">
+      <ProgresoFlujo paso={3} volverA={linkAResultados()} />
       <div className="app__head">
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1>Comparar jugadores</h1>
@@ -468,7 +471,7 @@ export default function Comparar() {
         </div>
 
         <div className="actions">
-          <Link className="btn btn--ghost" to="/buscar">
+          <Link className="btn btn--ghost" to={linkAResultados()}>
             Volver a resultados
           </Link>
           <button className="btn" type="button" disabled>

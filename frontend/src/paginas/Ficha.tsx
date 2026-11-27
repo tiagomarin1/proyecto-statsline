@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import Dato from '../componentes/Dato';
 import Esqueleto from '../componentes/Esqueleto';
+import InfoMetrica from '../componentes/InfoMetrica';
+import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import Trayectoria from '../componentes/Trayectoria';
 import { useAvisar } from '../contexto/AvisosContext';
 import { ErrorApi } from '../servicios/api';
@@ -110,6 +112,7 @@ export default function Ficha() {
   return (
     <div className="wrap app">
       {volver}
+      <ProgresoFlujo paso={2} volverA={`/buscar?${filtros}`} />
       <div className="ficha">
         <section className="card ficha__hero">
           <div>
@@ -201,7 +204,10 @@ export default function Ficha() {
                   return (
                     <div key={m.clave} className="mitem">
                       <div className="mitem__top">
-                        <span>{m.label}</span>
+                        <span>
+                          {m.label}
+                          <InfoMetrica metrica={m.clave} etiqueta={m.label} />
+                        </span>
                         <b>
                           <Dato valor={null} />
                         </b>
@@ -214,7 +220,10 @@ export default function Ficha() {
                 return (
                   <div key={m.clave} className="mitem">
                     <div className="mitem__top">
-                      <span>{m.label}</span>
+                      <span>
+                        {m.label}
+                        <InfoMetrica metrica={m.clave} etiqueta={m.label} />
+                      </span>
                       <b className="num">
                         {valor}
                         {m.sufijo ?? ''}

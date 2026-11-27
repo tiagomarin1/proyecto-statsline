@@ -156,4 +156,25 @@ describe('UI-006: ficha por pestañas en el celular', () => {
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Métricas' }), { key: 'ArrowRight' });
     expect(screen.getByRole('tab', { name: 'Trayectoria', selected: true })).toBeInTheDocument();
   });
+
+  it('UI-007: muestra el progreso en el paso 2 y el "i" de cada métrica', async () => {
+    obtenerFichaMock.mockResolvedValue({
+      ...FICHA,
+      metricas: { ...SIN_METRICAS, rating: 6.9 },
+    });
+    render(
+      <MemoryRouter initialEntries={['/ficha/1']}>
+        <AvisosProvider>
+          <Routes>
+            <Route path="/ficha/:id" element={<Ficha />} />
+          </Routes>
+        </AvisosProvider>
+      </MemoryRouter>,
+    );
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    const nav = screen.getByRole('navigation', { name: 'Progreso' });
+    expect(nav.querySelector('[aria-current="step"]')).toHaveTextContent('Elegir');
+    fireEvent.click(screen.getByRole('button', { name: 'Qué es Rating' }));
+    expect(screen.getByRole('note')).toHaveTextContent(/0 a 10/);
+  });
 });

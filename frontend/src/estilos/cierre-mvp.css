@@ -885,3 +885,324 @@
 .cmp__barra > * {
   min-width: 0;
 }
+
+/* ===== UI-007: guía para el usuario nuevo ===== */
+.flujo {
+  margin: 0 0 14px;
+}
+.flujo ol {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+.flujo li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-faint);
+}
+.flujo li + li::before {
+  content: '';
+  width: 28px;
+  height: 2px;
+  background: var(--line-strong);
+  margin-right: 8px;
+  border-radius: 2px;
+}
+.flujo li {
+  min-height: 44px;
+}
+.flujo li > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.flujo a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  min-height: 44px;
+}
+.flujo b {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 13px;
+  background: var(--surface-3);
+  color: var(--fg-muted);
+  transition:
+    background var(--mov-medio) ease,
+    color var(--mov-medio) ease,
+    transform var(--mov-medio) var(--mov-curva);
+}
+.flujo li.is-actual {
+  color: var(--fg);
+}
+.flujo li.is-actual b {
+  background: var(--sl-grafito);
+  color: var(--on-dark);
+  transform: scale(1.1);
+}
+.flujo li.is-hecho {
+  color: var(--accent);
+}
+.flujo li.is-hecho b {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.flujo a:hover span {
+  text-decoration: underline;
+}
+
+.tour__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(22, 24, 29, 0.55);
+  animation: fundido var(--mov-rapido) ease;
+}
+.tour {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 10px;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  outline: none;
+  animation: entrada var(--mov-medio) var(--mov-curva);
+}
+.tour__n {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.tour__puntos {
+  display: flex;
+  gap: 6px;
+}
+.tour__puntos i {
+  width: 22px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line-strong);
+  transition:
+    background var(--mov-medio) ease,
+    width var(--mov-medio) var(--mov-curva);
+}
+.tour__puntos i.is-on {
+  width: 38px;
+  background: var(--accent);
+}
+.tour__tit {
+  margin: 6px 0 0;
+  font-size: 26px;
+  animation: entrada var(--mov-medio) var(--mov-curva);
+}
+.tour__txt {
+  margin: 0;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  min-height: 4.5em;
+}
+.tour__acc {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.nav__tour {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 6px;
+  min-height: 44px;
+  opacity: 0.85;
+}
+.nav__tour:hover {
+  text-decoration: underline;
+}
+.atajos {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0;
+}
+.atajos div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.atajos dt {
+  min-width: 48px;
+}
+.atajos dd {
+  margin: 0;
+  color: var(--fg-muted);
+}
+kbd {
+  display: inline-block;
+  min-width: 28px;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  font: 600 13px var(--font-body);
+  text-align: center;
+}
+
+.plantillas {
+  margin: 0 0 18px;
+  display: grid;
+  gap: 8px;
+}
+.plantillas h2 {
+  font-size: 15px;
+  color: var(--fg-muted);
+  font-weight: 600;
+  margin: 0;
+}
+.plantillas__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plantillas .chip {
+  min-height: 44px;
+  padding: 0 16px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  transition:
+    background var(--mov-rapido) ease,
+    transform var(--mov-rapido) var(--mov-curva);
+}
+.plantillas .chip:hover {
+  background: var(--accent-soft);
+}
+.plantillas .chip:active {
+  transform: scale(0.97);
+}
+
+.info {
+  position: relative;
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.info__i {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font:
+    italic 700 12px Georgia,
+    serif;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 0;
+}
+.info__i:hover,
+.info__i[aria-expanded='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.info__burbuja {
+  position: absolute;
+  z-index: 25;
+  left: 0;
+  top: calc(100% + 6px);
+  width: 230px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--sl-grafito);
+  color: var(--on-dark);
+  font: 400 13px/1.4 var(--font-body);
+  box-shadow: var(--shadow-2);
+  animation: tip-in var(--mov-rapido) var(--mov-curva);
+}
+
+.como {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  counter-reset: paso;
+}
+.como__paso {
+  padding: 22px;
+  display: grid;
+  gap: 8px;
+  animation: entrada var(--mov-lento) var(--mov-curva) both;
+}
+.como__n {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sl-grafito);
+  color: var(--sl-oro);
+  font-family: var(--font-display);
+}
+.como__paso h3 {
+  margin: 0;
+}
+.como__paso p {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+@media (max-width: 767px) {
+  .info__i {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  .info__burbuja {
+    width: min(230px, 70vw);
+  }
+  .flujo li + li::before {
+    width: 14px;
+  }
+  .tour__fondo {
+    align-items: end;
+    padding: 0;
+  }
+  .tour {
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    width: 100%;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__fondo,
+  .tour,
+  .tour__tit,
+  .como__paso,
+  .info__burbuja {
+    animation: none !important;
+  }
+}

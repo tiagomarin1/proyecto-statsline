@@ -25,4 +25,13 @@ describe('INF-001: home', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Fichá con datos');
   });
+
+  it('UI-007: explica cómo funciona en 3 pasos', () => {
+    renderizarEn('/');
+    const seccion = screen.getByRole('region', { name: 'Cómo funciona' });
+    expect(seccion).toHaveTextContent('Buscá');
+    expect(seccion).toHaveTextContent('Elegí 2 o 3');
+    expect(seccion).toHaveTextContent('Compará');
+    expect(seccion.querySelectorAll('li')).toHaveLength(3);
+  });
 });

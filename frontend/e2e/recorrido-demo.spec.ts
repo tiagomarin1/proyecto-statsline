@@ -84,6 +84,9 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
     await page.getByRole('button', { name: 'Ingresar' }).click();
 
     await expect(page).toHaveURL(/\/buscar$/);
+    // UI-007: la primera vez con sesión sale la guía de bienvenida; se salta para seguir
+    await page.getByRole('button', { name: 'Saltar guía' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1, name: 'Buscar jugadores' })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Principal' });
     await expect(nav.getByText('Javier', { exact: true })).toBeVisible();

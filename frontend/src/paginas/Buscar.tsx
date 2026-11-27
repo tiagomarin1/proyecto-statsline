@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import BarraFiltros from '../componentes/BarraFiltros';
+import AyudaAtajos from '../componentes/AyudaAtajos';
 import BarraSeleccion from '../componentes/BarraSeleccion';
+import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import PanelJugador from '../componentes/PanelJugador';
 import Paginacion from '../componentes/Paginacion';
 import TablaJugadores from '../componentes/TablaJugadores';
@@ -32,6 +34,8 @@ import {
 } from '../utilidades/filtros';
 import { POSICIONES } from '../utilidades/formato';
 import { usePantallaChica } from '../utilidades/pantalla';
+import { guardarUltimaBusqueda } from '../utilidades/persistencia';
+import { PLANTILLAS } from '../utilidades/plantillas';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
 function mensajeDeError(e: unknown) {
@@ -104,6 +108,10 @@ export default function Buscar() {
     navegar(`${ubicacion.pathname}${ubicacion.search}`, { replace: true, state: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origen?.id]);
+  const [ayudaAbierta, setAyudaAbierta] = useState(false);
+  // UI-007: "Volver a resultados" desde la comparación devuelve a esta misma búsqueda
+  const consulta = params.toString();
+  useEffect(() => guardarUltimaBusqueda(consulta), [consulta]);
   // Jugador cuyo detalle está abierto en el panel (UI-002)
   const [elegidoId, setElegidoId] = useState<number | null>(null);
   // BUS-005: el perfil guardado (uno por usuario, RN-023) y lo que falta para guardar uno
@@ -258,6 +266,32 @@ export default function Buscar() {
     navegar(`/comparar?ids=${seleccion.map((s) => s.id).join(',')}`);
   }
 
+  // UI-007: atajos de teclado. No actúan mientras se escribe en un campo ni con un diálogo abierto.
+  useEffect(() => {
+    function alTeclear(e: KeyboardEvent) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName) || t.isContentEditable)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      if (e.key === '/') {
+        const campo = document.getElementById('nombre');
+        if (campo) {
+          e.preventDefault();
+          campo.focus();
+        }
+      } else if (e.key === 'c' && seleccion.length >= 2) {
+        compararSeleccion();
+      } else if (e.key === '?') {
+        setAyudaAbierta(true);
+      }
+    }
+    document.addEventListener('keydown', alTeclear);
+    return () => document.removeEventListener('keydown', alTeclear);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seleccion]);
+
+  const sinFiltros = ![...params.keys()].some((k) => k !== 'orden' && k !== 'pagina');
+
   const filtrosSinPaginado = new URLSearchParams(params);
   filtrosSinPaginado.delete('pagina');
   filtrosSinPaginado.delete('orden');
@@ -270,6 +304,8 @@ export default function Buscar() {
           <p>Definí el perfil que necesita tu plantel y revisá a los candidatos que lo cumplen.</p>
         </div>
       </div>
+
+      <ProgresoFlujo paso={seleccion.length >= 2 ? 2 : 1} />
 
       <BarraFiltros
         params={params}
@@ -285,6 +321,24 @@ export default function Buscar() {
         chica={pantallaChica}
         totalResultados={respuesta?.total ?? null}
       />
+
+      {sinFiltros && (
+        <section className="plantillas" aria-label="Empezá con una plantilla">
+          <h2>Empezá con una plantilla</h2>
+          <div className="plantillas__lista">
+            {PLANTILLAS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className="chip"
+                onClick={() => aplicarFiltros(p.filtros)}
+              >
+                {p.titulo}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="results">
         <div className="results__bar">
@@ -419,6 +473,8 @@ export default function Buscar() {
             )}
           </>
         )}
+
+        {ayudaAbierta && <AyudaAtajos onCerrar={() => setAyudaAbierta(false)} />}
 
         {seleccion.length > 0 && (
           <BarraSeleccion

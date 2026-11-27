@@ -86,11 +86,11 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| CMP-004 | Barras de comparación interactivas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-004.md |
-| CMP-005 | Comparar más rápido: cambiar jugador, vista rápida, copiar link | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-005.md |
-| UI-005 | Microanimaciones y movimiento coherente | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-005.md |
-| UI-006 | Responsive en celular | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
-| UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
+| CMP-004 | Barras de comparación interactivas | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-004.md |
+| CMP-005 | Comparar más rápido: cambiar jugador, vista rápida, copiar link | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-005.md |
+| UI-005 | Microanimaciones y movimiento coherente | en testing | P1 | — (nueva) | — | specs/interfaz/UI-005.md |
+| UI-006 | Responsive en celular | en testing | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
+| UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en testing | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
 
 ### Mapeo con las tarjetas de Trello
 

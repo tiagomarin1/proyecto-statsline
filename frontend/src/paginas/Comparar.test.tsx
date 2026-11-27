@@ -392,3 +392,40 @@ describe('CMP-005: armar la comparación sin volver a Buscar', () => {
     expect((campo as HTMLInputElement).value).toContain('/comparar?ids=1,2');
   });
 });
+
+describe('UI-007: guía en Comparar', () => {
+  beforeEach(() => {
+    fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
+    compararMock.mockResolvedValue(RESPUESTA);
+    sessionStorage.clear();
+  });
+  afterEach(() => {
+    compararMock.mockReset();
+    fichaMock.mockReset();
+  });
+
+  it('muestra el progreso en el paso 3 con los anteriores como links', async () => {
+    renderizarEn('/comparar?ids=1,2');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    const nav = screen.getByRole('navigation', { name: 'Progreso' });
+    expect(within(nav).getByText('Comparar').closest('li')).toHaveAttribute('aria-current', 'step');
+    expect(within(nav).getAllByRole('link')).toHaveLength(2);
+  });
+
+  it('"Volver a resultados" conserva los filtros y la página de la última búsqueda', async () => {
+    sessionStorage.setItem('statsline_ultima_busqueda', 'posicion=defensor&pagina=2');
+    renderizarEn('/comparar?ids=1,2');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.getByRole('link', { name: 'Volver a resultados' })).toHaveAttribute(
+      'href',
+      '/buscar?posicion=defensor&pagina=2',
+    );
+  });
+
+  it('cada métrica tiene su "i" con la definición', async () => {
+    renderizarEn('/comparar?ids=1,2');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    fireEvent.click(screen.getByRole('button', { name: 'Qué es % pases completados' }));
+    expect(screen.getByRole('note')).toHaveTextContent(/pases/i);
+  });
+});

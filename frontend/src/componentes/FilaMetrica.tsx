@@ -4,6 +4,7 @@ import type { FilaComparacion } from '../tipos/api';
 import { escalaDeFila } from '../utilidades/comparacion';
 import { useAlEntrar, useProgreso, valorAnimado } from '../utilidades/movimiento';
 import Dato from './Dato';
+import InfoMetrica from './InfoMetrica';
 
 export interface JugadorFila {
   id: number;
@@ -74,6 +75,7 @@ export default function FilaMetrica({
     >
       <div className="mrow__lbl">
         {fila.etiqueta}
+        <InfoMetrica metrica={fila.metrica} etiqueta={fila.etiqueta} />
         {faltan > 0 && <span className="chip chip--warn">Falta en {faltan}</span>}
       </div>
       <div className="mrow__bars">
