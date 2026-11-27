@@ -1,0 +1,314 @@
+/* Release de cierre del MVP (27/11/2026): CMP-004, CMP-005, UI-005, UI-006 y UI-007.
+   Solo tokens y clases nuevas; lo anterior sigue en base.css. */
+
+:root {
+  /* UI-005: un solo lenguaje de movimiento. Alias de los tokens de "Pulido visual v2". */
+  --mov-rapido: var(--dur-1);
+  --mov-medio: var(--dur-2);
+  --mov-lento: var(--dur-3);
+  --mov-curva: var(--ease-out);
+}
+
+/* ===== CMP-004: barras interactivas ===== */
+.cmp__resumen {
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.cmp__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.cmp__head {
+  transition:
+    opacity var(--mov-medio) ease,
+    filter var(--mov-medio) ease;
+}
+.cmp__head.is-oculto {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+.cmp__barra,
+.cmp__filtros {
+  padding: 14px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.cmp__barra {
+  justify-content: space-between;
+}
+.cmp__filtros {
+  background: var(--surface-2);
+}
+.cmp__vacio {
+  padding: 32px 18px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--surface);
+}
+.seg button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition:
+    background var(--mov-rapido) ease,
+    color var(--mov-rapido) ease,
+    transform var(--mov-rapido) var(--mov-curva);
+}
+.seg button:active {
+  transform: scale(0.96);
+}
+.seg button.is-on {
+  background: var(--sl-grafito);
+  color: var(--on-dark);
+}
+.chk {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chk input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.sw {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.sw:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.sw__riel {
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  position: relative;
+  transition: background var(--mov-rapido) ease;
+}
+.sw__bola {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform var(--mov-medio) var(--mov-curva);
+}
+.sw[aria-checked='true'] .sw__riel {
+  background: var(--accent);
+}
+.sw[aria-checked='true'] .sw__bola {
+  transform: translateX(16px);
+}
+
+.mrow {
+  position: relative;
+  transition: opacity var(--mov-medio) ease;
+}
+.mrow.is-dim {
+  opacity: 0.4;
+}
+.mrow__bars .bar {
+  position: relative;
+}
+.bar__track {
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  outline-offset: 2px;
+  transition:
+    opacity var(--mov-medio) ease,
+    transform var(--mov-rapido) var(--mov-curva);
+}
+.bar__track:hover,
+.bar__track.is-activa {
+  transform: scaleY(1.12);
+}
+.bar__track.is-dim {
+  opacity: 0.35;
+}
+.bar__track.is-oculto {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+.bar__fill {
+  transition: width var(--mov-lento) var(--mov-curva);
+}
+.bar__fill.is-best {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 14px rgba(203, 161, 53, 0.45);
+}
+.bar__tag {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bar__prom {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--fg);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.legend__prom {
+  width: 2px !important;
+  height: 14px !important;
+  background: var(--fg);
+  border-radius: 2px;
+}
+
+.tip {
+  position: absolute;
+  z-index: 30;
+  left: 76px;
+  top: calc(100% + 6px);
+  display: grid;
+  gap: 2px;
+  min-width: 190px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--sl-grafito);
+  color: var(--on-dark);
+  font-size: 13px;
+  line-height: 1.35;
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+  animation: tip-in var(--mov-rapido) var(--mov-curva);
+}
+.tip b {
+  color: #fff;
+}
+.tip .nd {
+  color: var(--on-dark-muted);
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.radar {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding: 18px;
+}
+.radar__svg {
+  width: min(100%, 420px);
+  height: auto;
+  overflow: visible;
+}
+.radar__anillo {
+  fill: none;
+  stroke: var(--line);
+}
+.radar__eje {
+  stroke: var(--line-strong);
+}
+.radar__txt {
+  font-size: 9px;
+  fill: var(--fg-muted);
+}
+.radar__area {
+  fill: currentColor;
+  fill-opacity: 0.16;
+  stroke: currentColor;
+  stroke-width: 2;
+  animation: radar-in var(--mov-lento) var(--mov-curva);
+  transform-origin: 120px 120px;
+}
+.radar__punto {
+  fill: currentColor;
+}
+.radar__ley {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.radar__ley .is-oculto {
+  opacity: 0.4;
+}
+.radar__vacio {
+  padding: 18px;
+}
+@keyframes radar-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar__fill,
+  .tip,
+  .radar__area {
+    transition: none !important;
+    animation: none !important;
+  }
+  .bar__track:hover,
+  .bar__track.is-activa {
+    transform: none;
+  }
+}

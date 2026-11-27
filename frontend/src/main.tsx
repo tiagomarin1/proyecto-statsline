@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import App from './App';
 import './estilos/base.css';
+import './estilos/cierre-mvp.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
