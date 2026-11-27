@@ -657,3 +657,30 @@ h1 {
     color: var(--on-dark-muted);
   }
 }
+
+/* ============ UI-009 (ajuste): campos de filtros alineados ============ */
+
+/* Cada campo ocupa tres filas de la grilla (rótulo, control y ayuda) y las comparte con los demás
+   (subgrid): los rótulos y los cuadros quedan a la misma altura aunque el presupuesto tenga una
+   ayuda debajo o algún rótulo ocupe dos renglones. */
+.bf__fila {
+  align-items: start;
+}
+.bf__campo {
+  align-content: start;
+}
+@supports (grid-template-rows: subgrid) {
+  .bf__fila {
+    row-gap: 0;
+  }
+  .bf__campo {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 6px;
+    margin-bottom: 14px;
+  }
+  .bf__campo > label,
+  .bf__campo > .bf__leyenda {
+    align-self: end;
+  }
+}
