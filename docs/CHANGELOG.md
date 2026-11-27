@@ -3,6 +3,7 @@
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
 ## 2026-11-27
+- Link nuevo: la app pasa a https://statsline.onrender.com. Render no deja cambiar el subdominio de un servicio existente, así que se creó un servicio nuevo, `statsline`, con la misma base de Aiven, las mismas variables y el health check en `/api/v1/salud`. Se actualizaron el monitor de UptimeRobot y `URL_PUBLICA`. El secret `RENDER_DEPLOY_HOOK` del repo tiene que pasar al deploy hook del servicio nuevo, y después se da de baja `statsline-4dyy`.
 - UI-004 hecho: página pública `/terminos` con los términos y condiciones (incluye los derechos de la Ley 25.326), link a los términos desde el registro, y en el pie de todas las páginas "Términos" y "Escribinos por WhatsApp" con el mensaje ya escrito (PR #46).
 - JUG-001 y CMP-001: la interfaz deja de mostrar la temporada de los datos en la ficha, el comparador y el panel de detalle; la API la sigue devolviendo (decisión del equipo, PR #47).
 - INF-003 hecho: monitor de UptimeRobot (plan gratis) contra `/api/v1/salud` cada **5 minutos**, con alertas por mail. El plan gratis no tiene 20 minutos, y con 5 Render no se duerme nunca y sigue sin costo.

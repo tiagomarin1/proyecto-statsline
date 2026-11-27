@@ -25,7 +25,7 @@ Van en `backend/.env`, que se crea a partir de `backend/.env.example`. El `.env`
 | `DEMO_CONTRASENA` | Contraseña del usuario demo |
 | `BREVO_API_KEY` | Clave de la API de Brevo para mandar el mail de recuperar la contraseña (AUT-003). Sin clave, en desarrollo el mail, con el link, se escribe en el log de uvicorn; en producción solo se registra que falta |
 | `CORREO_REMITENTE` | El remitente del mail, verificado en Brevo |
-| `URL_PUBLICA` | Base de los links de los mails. Por defecto es `http://localhost:8000`; en Render, `https://statsline-4dyy.onrender.com` |
+| `URL_PUBLICA` | Base de los links de los mails. Por defecto es `http://localhost:8000`; en Render, `https://statsline.onrender.com` |
 | `ENTORNO` | `desarrollo`, `test` o `produccion` |
 | `DIRECTORIO_FRONTEND` | Opcional. Carpeta del build de React que sirve FastAPI. Por defecto es `frontend/dist` |
 
@@ -172,7 +172,7 @@ Render despliega solo `main` y solo con el CI en verde: el auto-deploy de Render
 Render gratis apaga el servicio después de 15 minutos sin tráfico, y Aiven gratis apaga la base si no tiene actividad. Para evitarlo, un monitor de UptimeRobot le pega al health check, que también consulta la base:
 
 1. Crear la cuenta en https://uptimerobot.com (plan gratis).
-2. *New monitor* → tipo **HTTP(s)**, URL `https://statsline-4dyy.onrender.com/api/v1/salud`, intervalo **5 minutos** (el plan gratis solo ofrece 5 o 30; con 30, Render se duerme entre pings), alertas por mail.
+2. *New monitor* → tipo **HTTP(s)**, URL `https://statsline.onrender.com/api/v1/salud`, intervalo **5 minutos** (el plan gratis solo ofrece 5 o 30; con 30, Render se duerme entre pings), alertas por mail.
 
 **Si Aiven igual apaga la base:** el host da NXDOMAIN, Render queda en "almost live" y el monitor avisa. Se arregla en console.aiven.io → el servicio → "⋯" → *Power on service* (el host y los datos se conservan; tarda unos 5 minutos). Después, re-ejecutar el job `desplegar` del último CI de `main`: los deploys pedidos mientras la base estaba apagada fallan, y a la base le pueden faltar migraciones.
 
