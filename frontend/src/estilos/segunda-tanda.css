@@ -617,3 +617,43 @@ h1 {
 .dpdf__error {
   margin: 0;
 }
+
+/* ============ UI-006 (ajuste): pie de página en una columna en el celular ============ */
+
+@media (max-width: 767px) {
+  .foot__in {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 10px;
+    padding-block: 28px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .foot__in .logo {
+    order: 1;
+    margin-bottom: 2px;
+  }
+  .foot__note {
+    order: 2;
+    margin-left: 0;
+  }
+  .foot__links,
+  .foot__note + .foot__links {
+    order: 3;
+    margin-left: 0;
+    gap: 0 20px;
+  }
+  /* links de al menos 44 px de alto (UI-006) */
+  .foot__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .foot__equipo {
+    order: 4;
+    justify-self: stretch;
+    padding-top: 14px;
+    border-top: 1px solid rgba(241, 239, 234, 0.1);
+    font-size: 13px;
+    color: var(--on-dark-muted);
+  }
+}
