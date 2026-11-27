@@ -93,11 +93,11 @@ describe('CMP-001: comparar jugadores', () => {
     // dato faltante en la fila de duelos (RN-008)
     expect(screen.getByText('Falta en 1')).toBeInTheDocument();
     expect(screen.getAllByText('Dato no disponible').length).toBeGreaterThan(0);
-    // veredicto
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
-    );
-    expect(screen.getByText(/es el más barato/)).toBeInTheDocument();
+    // resumen final por jugador (CMP-007)
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(resumen).toHaveTextContent('Gana en 2 de 2: % pases completados, % duelos ganados');
+    expect(resumen).toHaveTextContent('No gana ninguna métrica');
+    expect(screen.queryByText(/barato/)).toBeNull();
     // exportar PDF queda para el release 2
     expect(screen.getByText(/release 2/)).toBeInTheDocument();
     expect(compararMock).toHaveBeenCalledWith([1, 2]);
@@ -120,9 +120,7 @@ describe('CMP-001: comparar jugadores', () => {
 
     expect(await screen.findByText(AVISO)).toBeInTheDocument();
     // la comparación sigue ahí
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
-    );
+    expect(screen.getByRole('region', { name: 'Resumen' })).toHaveTextContent('Gana en 2 de 2');
     // el aviso no nombra las fuentes
     expect(screen.queryByText(/Sportmonks|API-Football/i)).not.toBeInTheDocument();
   });
@@ -289,9 +287,10 @@ describe('CMP-004: barras interactivas', () => {
     expect(
       await screen.findByText(/Beto Ruiz y Caro Díaz empatan en métricas/),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Beto Ruiz\s*1\s*Caro Díaz\s*1/,
-    );
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(resumen).toHaveTextContent('Beto RuizGana en 1 de 3: % pases completados');
+    expect(resumen).toHaveTextContent('Caro DíazGana en 1 de 3: % duelos ganados');
+    expect(resumen).not.toHaveTextContent('Ana Gómez');
     // quedan 2 visibles: no se puede ocultar a otro
     expect(screen.getByRole('switch', { name: 'Mostrar a Beto Ruiz' })).toBeDisabled();
     expect(screen.getByRole('switch', { name: 'Mostrar a Caro Díaz' })).toBeDisabled();
@@ -467,7 +466,7 @@ describe('UI-007: guía en Comparar', () => {
   });
 });
 
-describe('CMP-006: comparación en columnas', () => {
+describe('CMP-006 y CMP-007: cabeceras en columnas y métricas en filas apiladas', () => {
   beforeEach(() => {
     fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
     compararMock.mockResolvedValue(TRES);
@@ -497,11 +496,28 @@ describe('CMP-006: comparación en columnas', () => {
     expect(container.querySelector('.bar__who')).toBeNull();
   });
 
-  it('cada fila tiene una celda por jugador con su número y una barra proporcional a ese número', async () => {
+  it('CMP-007: en cada métrica los jugadores van uno debajo del otro con nombre, barra y número', async () => {
     const { container } = renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const bloques = container.querySelectorAll('.mrow');
+    expect(bloques.length).toBe(3);
+    const filas = bloques[0].querySelectorAll('.fila-cmp');
+    expect([...filas].map((f) => f.querySelector('.fila-cmp__nombre')?.textContent)).toEqual([
+      'Ana Gómez',
+      'Beto Ruiz',
+      'Caro Díaz',
+    ]);
+    filas.forEach((f) => {
+      expect(f.querySelector('.fila-cmp__barra')).not.toBeNull();
+      expect(f.querySelector('.fila-cmp__num')).not.toBeNull();
+    });
+  });
+
+  it('CMP-007: la barra se llena hasta el valor (RN-037)', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     const ancho = (nombre: string) =>
-      (screen.getByRole('img', { name: nombre }).querySelector('.celda__barra') as HTMLElement)
+      (screen.getByRole('img', { name: nombre }).querySelector('.fila-cmp__barra') as HTMLElement)
         .style.width;
     // porcentajes: de 0 a 100
     expect(ancho('Ana Gómez, % pases completados, 87, Mejor')).toBe('87%');
@@ -509,22 +525,38 @@ describe('CMP-006: comparación en columnas', () => {
     // goles: contra el mayor de la fila (5)
     expect(ancho('Ana Gómez, Goles, 1, Peor')).toBe('20%');
     expect(ancho('Beto Ruiz, Goles, 5, Mejor')).toBe('100%');
+    // sin dato: barra vacía
     expect(ancho('Caro Díaz, Goles, Dato no disponible')).toBe('0%');
-    expect(container.querySelectorAll('.mrow').length).toBe(3);
   });
 
-  it('el mejor es verde y el peor rojo, con su etiqueta', async () => {
+  it('CMP-007: el mejor es verde y el peor rojo, con su etiqueta; el del medio, neutro', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
-    const mejor = screen.getByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const mejor = await screen.findByRole('img', {
+      name: 'Ana Gómez, % pases completados, 87, Mejor',
+    });
     const peor = screen.getByRole('img', { name: 'Caro Díaz, % pases completados, 80, Peor' });
     const medio = screen.getByRole('img', { name: 'Beto Ruiz, % pases completados, 83' });
-    expect(mejor.closest('.celda')).toHaveClass('is-best');
-    expect(peor.closest('.celda')).toHaveClass('is-worst');
-    expect(medio.closest('.celda')).not.toHaveClass('is-best');
-    expect(medio.closest('.celda')).not.toHaveClass('is-worst');
-    expect(within(mejor.closest('.celda') as HTMLElement).getByText('Mejor')).toBeInTheDocument();
-    expect(within(peor.closest('.celda') as HTMLElement).getByText('Peor')).toBeInTheDocument();
+    expect(mejor).toHaveClass('is-best');
+    expect(peor).toHaveClass('is-worst');
+    expect(medio).not.toHaveClass('is-best');
+    expect(medio).not.toHaveClass('is-worst');
+    expect(within(mejor).getByText('Mejor')).toBeInTheDocument();
+    expect(within(peor).getByText('Peor')).toBeInTheDocument();
+    expect(within(medio).queryByText(/Mejor|Peor/)).toBeNull();
+  });
+
+  it('CMP-007: las filas no escriben diferencias; quedan en el tooltip', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    const fila = await screen.findByRole('img', {
+      name: 'Beto Ruiz, % pases completados, 83',
+    });
+    expect(screen.queryByText(/vs\./)).toBeNull();
+    expect(screen.queryByText(/el mejor/)).toBeNull();
+    fireEvent.mouseEnter(fila);
+    const tip = await screen.findByRole('tooltip');
+    expect(tip).toHaveTextContent('vs. Ana Gómez');
+    expect(tip).toHaveTextContent('-4');
+    expect(fila).toHaveClass('is-activa');
   });
 
   it('"Editar jugadores" muestra por jugador Cambiar, Quitar y el interruptor de visibilidad', async () => {
@@ -544,12 +576,19 @@ describe('CMP-006: comparación en columnas', () => {
     }
   });
 
-  it('el valor de mercado va en la cabecera y la diferencia de valor abajo', async () => {
+  it('CMP-007: el valor de mercado va en la cabecera y en el resumen, sin diferencia de valor', async () => {
     renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('heading', { name: 'Ana Gómez' });
-    expect(screen.getByText('EUR 1.500.000')).toBeInTheDocument();
     expect(screen.getByText('EUR 900.000', { selector: '.cmp__head b' })).toBeInTheDocument();
-    expect(screen.getByText(/es el más barato de la comparación/)).toBeInTheDocument();
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(within(resumen).getByText('EUR 1.500.000')).toBeInTheDocument();
+    expect(within(resumen).getByText('EUR 900.000')).toBeInTheDocument();
+    // Caro no tiene valor: "Dato no disponible", nunca 0 (RN-008)
+    const caro = within(resumen).getByText('Caro Díaz').closest('article') as HTMLElement;
+    expect(within(caro).getByText('Dato no disponible')).toBeInTheDocument();
+    expect(caro).not.toHaveTextContent('EUR 0');
+    expect(screen.queryByText(/Diferencia de valor|barato/)).toBeNull();
+    expect(screen.queryByLabelText('Métricas ganadas')).toBeNull();
   });
 
   it('no queda ninguna marca de "release 2" a la vista salvo la del botón de PDF', async () => {
