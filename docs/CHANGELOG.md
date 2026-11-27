@@ -2,6 +2,12 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27
+- UI-004 hecho: página pública `/terminos` con los términos y condiciones (incluye los derechos de la Ley 25.326), link a los términos desde el registro, y en el pie de todas las páginas "Términos" y "Escribinos por WhatsApp" con el mensaje ya escrito (PR #46).
+- JUG-001 y CMP-001: la interfaz deja de mostrar la temporada de los datos en la ficha, el comparador y el panel de detalle; la API la sigue devolviendo (decisión del equipo, PR #47).
+- INF-003 hecho: monitor de UptimeRobot (plan gratis) contra `/api/v1/salud` cada **5 minutos**, con alertas por mail. El plan gratis no tiene 20 minutos, y con 5 Render no se duerme nunca y sigue sin costo.
+- AUT-003 en producción: Brevo (plan gratis) con un remitente verificado y una clave restringida a emails transaccionales; `BREVO_API_KEY`, `CORREO_REMITENTE` y `URL_PUBLICA` están cargadas en Render. Se probó el mail de recuperación de punta a punta.
+
 ## 2026-11-26
 - **Cierre del MVP (decisión del equipo, Cilento):** pasan a `hecho` DAT-001 a DAT-004, AUT-001 a AUT-003, BUS-001 a BUS-006, BUS-010, JUG-001, JUG-003, CMP-001, CMP-003, SEG-001, UI-001 a UI-003 e INF-002. Todas están mergeadas, con tests en verde, y desplegadas en https://statsline-4dyy.onrender.com. Las reglas que seguían como propuestas (RN-028, RN-031 a RN-035, `Forward` en RN-019 y el paso 2b de RN-002) quedan como decisión del equipo, sin la validación del PO.
 - DAT-003: Sportmonks no manda goles, asistencias ni intercepciones cuando valen 0; si el jugador tiene minutos, se guardan en 0 (RN-031, PR #40). Se re-sincronizaron Primera Nacional y Torneo Federal A antes de que venza la prueba (30/11). Los datos quedan congelados: no se paga Sportmonks ni API-Football.
