@@ -91,21 +91,21 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | UI-005 | Microanimaciones y movimiento coherente | en testing | P1 | — (nueva) | — | specs/interfaz/UI-005.md |
 | UI-006 | Responsive en celular | en testing | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
 | UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en testing | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
-| UI-008 | Navegación móvil: barra flotante y menú hamburguesa | en testing | P1 | — (nueva) | — | specs/interfaz/UI-008.md |
+| UI-008 | Navegación móvil: barra flotante y menú hamburguesa (escritorio y etiquetas en UI-012) | en testing | P1 | — (nueva) | — | specs/interfaz/UI-008.md |
 | UI-009 | Buscar en dos pasos: filtros y resultados | en testing | P1 | — (nueva) | — | specs/interfaz/UI-009.md |
 | UI-010 | Tarjeta de jugador y ficha rediseñadas | en testing | P1 | — (nueva) | — | specs/interfaz/UI-010.md |
-| CMP-006 | Comparación en columnas | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
+| CMP-006 | Comparación en columnas (las métricas pasan a filas apiladas con CMP-007) | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
 
 ### Segunda tanda de mejoras (27/11/2026, pedido del equipo)
 
 | ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
 |---|---|---|---|---|---|---|
-| JUG-004 | Nombre y apellido completos en todo el sistema | en desarrollo | P1 | — (nueva) | — | specs/jugador/JUG-004.md |
-| UI-013 | Tipografía: Archivo extendido en títulos y cifras | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-013.md |
-| UI-012 | Navegación: etiquetas y barra de escritorio flotante | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-012.md |
-| UI-011 | Hero más grande, animación de entrada y "Cómo funciona" animado | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-011.md |
-| CMP-007 | Comparación en filas apiladas y resumen final | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-007.md |
-| CMP-002 | Exportar la comparación en PDF (pasa de R2 al MVP) | en desarrollo | P1 | — | — | specs/comparacion/CMP-002.md |
+| JUG-004 | Nombre y apellido completos en todo el sistema | en testing | P1 | — (nueva) | — | specs/jugador/JUG-004.md |
+| UI-013 | Tipografía: Archivo extendido en títulos y cifras | en testing | P1 | — (nueva) | — | specs/interfaz/UI-013.md |
+| UI-012 | Navegación: etiquetas y barra de escritorio flotante | en testing | P1 | — (nueva) | — | specs/interfaz/UI-012.md |
+| UI-011 | Hero más grande, animación de entrada y "Cómo funciona" animado | en testing | P1 | — (nueva) | — | specs/interfaz/UI-011.md |
+| CMP-007 | Comparación en filas apiladas y resumen final | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-007.md |
+| CMP-002 | Exportar la comparación en PDF (pasa de R2 al MVP) | en testing | P1 | — | — | specs/comparacion/CMP-002.md |
 
 El ajuste de los chips de filtros (más chicos, con área de toque de 24 px) es parte de UI-009 y no lleva ID nuevo.
 
