@@ -767,19 +767,6 @@
   align-items: center;
   margin-top: 8px;
 }
-.nav__tour {
-  border: 0;
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  padding: 0 6px;
-  min-height: 44px;
-  opacity: 0.85;
-}
-.nav__tour:hover {
-  text-decoration: underline;
-}
 .atajos {
   display: grid;
   gap: 8px;
@@ -1011,8 +998,11 @@ kbd {
   padding-top: 8px !important;
   border-top: 1px solid rgba(241, 239, 234, 0.14);
 }
-.mnav__panel ul:first-of-type.mnav__sec {
+/* sin nombre ni opciones principales arriba (escritorio sin sesión), no hace falta la línea */
+.mnav__panel > .mnav__sec:first-child {
   margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: 0;
 }
 .mnav__panel a,
 .mnav__panel button {

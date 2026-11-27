@@ -50,3 +50,98 @@ h1 {
   font-stretch: 100%;
   letter-spacing: normal;
 }
+
+/* ============ UI-012: barra de escritorio flotante ("barra-isla") ============ */
+
+.nav__sep--isla {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --isla-h: 64px;
+    --isla-h-compacta: 56px;
+    --isla-top: 12px;
+  }
+  /* La barra es sticky y no ocupa lugar (margen negativo): el contenido pasa por debajo, como en
+     el celular. El fondo de .topbar es transparente; la isla es .topbar__in. */
+  .topbar,
+  .topbar.is-scrolled {
+    top: var(--isla-top);
+    height: var(--isla-h);
+    margin: var(--isla-top) 0 calc(-1 * (var(--isla-h) + var(--isla-top)));
+    padding-inline: var(--gutter) var(--gutter-r);
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+  }
+  .topbar__in {
+    pointer-events: auto;
+    /* el ancho del contenedor de la página (.wrap sin sus márgenes) */
+    max-width: calc(var(--maxw) - 32px);
+    height: var(--isla-h);
+    min-height: 0;
+    padding: 0 10px 0 22px;
+    gap: 6px;
+    border: 1px solid rgba(241, 239, 234, 0.14);
+    border-radius: 14px;
+    background: rgba(22, 24, 29, 0.94);
+    box-shadow: 0 6px 20px rgba(22, 24, 29, 0.18);
+    transition:
+      height var(--dur-2, 0.28s) ease,
+      box-shadow var(--dur-2, 0.28s) ease;
+  }
+  .topbar.is-scrolled .topbar__in {
+    height: var(--isla-h-compacta);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  }
+  .topbar .logo {
+    margin-right: auto;
+  }
+  .topbar .nav {
+    margin-left: 0;
+  }
+  .nav__sep--isla {
+    display: block;
+    width: 1px;
+    height: 24px;
+    margin-inline: 6px;
+    background: rgba(241, 239, 234, 0.18);
+  }
+  .nav a[aria-current='page'] {
+    color: var(--sl-oro);
+    background: rgba(203, 161, 53, 0.16);
+    font-weight: 700;
+  }
+  .nav--site .nav__cta {
+    margin-left: 4px;
+    background: var(--sl-oro);
+    color: var(--sl-grafito);
+    font-weight: 700;
+  }
+  .nav--site .nav__cta:hover {
+    background: #d8b456;
+    color: var(--sl-grafito);
+  }
+  /* Las páginas arrancan debajo de la isla; la home (hero) arranca en el borde, detrás */
+  .main {
+    padding-top: calc(var(--isla-h) + var(--isla-top));
+  }
+  .main--inicio {
+    padding-top: 0;
+  }
+  .hero {
+    min-height: 100svh;
+  }
+  .hero__in {
+    padding-top: calc(var(--isla-h) + var(--isla-top) + 32px);
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  .topbar__in {
+    transition: none;
+  }
+}

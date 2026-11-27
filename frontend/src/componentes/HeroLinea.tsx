@@ -57,10 +57,8 @@ export function HeroLinea({ conSesion, destino }: Props) {
           const movil = Boolean(ctx.conditions?.movil);
           const q = gsap.utils.selector(hero);
 
-          // El hero se fija (solo en escritorio) debajo de la barra superior, que es sticky.
-          const alturaBarra =
-            document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0;
-          hero.style.setProperty('--hero-barra', `${alturaBarra}px`);
+          // El hero se fija solo en escritorio. La barra es flotante y no ocupa lugar, también en
+          // escritorio (UI-012): el hero se fija contra el borde de arriba y la barra pasa por encima.
           if (!movil) hero.dataset.anim = 'true';
 
           const ancho = hero.getBoundingClientRect().width;
@@ -74,7 +72,6 @@ export function HeroLinea({ conSesion, destino }: Props) {
             defaults: { ease: 'none' },
             scrollTrigger: movil
               ? {
-                  // la barra del celular es flotante y no ocupa lugar: el hero empieza en el borde
                   trigger: hero,
                   start: 'top top',
                   end: 'bottom top',
@@ -83,7 +80,7 @@ export function HeroLinea({ conSesion, destino }: Props) {
                 }
               : {
                   trigger: hero,
-                  start: `top ${alturaBarra}px`,
+                  start: 'top top',
                   end: '+=300%',
                   pin: true,
                   scrub: 0.6,
@@ -127,7 +124,6 @@ export function HeroLinea({ conSesion, destino }: Props) {
 
           return () => {
             delete hero.dataset.anim;
-            hero.style.removeProperty('--hero-barra');
           };
         },
       );

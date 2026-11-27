@@ -397,7 +397,7 @@ button, input, select { font: inherit; color: inherit; }
   min-height: calc(100svh - 64px);
   display: flex;
 }
-.hero[data-anim] { height: calc(100svh - var(--hero-barra, 64px)); min-height: 0; }
+.hero[data-anim] { height: 100svh; min-height: 0; }
 .hero__in {
   position: relative; z-index: 3; width: 100%;
   display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
