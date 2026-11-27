@@ -13,6 +13,7 @@ import RecuperarContrasena from './paginas/RecuperarContrasena';
 import Registro from './paginas/Registro';
 import RestablecerContrasena from './paginas/RestablecerContrasena';
 import Seguimiento from './paginas/Seguimiento';
+import Terminos from './paginas/Terminos';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/registro" element={<Registro />} />
             <Route path="/recuperar" element={<RecuperarContrasena />} />
             <Route path="/restablecer" element={<RestablecerContrasena />} />
+            <Route path="/terminos" element={<Terminos />} />
             <Route element={<RutaProtegida />}>
               <Route path="/buscar" element={<Buscar />} />
               <Route path="/comparar" element={<Comparar />} />

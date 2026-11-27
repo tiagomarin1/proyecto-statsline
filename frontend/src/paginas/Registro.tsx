@@ -120,7 +120,12 @@ export default function Registro() {
           />
           <label className={`check${errores.acepta_terminos ? ' field--bad' : ''}`}>
             <input type="checkbox" name="acepta_terminos" required />
-            <span>Acepto los términos y condiciones</span>
+            <span>
+              Acepto los{' '}
+              <Link to="/terminos" target="_blank" rel="noopener noreferrer">
+                términos y condiciones
+              </Link>
+            </span>
           </label>
           <button
             className="btn btn--primary btn--block"

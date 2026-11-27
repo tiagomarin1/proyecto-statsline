@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
+import { LINK_WHATSAPP } from '../utilidades/contacto';
 import { Logo } from './Logo';
 
 export default function LayoutApp() {
@@ -64,6 +65,12 @@ export default function LayoutApp() {
           </Link>
           <span>Equipo 04 · UADE</span>
           <span className="foot__note">Datos de ligas del fútbol argentino</span>
+          <nav className="foot__links" aria-label="Enlaces del pie">
+            <Link to="/terminos">Términos</Link>
+            <a href={LINK_WHATSAPP} target="_blank" rel="noopener noreferrer">
+              Escribinos por WhatsApp
+            </a>
+          </nav>
         </div>
       </footer>
     </>

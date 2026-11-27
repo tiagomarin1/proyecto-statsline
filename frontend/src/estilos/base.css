@@ -913,6 +913,11 @@ table.tbl { width: 100%; border-collapse: collapse; min-width: 760px; }
 
 .foot { border-top: 1px solid rgba(241, 239, 234, .08); }
 .foot__note { margin-left: auto; }
+.foot__note + .foot__links { margin-left: 0; }
+.terminos { max-width: 72ch; }
+.terminos h2 { margin: 28px 0 8px; font-size: 20px; }
+.terminos p, .terminos ul { margin: 0 0 12px; }
+.terminos ul { padding-left: 20px; }
 .foot a { text-decoration: none; }
 
 /* Auth */
