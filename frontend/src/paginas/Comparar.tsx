@@ -18,8 +18,8 @@ import {
   grupoDeMetrica,
   mejorYPeor,
   resumenComparacion,
+  resumenPorJugador,
 } from '../utilidades/comparacion';
-import { useProgreso, valorAnimado } from '../utilidades/movimiento';
 import { linkAResultados } from '../utilidades/persistencia';
 import { formatearEur, iniciales, POSICIONES } from '../utilidades/formato';
 
@@ -49,7 +49,6 @@ export default function Comparar() {
   const [editando, setEditando] = useState(false);
   const [focoMetrica, setFocoMetrica] = useState<string | null>(null);
   const [focoJugador, setFocoJugador] = useState<number | null>(null);
-  const progreso = useProgreso(!cargando);
   // CMP-005: cambiar o sumar un jugador sin volver a Buscar, y copiar el link
   const [buscando, setBuscando] = useState<{ reemplaza: number | null } | null>(null);
   const [copiado, setCopiado] = useState<'si' | 'manual' | null>(null);
@@ -149,8 +148,7 @@ export default function Comparar() {
     );
   }
 
-  const { jugadores, filas, diferencia_valor_eur, mas_barato_id, aviso_fuentes } = datos;
-  const masBarato = jugadores.find((j) => j.id === mas_barato_id);
+  const { jugadores, filas, aviso_fuentes } = datos;
   const visibles = jugadores.filter((j) => !ocultos.includes(j.id));
 
   // Sin ocultos manda la API (RN-006); con ocultos se recalcula solo con los visibles (RN-037)
@@ -164,8 +162,10 @@ export default function Comparar() {
           ),
         },
   );
-  const ganadas = visibles.map(
-    (j) => [j, filasVisibles.filter((f) => f.mejor.includes(j.id)).length] as const,
+  // CMP-007: resumen final por jugador; el total son todas las métricas, aunque la tabla tenga filtros
+  const porJugador = resumenPorJugador(
+    filasVisibles.map((f) => ({ etiqueta: f.fila.etiqueta, mejor: f.mejor })),
+    visibles,
   );
   const resumen = resumenComparacion(
     filasVisibles.map((f) => ({ mejor: f.mejor })),
@@ -245,7 +245,8 @@ export default function Comparar() {
                 </p>
                 <b className="val num">
                   {j.valor_mercado_eur !== null ? (
-                    formatearEur(j.valor_mercado_eur)
+                    // en tres columnas angostas puede cortar entre "EUR" y el número, nunca en el número
+                    formatearEur(j.valor_mercado_eur).replace(/\u00a0/g, ' ')
                   ) : (
                     <Dato valor={null} />
                   )}
@@ -462,38 +463,36 @@ export default function Comparar() {
           )}
         </section>
 
-        <div className="verdict">
-          <article className="card vcard" aria-label="Métricas ganadas">
-            <span>Métricas ganadas</span>
-            <ul className="vcard__lista">
-              {ganadas.map(([j, n]) => (
-                <li key={j.id}>
-                  <span>{j.nombre_completo}</span>
-                  <b className="num">{valorAnimado(n, progreso)}</b>
-                </li>
-              ))}
-            </ul>
-            <p>Sobre {filas.length} métricas comparadas.</p>
-          </article>
-          <article className="card vcard">
-            <span>Diferencia de valor</span>
-            {diferencia_valor_eur !== null ? (
-              <>
-                <b className="num">{formatearEur(diferencia_valor_eur)}</b>
-                <p>
-                  {masBarato
-                    ? `${masBarato.nombre_completo} es el más barato de la comparación.`
-                    : 'Entre el más caro y el más barato.'}
+        <section className="card resumen-cmp" aria-labelledby="titulo-resumen">
+          <h2 id="titulo-resumen">Resumen</h2>
+          <div
+            className="resumen-cmp__grilla"
+            style={{ gridTemplateColumns: `repeat(${porJugador.length}, minmax(0, 1fr))` }}
+          >
+            {porJugador.map((r) => (
+              <article key={r.id} className="resumen-cmp__jugador" aria-label={r.nombre}>
+                <b className="resumen-cmp__nombre">{r.nombre}</b>
+                {r.ganadas.length ? (
+                  <p className="resumen-cmp__gana">
+                    <b>{r.texto.slice(0, r.texto.indexOf(':') + 1)}</b> {r.ganadas.join(', ')}
+                  </p>
+                ) : (
+                  <p className="resumen-cmp__nada">{r.texto}</p>
+                )}
+                <p className="resumen-cmp__pie">
+                  <span>Valor de mercado</span>
+                  <b className="resumen-cmp__valor">
+                    {r.valor_mercado_eur !== null ? (
+                      formatearEur(r.valor_mercado_eur)
+                    ) : (
+                      <Dato valor={null} />
+                    )}
+                  </b>
                 </p>
-              </>
-            ) : (
-              <>
-                <b className="num">Costo no disponible</b>
-                <p>Hacen falta al menos dos jugadores con valor de mercado publicado.</p>
-              </>
-            )}
-          </article>
-        </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <div className="actions">
           <Link className="btn btn--ghost" to={linkAResultados()}>

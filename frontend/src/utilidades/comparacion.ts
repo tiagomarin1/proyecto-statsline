@@ -1,6 +1,5 @@
 /** Lógica pura de las barras de la comparación (CMP-004, RN-006 y RN-037). */
 import type { FilaComparacion } from '../tipos/api';
-import { formatearEur } from './formato';
 
 export type Grupo = 'ataque' | 'pase_defensa' | 'participacion';
 export const GRUPOS: { clave: Grupo | 'todas'; etiqueta: string }[] = [
@@ -79,34 +78,51 @@ interface JugadorValor {
   valor_mercado_eur: number | null;
 }
 
-/** Frase de arriba de la comparación, con el nombre completo de cada jugador (CMP-006). */
+/** Frase de arriba de la comparación, con el nombre completo de cada jugador (CMP-006). Desde
+ *  CMP-007 no habla de precios: el valor de mercado va aparte, en el resumen final (RN-006). */
 export function resumenComparacion(
   filas: Pick<FilaComparacion, 'mejor'>[],
   jugadores: JugadorValor[],
 ): string {
-  const letras = jugadores.map((j) => j.nombre_completo);
+  const nombres = jugadores.map((j) => j.nombre_completo);
   const ganadas = jugadores.map((j) => filas.filter((f) => f.mejor.includes(j.id)).length);
   const tope = Math.max(...ganadas);
-  const lideres = letras.filter((_, i) => ganadas[i] === tope);
-  let frase: string;
-  if (tope === 0) {
-    frase = 'Ningún jugador se destaca en las métricas';
-  } else if (lideres.length === 1) {
-    frase = `${lideres[0]} gana en ${tope} de ${filas.length} métricas`;
-  } else {
-    frase = `${lideres.slice(0, -1).join(', ')} y ${lideres[lideres.length - 1]} empatan en métricas (${tope} cada uno)`;
-  }
-  const conValor = jugadores
-    .map((j, i) => ({ letra: letras[i], v: j.valor_mercado_eur }))
-    .filter((x): x is { letra: string; v: number } => x.v !== null);
-  if (conValor.length >= 2) {
-    const barato = conValor.reduce((a, b) => (b.v < a.v ? b : a));
-    const caro = Math.max(...conValor.map((x) => x.v));
-    if (caro > barato.v) {
-      frase += `; ${barato.letra} es ${formatearEur(caro - barato.v)} más barato`;
-    }
-  }
-  return `${frase}.`;
+  const lideres = nombres.filter((_, i) => ganadas[i] === tope);
+  if (tope === 0) return 'Ningún jugador se destaca en las métricas.';
+  if (lideres.length === 1) return `${lideres[0]} gana en ${tope} de ${filas.length} métricas.`;
+  return `${lideres.slice(0, -1).join(', ')} y ${lideres[lideres.length - 1]} empatan en métricas (${tope} cada uno).`;
+}
+
+export interface ResumenJugador {
+  id: number;
+  nombre: string;
+  /** etiquetas de las métricas en las que es "Mejor", en el orden de la tabla */
+  ganadas: string[];
+  /** "Gana en 3 de 8: Minutos jugados, Goles, Asistencias" o "No gana ninguna métrica" */
+  texto: string;
+  /** null = "Dato no disponible", nunca 0 (RN-008) */
+  valor_mercado_eur: number | null;
+}
+
+/** CMP-007 (y el PDF de CMP-002): resumen final con una parte por jugador. El total es la
+ *  cantidad de métricas de la comparación, aunque la tabla tenga filtros (RN-006). */
+export function resumenPorJugador(
+  filas: Pick<FilaComparacion, 'etiqueta' | 'mejor'>[],
+  jugadores: JugadorValor[],
+): ResumenJugador[] {
+  return jugadores.map((j) => {
+    const ganadas = filas.filter((f) => f.mejor.includes(j.id)).map((f) => f.etiqueta);
+    return {
+      id: j.id,
+      nombre: j.nombre_completo,
+      ganadas,
+      texto:
+        ganadas.length === 0
+          ? 'No gana ninguna métrica'
+          : `Gana en ${ganadas.length} de ${filas.length}: ${ganadas.join(', ')}`,
+      valor_mercado_eur: j.valor_mercado_eur,
+    };
+  });
 }
 
 /** Solo porcentajes y rating entran al radar (RN-037); el rating (0-10) se pasa a 0-100. */

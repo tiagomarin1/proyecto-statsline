@@ -262,3 +262,255 @@ h1 {
     opacity: 1 !important;
   }
 }
+
+/* ============ CMP-007: métricas en filas apiladas y resumen final ============ */
+
+/* Cabeceras compactas, una al lado de la otra */
+@media (min-width: 768px) {
+  .cmp__head {
+    padding: 12px 10px;
+    gap: 3px;
+  }
+  .cmp__head .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .cmp__head h3 {
+    font-size: 16px;
+  }
+  .cmp__head .val {
+    font-size: 18px;
+  }
+}
+@media (max-width: 767px) {
+  /* tres columnas en 360 px: la cifra ancha (UI-013) puede pasar a dos líneas, "EUR" y el número */
+  .cmp__head .val {
+    font-size: clamp(12px, 3.4vw, 14.5px);
+    line-height: 1.15;
+  }
+}
+
+.mrow__filas {
+  display: grid;
+  gap: 6px;
+}
+.fila-cmp__caja {
+  position: relative;
+}
+/* Cada jugador: nombre a la izquierda, "Mejor"/"Peor" y el número a la derecha, y debajo una
+   barra de ancho completo que se llena hasta el valor (RN-037) */
+.fila-cmp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'nombre valor'
+    'barra barra';
+  align-items: end;
+  column-gap: 12px;
+  row-gap: 6px;
+  padding: 8px 10px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: default;
+  transition:
+    transform var(--mov-rapido) var(--mov-curva),
+    background var(--mov-rapido) ease,
+    border-color var(--mov-rapido) ease,
+    opacity var(--mov-medio) ease;
+}
+.fila-cmp:hover,
+.fila-cmp.is-activa {
+  transform: translateX(3px);
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+.fila-cmp:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.fila-cmp.is-dim {
+  opacity: 0.4;
+}
+.fila-cmp.is-oculto {
+  opacity: 0.35;
+  filter: grayscale(0.8);
+}
+.fila-cmp__nombre {
+  grid-area: nombre;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.fila-cmp__valor {
+  grid-area: valor;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.fila-cmp__num {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+}
+.fila-cmp__num .nd {
+  font: italic 500 13px var(--font-body);
+}
+.fila-cmp__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.fila-cmp__tag--mejor {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.fila-cmp__tag--peor {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.fila-cmp__pista {
+  grid-area: barra;
+  position: relative;
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: visible;
+}
+.fila-cmp__barra {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--fg-faint);
+  transition: width var(--mov-lento, 0.6s) var(--mov-curva);
+}
+.fila-cmp.is-best .fila-cmp__barra {
+  background: var(--good);
+}
+.fila-cmp.is-best .fila-cmp__num {
+  color: var(--good);
+}
+.fila-cmp.is-worst .fila-cmp__barra {
+  background: var(--bad);
+}
+.fila-cmp.is-worst .fila-cmp__num {
+  color: var(--bad);
+}
+.fila-cmp__prom {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--fg);
+}
+/* Tooltip con las diferencias y el promedio, debajo de la fila */
+.fila-cmp__tip {
+  left: 10px;
+  right: auto;
+  top: calc(100% + 4px);
+}
+
+/* Resumen final: una parte por jugador */
+.resumen-cmp {
+  padding: 18px 20px 20px;
+  display: grid;
+  gap: 14px;
+}
+.resumen-cmp h2 {
+  font-size: 19px;
+}
+.resumen-cmp__grilla {
+  display: grid;
+  gap: 12px;
+}
+.resumen-cmp__jugador {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.resumen-cmp__nombre {
+  font-size: 15.5px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.resumen-cmp__gana,
+.resumen-cmp__nada {
+  font-size: 14px;
+  color: var(--fg-muted);
+}
+.resumen-cmp__gana b {
+  color: var(--fg);
+}
+.resumen-cmp__pie {
+  display: grid;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.resumen-cmp__pie > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.resumen-cmp__valor {
+  font-size: 20px;
+  font-weight: 800;
+}
+.resumen-cmp__valor .nd {
+  font: italic 500 13px var(--font-body);
+}
+
+@media (max-width: 767px) {
+  .mrow {
+    padding: 12px 10px;
+  }
+  .fila-cmp {
+    padding: 8px 8px 10px;
+    column-gap: 8px;
+  }
+  .fila-cmp__nombre {
+    font-size: 13.5px;
+  }
+  .fila-cmp__num {
+    font-size: 18px;
+  }
+  .fila-cmp__tag {
+    font-size: 10px;
+    padding-inline: 6px;
+  }
+  .fila-cmp__tip {
+    width: min(240px, 80vw);
+  }
+  /* el selector de grupo no entra en 360 px: hace salto de línea en vez de cortarse */
+  .cmp__filtros .seg {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  /* en el celular las partes del resumen van una debajo de la otra */
+  .resumen-cmp__grilla {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .resumen-cmp {
+    padding: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fila-cmp:hover,
+  .fila-cmp.is-activa {
+    transform: none;
+  }
+}
