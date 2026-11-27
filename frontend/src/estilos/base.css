@@ -230,7 +230,6 @@ button, input, select { font: inherit; color: inherit; }
 .chip--warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .chip--bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
 .chip--accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-.chip--r2 { background: var(--surface-3); color: var(--fg-muted); border-color: transparent; font-size: 11px; letter-spacing: .04em; }
 
 .eyebrow {
   font-size: 12px;
