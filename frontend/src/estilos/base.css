@@ -375,9 +375,13 @@ button, input, select { font: inherit; color: inherit; }
 /* ============ Landing ============ */
 
 /* UI-003: hero con la pelota que recorre la línea (docs/specs/interfaz/UI-003.md).
-   Estático por defecto: sin JS o con movimiento reducido se ve completo (pelota en reposo, puntos y
-   tarjetas visibles). HeroLinea agrega data-anim cuando fija el hero con el scroll. */
+   Estático por defecto: sin JS o con movimiento reducido se ve completo (pelota en reposo, barras
+   llenas). HeroLinea agrega data-anim cuando fija el hero con el scroll (solo en escritorio).
+   Escritorio: texto + tarjeta de ejemplo en dos columnas. Celular: una columna y, abajo, la franja
+   de cancha con la pelota y las ligas. */
 .hero {
+  --b: clamp(92px, 8.4vw, 120px);   /* diámetro de la pelota */
+  --linea: 12%;                     /* distancia de la línea de cancha al borde inferior */
   position: relative;
   background: var(--sl-grafito);
   color: var(--on-dark);
@@ -386,10 +390,20 @@ button, input, select { font: inherit; color: inherit; }
   display: flex;
 }
 .hero[data-anim] { height: calc(100svh - var(--hero-barra, 64px)); min-height: 0; }
-.hero__in { position: relative; z-index: 3; display: flex; align-items: center; width: 100%; padding-block: 48px 64px; }
+.hero__in {
+  position: relative; z-index: 3; width: 100%;
+  display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  grid-template-areas: 'texto ejemplo' 'ligas ejemplo';
+  column-gap: 56px; align-content: center; align-items: center;
+  padding-block: 40px calc(var(--b) + 12svh);
+}
+.hero__texto { grid-area: texto; max-width: 560px; align-self: end; }
+.hero__etiqueta {
+  margin: 0 0 14px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--sl-oro);
+}
 .hero h1 { font-size: clamp(38px, 5.4vw, 62px); color: var(--on-dark); }
 .hero h1 em { font-style: normal; color: var(--sl-oro); }
-.hero__texto { max-width: 560px; }
 .hero__lead { margin-top: 20px; font-size: clamp(17px, 1.6vw, 19px); color: var(--on-dark); max-width: 46ch; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .hero .btn--onDark { background: rgba(22, 24, 29, .7); border-color: rgba(241, 239, 234, .34); }
@@ -409,27 +423,8 @@ button, input, select { font: inherit; color: inherit; }
 .hero__foto img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; max-width: none; }
 .hero__sombra { position: absolute; inset: 0; background: var(--sl-grafito); opacity: .58; }
 
-/* Capa de la línea: puntos, tarjetas y pelota. No recibe clics, así que nunca tapa los botones. */
-.hero__capa { --b: clamp(92px, 8.4vw, 120px); position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.hero__punto {
-  position: absolute; top: 88%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
-  border-radius: 50%; background: var(--sl-oro);
-}
-.hero__dato {
-  position: absolute; margin-left: -58px; padding: 6px 10px; min-width: 92px;
-  display: flex; flex-direction: column; gap: 2px;
-  background: rgba(22, 24, 29, .94); border: 1px solid rgba(241, 239, 234, .34); border-radius: 12px;
-  bottom: calc(12% + var(--b) + 26px);
-}
-.hero__dato:nth-of-type(even) { bottom: calc(12% + var(--b) + 106px); }
-.hero__dato span { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--on-dark); }
-.hero__dato strong { font-size: 17.5px; font-weight: 800; color: var(--sl-oro); line-height: 1.1; white-space: nowrap; }
-.hero__capa .p1 { left: 56%; }
-.hero__capa .p2 { left: 66%; }
-.hero__capa .p3 { left: 77%; }
-.hero__capa .p4 { left: 88%; }
-
-/* La pelota: en reposo queda a la vista; con data-anim arranca fuera de pantalla y rueda. */
+/* Capa de la línea: la pelota. No recibe clics, así que nunca tapa los botones. */
+.hero__capa { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .hero__bola {
   position: absolute; left: 44%; top: 88%; z-index: 3;
   width: var(--b); height: var(--b); margin: calc(var(--b) * -.95) 0 0 calc(var(--b) / -2);
@@ -441,28 +436,104 @@ button, input, select { font: inherit; color: inherit; }
   border-radius: 50%; background: var(--sl-grafito); opacity: .5;
 }
 
-/* Ligas: chips informativos (ya no hay maqueta que cambie con la liga) */
-.ligas { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 0; padding: 0; list-style: none; }
+/* Tarjeta de ejemplo de comparación: las barras se llenan solas al cargar (solo transform) */
+.ejemplo {
+  grid-area: ejemplo; justify-self: end; width: 100%; max-width: 440px; margin: 0; padding: 18px 20px;
+  display: grid; gap: 14px; border-radius: var(--r-lg);
+  background: rgba(22, 24, 29, .88); border: 1px solid rgba(241, 239, 234, .28);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .4);
+  animation: ejemplo-in .7s var(--ease-out) both;
+}
+.ejemplo__cab {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--on-dark-muted);
+}
+.ejemplo__rotulo { padding: 2px 9px; border-radius: 999px; background: var(--sl-oro); color: var(--sl-grafito); letter-spacing: .06em; }
+.ejemplo__quienes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ejemplo__quienes > div { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+.ejemplo__quienes b { font-size: 15px; color: #fff; }
+.ejemplo__quienes small { grid-column: 2; font-size: 12px; color: var(--on-dark-muted); }
+.ejemplo__letra {
+  grid-row: 1 / span 2; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 12px; font-weight: 800; background: rgba(241, 239, 234, .16); color: var(--on-dark);
+}
+.ejemplo__filas { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ejemplo__lbl { font-size: 12.5px; color: var(--on-dark-muted); }
+.ejemplo__linea { display: grid; grid-template-columns: 14px minmax(0, 1fr) 52px; gap: 8px; align-items: center; margin-top: 5px; }
+.ejemplo__quien { font-size: 11px; font-weight: 700; color: var(--on-dark-muted); }
+.ejemplo__pista { height: 10px; border-radius: 6px; background: rgba(241, 239, 234, .14); overflow: hidden; }
+.ejemplo__barra {
+  display: block; height: 100%; width: var(--w); border-radius: 6px; background: rgba(241, 239, 234, .45);
+  transform-origin: left center; animation: ejemplo-barra .9s var(--ease-out) var(--d, 0ms) both;
+}
+.ejemplo__barra.is-best { background: var(--sl-oro); }
+.ejemplo__v { font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; color: #fff; }
+.ejemplo__resumen { margin: 0; padding-top: 12px; display: grid; gap: 2px; border-top: 1px solid rgba(241, 239, 234, .2); }
+.ejemplo__resumen b { font-size: 15px; color: var(--sl-oro); }
+.ejemplo__resumen span { font-size: 13px; color: var(--on-dark-muted); }
+@keyframes ejemplo-barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ejemplo-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes hero-flecha { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* Ligas: chips informativos. En escritorio van debajo del texto; en el celular, en una fila que se desliza. */
+.ligas {
+  grid-area: ligas; display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 0; padding: 0; list-style: none;
+  align-self: start; border-radius: 12px;
+}
+.ligas:focus-visible { outline: 2px solid var(--sl-oro); outline-offset: 4px; }
 .liga {
   padding: 6px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--on-dark);
   background: rgba(22, 24, 29, .7); border: 1px solid rgba(241, 239, 234, .34);
 }
 
+/* Indicador de scroll: discreto, abajo del hero */
+.hero__scroll {
+  position: absolute; left: 50%; bottom: 6px; z-index: 4; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: .04em; color: var(--on-dark-muted); text-decoration: none;
+}
+.hero__scroll:hover { color: var(--on-dark); }
+.hero__scroll svg { animation: hero-flecha 1.8s ease-in-out infinite; }
+
 @media (max-width: 767px) {
-  .hero__in { align-items: flex-start; padding-block: 28px 40px; }
-  .hero h1 { font-size: clamp(32px, 9vw, 42px); }
+  .hero { --b: 64px; --linea: 92px; }
+  .hero__foto { top: calc(100cqh - var(--linea) - var(--W) / var(--ar) * .583); }
+  .hero__bola { top: calc(100% - var(--linea)); left: 8%; }
+  .hero__in {
+    display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 16px;
+    padding-block: 22px calc(var(--linea) + var(--b) * .95 + 6px);
+  }
+  .hero__texto { max-width: none; }
+  .hero__etiqueta { margin-bottom: 10px; font-size: 11.5px; }
+  .hero h1 { font-size: clamp(31px, 9vw, 40px); }
   .hero__lead { margin-top: 10px; font-size: 15.5px; line-height: 1.4; }
-  .hero__cta { margin-top: 14px; gap: 8px; }
-  .hero .btn--lg { min-height: 46px; padding-inline: 16px; font-size: 15.5px; }
-  .ligas { margin-top: 12px; gap: 6px; }
-  .liga { font-size: 12px; padding: 4px 10px; }
-  .hero__capa .p1 { left: 24%; }
-  .hero__capa .p2 { left: 62%; }
-  .hero__capa .p3, .hero__capa .p4 { display: none; }
-  .hero__dato { padding: 4px 7px; min-width: 0; }
-  .hero__dato, .hero__dato:nth-of-type(even) { bottom: calc(12% + var(--b) + 22px); }
-  .hero__dato span { font-size: 10px; }
-  .hero__dato strong { font-size: 14.5px; }
+  .hero__cta { flex-direction: column; align-items: stretch; gap: 2px; margin-top: 16px; }
+  .hero .btn--lg { width: 100%; min-height: 50px; font-size: 16px; }
+  .hero__sec { background: transparent !important; border-color: transparent !important; min-height: 44px; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* tarjeta compacta: cada métrica en una fila, con A y B apiladas */
+  .ejemplo { max-width: none; justify-self: stretch; padding: 14px; gap: 10px; }
+  .ejemplo__quienes { display: none; }
+  .ejemplo__filas { gap: 8px; }
+  .ejemplo__filas li { display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: center; column-gap: 10px; }
+  .ejemplo__lbl { grid-column: 1; grid-row: 1 / span 2; }
+  .ejemplo__linea { grid-column: 2; margin-top: 3px; }
+  .ejemplo__resumen { padding-top: 10px; }
+
+  /* franja de cancha: la línea queda a --linea del borde, con las ligas y el indicador debajo */
+  .ligas {
+    position: absolute; left: 0; right: 0; bottom: 44px; margin: 0; padding: 2px var(--gutter);
+    flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, #000 90%, transparent);
+  }
+  .ligas::-webkit-scrollbar { display: none; }
+  .liga { flex: none; scroll-snap-align: start; white-space: nowrap; font-size: 12.5px; padding: 5px 11px; }
+  .hero__scroll { bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ejemplo, .ejemplo__barra, .hero__scroll svg { animation: none !important; }
 }
 
 .band { padding-block: 64px; }

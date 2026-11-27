@@ -106,16 +106,14 @@ describe('UI-003: hero de la home', () => {
     expect(container.querySelector('section.hero')).toHaveAttribute('data-anim', 'true');
   });
 
-  it('en mobile con movimiento permitido también se fija, con un recorrido más corto', () => {
-    simularPantalla('escritorio');
-    const escritorio = renderizar();
-    const largoEscritorio = ScrollTrigger.getAll()[0].vars.end;
-    escritorio.unmount();
-
+  it('en mobile no se fija: la pelota rueda con el scroll pero el hero se scrollea normal', () => {
     simularPantalla('movil');
-    renderizar();
-    expect(ScrollTrigger.getAll()).toHaveLength(1);
-    expect(ScrollTrigger.getAll()[0].vars.end).not.toEqual(largoEscritorio);
+    const { container } = renderizar();
+
+    const disparadores = ScrollTrigger.getAll();
+    expect(disparadores).toHaveLength(1);
+    expect(disparadores[0].pin).toBeFalsy();
+    expect(container.querySelector('section.hero')).not.toHaveAttribute('data-anim');
   });
 
   it('al desmontarse libera la animación', () => {
@@ -125,5 +123,70 @@ describe('UI-003: hero de la home', () => {
 
     unmount();
     expect(ScrollTrigger.getAll()).toHaveLength(0);
+  });
+
+  it('muestra la etiqueta corta arriba del título', () => {
+    simularPantalla('reducido');
+    renderizar();
+    expect(screen.getByText('Para clubes del fútbol argentino')).toBeInTheDocument();
+  });
+
+  it('muestra una tarjeta de ejemplo de comparación, rotulada como ejemplo', () => {
+    simularPantalla('reducido');
+    renderizar();
+
+    const tarjeta = screen.getByRole('figure', { name: 'Ejemplo de comparación' });
+    expect(within(tarjeta).getByText('Ejemplo')).toBeInTheDocument();
+    expect(within(tarjeta).getByText('Jugador A')).toBeInTheDocument();
+    expect(within(tarjeta).getByText('Jugador B')).toBeInTheDocument();
+    expect(within(tarjeta).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(tarjeta).getByText('A gana en 2 de 3 métricas')).toBeInTheDocument();
+    expect(within(tarjeta).getByText(/más barato/)).toBeInTheDocument();
+  });
+
+  it('las barras de la tarjeta no se anuncian a los lectores de pantalla', () => {
+    simularPantalla('reducido');
+    const { container } = renderizar();
+    const barras = container.querySelectorAll('.ejemplo__barra');
+    expect(barras.length).toBeGreaterThanOrEqual(6);
+    barras.forEach((b) => expect(b).toHaveAttribute('aria-hidden', 'true'));
+  });
+
+  it('ya no hay tarjetas flotantes con puntos sobre la línea', () => {
+    simularPantalla('reducido');
+    const { container } = renderizar();
+    expect(container.querySelector('.hero__dato')).toBeNull();
+    expect(container.querySelector('.hero__punto')).toBeNull();
+  });
+
+  it('las ligas van en una lista que se puede recorrer con el teclado', () => {
+    simularPantalla('reducido');
+    renderizar();
+    expect(screen.getByRole('list', { name: 'Ligas disponibles' })).toHaveAttribute(
+      'tabindex',
+      '0',
+    );
+  });
+
+  it('el indicador de scroll lleva a "Cómo funciona"', () => {
+    simularPantalla('reducido');
+    const destino = document.createElement('section');
+    destino.id = 'como-funciona';
+    destino.scrollIntoView = vi.fn();
+    document.body.appendChild(destino);
+
+    renderizar();
+    const indicador = screen.getByRole('link', { name: 'Ver cómo funciona' });
+    expect(indicador).toHaveAttribute('href', '#como-funciona');
+    indicador.click();
+    expect(destino.scrollIntoView).toHaveBeenCalled();
+    destino.remove();
+  });
+
+  it('con sesión el botón principal sigue siendo uno solo', () => {
+    simularPantalla('reducido');
+    renderizar(true);
+    const cta = document.querySelector('.hero__cta') as HTMLElement;
+    expect(within(cta).getAllByRole('link')).toHaveLength(1);
   });
 });
