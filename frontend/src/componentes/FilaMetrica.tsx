@@ -33,8 +33,10 @@ const formatoDif = new Intl.NumberFormat('es-AR', {
   signDisplay: 'exceptZero',
 });
 
-/** Una métrica de la comparación (CMP-006): una celda por jugador, alineada con su columna, con el
- *  número en grande y una barra que lo representa. El mejor va en verde y el peor en rojo. */
+/** Una métrica de la comparación (CMP-007): los jugadores van uno debajo del otro. Cada fila
+ *  tiene el nombre completo, el número y una barra de ancho completo que se llena hasta el valor
+ *  (RN-037). El mejor va en verde y el peor en rojo (RN-006). Las diferencias contra los otros y
+ *  el promedio de la posición quedan en el tooltip, que aparece al pasar, tocar o enfocar. */
 export default function FilaMetrica({
   fila,
   jugadores,
@@ -77,10 +79,7 @@ export default function FilaMetrica({
         <InfoMetrica metrica={fila.metrica} etiqueta={fila.etiqueta} />
         {faltan > 0 && <span className="chip chip--warn">Falta en {faltan}</span>}
       </div>
-      <div
-        className="mrow__celdas"
-        style={{ gridTemplateColumns: `repeat(${jugadores.length}, minmax(0, 1fr))` }}
-      >
+      <div className="mrow__filas">
         {jugadores.map((j, i) => {
           const v = valores[i];
           const esMejor = mejor.includes(j.id);
@@ -99,25 +98,20 @@ export default function FilaMetrica({
             v === null ? 'Dato no disponible' : formatearNumero(v)
           }${esMejor ? ', Mejor' : esPeor ? ', Peor' : ''}`;
           const abierto = activo === j.id;
-          const clasesCelda = [
-            'celda',
+          const clases = [
+            'fila-cmp',
             esMejor ? 'is-best' : '',
             esPeor ? 'is-worst' : '',
             j.oculto ? 'is-oculto' : '',
-          ]
-            .filter(Boolean)
-            .join(' ');
-          const clasesFoco = [
-            'celda__foco',
             jugadorFoco !== null && jugadorFoco !== j.id ? 'is-dim' : '',
             abierto ? 'is-activa' : '',
           ]
             .filter(Boolean)
             .join(' ');
           return (
-            <div key={j.id} className={clasesCelda}>
+            <div key={j.id} className="fila-cmp__caja">
               <div
-                className={clasesFoco}
+                className={clases}
                 role="img"
                 aria-label={etiqueta}
                 aria-describedby={abierto ? idTip : undefined}
@@ -131,32 +125,33 @@ export default function FilaMetrica({
                   if (e.key === 'Escape') setActivo(null);
                 }}
               >
-                <b className="celda__num">
-                  <Dato valor={v === null ? null : valorAnimado(v, progreso)} />
-                </b>
-                <span className="celda__pista" aria-hidden="true">
+                <span className="fila-cmp__nombre">{j.nombre}</span>
+                <span className="fila-cmp__valor">
+                  {(esMejor || esPeor) && (
+                    <span className={`fila-cmp__tag fila-cmp__tag--${esMejor ? 'mejor' : 'peor'}`}>
+                      {esMejor ? 'Mejor' : 'Peor'}
+                    </span>
+                  )}
+                  <b className="fila-cmp__num">
+                    <Dato valor={v === null ? null : valorAnimado(v, progreso)} />
+                  </b>
+                </span>
+                <span className="fila-cmp__pista" aria-hidden="true">
                   <i
-                    className="celda__barra"
+                    className="fila-cmp__barra"
                     style={{ width: `${visible ? pct : 0}%`, transitionDelay: `${i * 90}ms` }}
                   />
                   {pctProm !== null && (
                     <i
-                      className="celda__prom"
+                      className="fila-cmp__prom"
                       data-testid="marca-promedio"
                       style={{ left: `${pctProm}%` }}
                     />
                   )}
                 </span>
               </div>
-              {(esMejor || esPeor) && (
-                <span
-                  className={`celda__tag ${esMejor ? 'celda__tag--mejor' : 'celda__tag--peor'}`}
-                >
-                  {esMejor ? 'Mejor' : 'Peor'}
-                </span>
-              )}
               {abierto && (
-                <div id={idTip} role="tooltip" className="tip">
+                <div id={idTip} role="tooltip" className="tip fila-cmp__tip">
                   <b>{j.nombre}</b>
                   <span>
                     {fila.etiqueta}:{' '}

@@ -6,7 +6,13 @@ import { expect, test, type APIRequestContext, type Locator } from '@playwright/
 const EMAIL_DEMO = 'javier@deportivonorte.com';
 const COMO_LEVANTAR = 'Levantá la app y cargá el seed como dice docs/SETUP.md (sección E2E).';
 
-// Avisos de RN-026
+// JUG-004: la interfaz muestra el nombre completo (RN-038). El seed carga nombre de pila y apellido
+// desde los fixtures de API-Football; la API sigue devolviendo el abreviado en `nombre`.
+const ARIAS = 'Santiago Arias Naranjo';
+const ROJO = 'Faustino Marcos Alberto Rojo';
+const MAGALLAN = 'Lisandro Magallán';
+
+// Avisos de RN-026 (con el nombre completo)
 const avisoGuardado = (nombre: string) => `${nombre} quedó guardado en la lista de seguimiento.`;
 const avisoQuitado = (nombre: string) => `${nombre} salió de la lista de seguimiento.`;
 
@@ -34,7 +40,7 @@ async function completarContrasena(campo: Locator, contrasena: string) {
   }, contrasena);
 }
 
-/** Deja a M. Rojo fuera de la lista de seguimiento del usuario demo, por si una corrida anterior
+/** Deja a Rojo fuera de la lista de seguimiento del usuario demo, por si una corrida anterior
  * se cortó a la mitad. Usa su propia sesión de la API: la página sigue sin sesión. */
 async function prepararSeguimiento(api: APIRequestContext, contrasena: string) {
   const salud = await api.get('/api/v1/salud').catch(() => null);
@@ -54,10 +60,11 @@ async function prepararSeguimiento(api: APIRequestContext, contrasena: string) {
     params: { nombre: 'Rojo', posicion: 'defensor' },
   });
   const { resultados } = (await busqueda.json()) as {
-    resultados: { id: number; nombre: string }[];
+    resultados: { id: number; nombre: string; nombre_completo: string }[];
   };
   const rojo = resultados.find((j) => j.nombre === 'M. Rojo');
   if (!rojo) throw new Error(`M. Rojo no está en la base: falta el seed. ${COMO_LEVANTAR}`);
+  expect(rojo.nombre_completo, 'JUG-004: la API devuelve el nombre completo').toBe(ROJO);
   const baja = await api.delete(`/api/v1/seguimiento/${rojo.id}`);
   expect(baja.status(), 'DELETE /seguimiento es idempotente y responde 204').toBe(204);
 }
@@ -89,10 +96,16 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
     await page.getByRole('button', { name: 'Saltar guía' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1, name: 'Buscar jugadores' })).toBeVisible();
+    // UI-012: "Buscar jugadores" y "Seguimiento" a la vista; el nombre va en el menú
     const nav = page.getByRole('navigation', { name: 'Principal' });
-    await expect(nav.getByText('Javier', { exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Buscar' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Buscar jugadores' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Seguimiento' })).toBeVisible();
+    await page.getByRole('button', { name: 'Abrir menú' }).click();
+    const menu = page.getByRole('navigation', { name: 'Menú' });
+    await expect(menu.getByText(/^Javier/)).toBeVisible();
+    await expect(menu.getByRole('button', { name: 'Ayuda' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
     // UI-009: la primera pantalla son solo los filtros; los candidatos recién aparecen con
     // "Ver resultados"
     await expect(page.getByRole('button', { name: 'Ver resultados' })).toBeVisible();
@@ -117,7 +130,7 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
       await expect(tarjeta).toContainText('Liga Profesional');
     }
     // RN-021: por defecto, de más a menos minutos
-    await expect(tarjetas.first()).toContainText('L. Magallán');
+    await expect(tarjetas.first()).toContainText(MAGALLAN);
     // RN-008: el valor que falta se dice, no es un 0
     await expect(tarjetas.first()).toContainText('Dato no disponible');
     await expect(tarjetas.first()).not.toContainText('EUR');
@@ -125,12 +138,12 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
 
   await test.step('Ficha (JUG-001)', async () => {
     await tarjetas
-      .filter({ hasText: 'S. Arias' })
+      .filter({ hasText: ARIAS })
       .getByRole('link', { name: /^Ver ficha/ })
       .click();
 
     await expect(page).toHaveURL(/\/ficha\/\d+\?.*posicion=defensor/);
-    await expect(page.getByRole('heading', { level: 1, name: 'S. Arias' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: ARIAS })).toBeVisible();
     await expect(page.getByText('Defensor', { exact: true })).toBeVisible();
     await expect(page.getByText('Liga Profesional', { exact: true })).toBeVisible();
     // RN-002: valor de Transfermarkt
@@ -149,36 +162,52 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
     await expect(resultados).toHaveText('6 resultados');
   });
 
-  await test.step('Comparar (CMP-001)', async () => {
-    await page.getByRole('checkbox', { name: 'Comparar a S. Arias' }).check();
-    await page.getByRole('checkbox', { name: 'Comparar a M. Rojo' }).check();
+  await test.step('Comparar (CMP-001, CMP-007, CMP-002)', async () => {
+    await page.getByRole('checkbox', { name: `Comparar a ${ARIAS}` }).check();
+    await page.getByRole('checkbox', { name: `Comparar a ${ROJO}` }).check();
     const comparar = page.getByRole('button', { name: 'Comparar 2' });
     await expect(comparar).toBeEnabled();
     await comparar.click();
 
     await expect(page).toHaveURL(/\/comparar\?ids=\d+,\d+$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Comparar jugadores' })).toBeVisible();
-    // CMP-006: cada jugador va en su columna, con el nombre completo
-    await expect(page.getByRole('heading', { name: 'S. Arias' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'M. Rojo' })).toBeVisible();
-    // RN-006: Mejor/Peor por métrica
-    await expect(page.getByRole('article').filter({ hasText: 'Métricas ganadas' })).toContainText(
-      /S\. Arias\s*3\s*M\. Rojo\s*5/,
-    );
-    const diferencia = page.getByRole('article').filter({ hasText: 'Diferencia de valor' });
-    await expect(diferencia).toContainText('EUR 1.075.000');
-    await expect(diferencia).toContainText('M. Rojo es el más barato de la comparación.');
+    // CMP-006: cada jugador va en su columna, con el nombre completo (JUG-004)
+    await expect(page.getByRole('heading', { name: ARIAS })).toBeVisible();
+    await expect(page.getByRole('heading', { name: ROJO })).toBeVisible();
+    // CMP-007: en cada métrica, una fila por jugador con su nombre completo
+    await expect(
+      page.getByRole('img', { name: new RegExp(`^${ARIAS}, Minutos jugados, `) }),
+    ).toBeVisible();
+    // RN-006: el resumen final dice en qué gana cada uno y su valor de mercado
+    const resumen = page.getByRole('region', { name: 'Resumen' });
+    await expect(resumen.getByRole('article', { name: ARIAS })).toContainText('Gana en 3 de 8');
+    await expect(resumen.getByRole('article', { name: ARIAS })).toContainText('EUR 1.200.000');
+    await expect(resumen.getByRole('article', { name: ROJO })).toContainText('Gana en 5 de 8');
+    await expect(resumen.getByRole('article', { name: ROJO })).toContainText('EUR 125.000');
+    // ya no se muestra la diferencia de valor ni quién es más barato
+    await expect(page.getByText(/barato|Diferencia de valor/)).toHaveCount(0);
+
+    // CMP-002: el PDF se descarga con el nombre StatsLine-comparacion-AAAA-MM-DD.pdf
+    await page.getByRole('button', { name: 'Exportar PDF' }).click();
+    const dialogo = page.getByRole('dialog', { name: 'Exportar PDF' });
+    await dialogo.getByLabel('Notas (opcional)').fill('Verlo en vivo el sábado.');
+    const [descarga] = await Promise.all([
+      page.waitForEvent('download'),
+      dialogo.getByRole('button', { name: 'Descargar PDF' }).click(),
+    ]);
+    expect(descarga.suggestedFilename()).toMatch(/^StatsLine-comparacion-\d{4}-\d{2}-\d{2}\.pdf$/);
+    await expect(dialogo).toHaveCount(0);
   });
 
   await test.step('Seguimiento (SEG-001)', async () => {
     await page
       .getByRole('article')
-      .filter({ has: page.getByRole('heading', { name: 'M. Rojo' }) })
+      .filter({ has: page.getByRole('heading', { name: ROJO }) })
       .getByRole('link', { name: 'Ver ficha' })
       .click();
-    await expect(page.getByRole('heading', { level: 1, name: 'M. Rojo' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: ROJO })).toBeVisible();
     await page.getByRole('button', { name: /Guardar en seguimiento/ }).click();
-    await expect(page.getByText(avisoGuardado('M. Rojo'))).toBeVisible();
+    await expect(page.getByText(avisoGuardado(ROJO))).toBeVisible();
     await expect(page.getByRole('button', { name: /Quitar del seguimiento/ })).toBeVisible();
 
     await page
@@ -189,11 +218,11 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
     await expect(
       page.getByRole('heading', { level: 1, name: 'Lista de seguimiento' }),
     ).toBeVisible();
-    const tarjeta = page.getByRole('article').filter({ hasText: 'M. Rojo' });
+    const tarjeta = page.getByRole('article').filter({ hasText: ROJO });
     await expect(tarjeta).toHaveCount(1);
     await tarjeta.getByRole('button', { name: 'Quitar de la lista de seguimiento' }).click();
-    await expect(page.getByText(avisoQuitado('M. Rojo'))).toBeVisible();
-    // Solo se mira a M. Rojo: si el usuario demo tiene otros guardados, no se tocan
+    await expect(page.getByText(avisoQuitado(ROJO))).toBeVisible();
+    // Solo se mira a Rojo: si el usuario demo tiene otros guardados, no se tocan
     await expect(tarjeta).toHaveCount(0);
   });
 });

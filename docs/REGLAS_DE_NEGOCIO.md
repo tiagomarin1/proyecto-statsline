@@ -136,17 +136,17 @@ un jugador sin el dato no compite en esa fila
 metricas_ganadas[jugador] = cantidad de filas en las que es "Mejor"
 ```
 
-- El **valor de mercado no compite.** Se muestra aparte:
-  - `diferencia_valor_eur` = máximo − mínimo entre los jugadores que tienen valor;
-  - el más barato entre ellos.
-- Si menos de 2 jugadores tienen valor, se muestra "Costo no disponible" para la diferencia **(supuesto)**.
+- El **valor de mercado no compite.** Se muestra aparte: en la cabecera de cada jugador y en el resumen final de la comparación (CMP-007). Si un jugador no tiene valor, dice "Dato no disponible" (RN-008).
+- **Desde el 27/11/2026 (decisión del equipo) la interfaz ya no muestra la diferencia de valor ni quién es el más barato.** La API sigue devolviendo `diferencia_valor_eur` (máximo − mínimo entre los que tienen valor, null si tienen valor menos de 2) y `mas_barato_id`, pero no se usan en pantalla ni en el PDF.
+- En el resumen final, cada jugador muestra en qué métricas es "Mejor": "Gana en 3 de 8: Minutos jugados, Goles, Asistencias", o "No gana ninguna métrica".
 
 **Ejemplo:**
 
 - Pases: A 87, B 83, C 87 → A y C son "Mejor", B es "Peor".
 - Duelos: A 61, B null, C 58 → A es "Mejor", C es "Peor", B no compite.
+- Resumen con esas dos filas: A "Gana en 2 de 2: % pases completados, % duelos ganados"; B "No gana ninguna métrica"; C "Gana en 1 de 2: % pases completados".
 
-Usada en: CMP-001.
+Usada en: CMP-001, CMP-007 y CMP-002.
 
 ### RN-007 Cantidad de jugadores a comparar
 
@@ -213,9 +213,16 @@ Usada en: JUG-001.
 
 Misma posición y una diferencia menor a un margen en cada métrica oficial, ordenados de menor a mayor valor. El margen se define con Backend y hay que validarlo con usuarios.
 
-### RN-014 Reporte PDF (R2)
+### RN-014 Reporte PDF (pasa al MVP; decisión del equipo, 27/11/2026)
 
-Incluye los jugadores comparados, sus métricas, el valor de mercado y la fecha de los datos (temporada de API-Football y corte de Transfermarkt). Hay que validarlo con usuarios.
+- Incluye, en este orden: encabezado (logo, club del usuario y fecha), los jugadores comparados (nombre completo, posición, equipo, edad y valor de mercado), la búsqueda usada (si hay una guardada en el navegador), métrica por métrica (valor, barra y "Mejor"/"Peor" escritos), el resumen por jugador, las notas del usuario (si escribió) y el pie "Generado por StatsLine el dd/mm/aaaa".
+- **No** muestra la temporada ni los nombres de los proveedores, igual que el resto de la interfaz (reemplaza lo que decía antes: "la fecha de los datos, temporada de API-Football y corte de Transfermarkt").
+- Exporta siempre a todos los jugadores y todas las métricas, aunque se haya ocultado a alguien o filtrado la tabla. Un dato faltante dice "Dato no disponible" (RN-008).
+- No incluye el radar, la lista de seguimiento ni el historial.
+
+**Ejemplo:** comparación de A (EUR 1.200.000) y B (sin valor), con notas "Ver en vivo el sábado". El PDF dice "EUR 1.200.000" para A, "Dato no disponible" para B, y termina con la sección "Notas" con ese texto. Sin notas, esa sección no aparece.
+
+Usada en: CMP-002.
 
 ---
 
@@ -396,7 +403,7 @@ Usada en: DAT-001, DAT-002.
 - Agregar un jugador que ya está no hace nada (es idempotente).
 - Se ordena del más reciente al más viejo.
 - **"Comparar los primeros 3"** toma los primeros `min(3, n)` jugadores y requiere n ≥ 2.
-- **Avisos:** "<Nombre> quedó guardado en la lista de seguimiento." / "<Nombre> salió de la lista de seguimiento."
+- **Avisos:** "<Nombre> quedó guardado en la lista de seguimiento." / "<Nombre> salió de la lista de seguimiento." Desde el 27/11/2026 `<Nombre>` es el nombre completo (RN-038): "Faustino Marcos Alberto Rojo quedó guardado en la lista de seguimiento."
 
 Usada en: SEG-001.
 
@@ -596,10 +603,10 @@ Usada en: BUS-010.
 
 Usada en: AUT-003.
 
-### RN-037 Cómo se leen las barras de la comparación (propuesta, 27/11/2026)
+### RN-037 Cómo se leen las barras de la comparación (confirmada por el equipo el 27/11/2026)
 
 - **Diferencia grande:** una fila tiene una diferencia grande si `(máximo − mínimo) / máximo >= 0,10`, entre los jugadores que tienen el dato. Con menos de 2 valores, o con máximo 0, no la tiene. El filtro "Solo diferencias grandes" oculta el resto.
-- **Escala de la barra (actualizada el 27/11/2026, CMP-006):** el relleno de cada barra representa el número de la celda. Los porcentajes (`pases_precision_pct`, `duelos_ganados_pct`) se miden de 0 a 100 %; el rating, de 0 a 10; el resto (minutos, partidos, goles, asistencias y recuperaciones por partido) contra el mayor valor de la fila entre los jugadores visibles. Un valor 0 deja la barra vacía.
+- **Escala de la barra (actualizada el 27/11/2026, CMP-006 y CMP-007; desde 0):** el relleno de cada barra representa el número de la celda. Los porcentajes (`pases_precision_pct`, `duelos_ganados_pct`) se miden de 0 a 100 %; el rating, de 0 a 10; el resto (minutos, partidos, goles, asistencias y recuperaciones por partido) contra el mayor valor de la fila entre los jugadores visibles. Un valor 0 deja la barra vacía.
 - **Grupos de métricas:** Ataque (goles, asistencias), Pase y defensa (% pases, % duelos, recuperaciones por partido) y Participación (minutos, partidos, rating).
 - **Jugador oculto:** el resumen y Mejor/Peor se recalculan solo con los jugadores visibles, aplicando RN-006. Siempre quedan al menos 2.
 - **Radar:** solo con las métricas en porcentaje y el rating; el rating (0 a 10) se multiplica por 10 para estar en la escala 0-100. Sin el dato, el eje queda sin punto (RN-008).
@@ -607,13 +614,26 @@ Usada en: AUT-003.
 
 **Ejemplo:** pases A 87, B 83, C 80: la diferencia es (87 − 80) / 87 = 8 %, no es grande. Duelos A 61, B 45: (61 − 45) / 61 = 26 %, sí. Con goles A 0 y B 0, el máximo es 0: no es grande.
 
-Usada en: CMP-004 y CMP-006.
+Usada en: CMP-004, CMP-006, CMP-007 y CMP-002.
+
+### RN-038 Nombre completo del jugador (decisión del equipo, 27/11/2026)
+
+- `nombre` es el nombre para mostrar de la fuente y suele venir abreviado ("L. Di Lollo"). La interfaz muestra en todos lados el **nombre completo**:
+  - `nombre_pila + " " + apellido` si hay ambos;
+  - si falta uno, el que haya;
+  - si faltan los dos, `nombre`.
+- Antes de unir se sacan los espacios de los bordes y los dobles. Un nombre de pila o un apellido de solo espacios cuenta como que falta. Las tildes y mayúsculas quedan como vienen.
+- La búsqueda por nombre (RN-035) no cambia.
+
+**Ejemplo:** "L. Magallán", "Lisandro", "Magallán" → "Lisandro Magallán". "M. Rojo", null, "Rojo" → "Rojo". "Ander Herrera", null, null → "Ander Herrera". " Ángel  Martín ", " Correa " → "Ángel Martín Correa".
+
+Usada en: JUG-004, UI-010, CMP-007 y CMP-002.
 
 ---
 
 ## Pendientes
 
-- **PO:** validar RN-037 **(propuesta)**: lectura de las barras de la comparación (CMP-004).
+- ~~**PO:** validar RN-037 **(propuesta)**: lectura de las barras de la comparación (CMP-004).~~ Confirmada por el equipo el 27/11/2026 (CMP-007).
 - ~~**PO:** validar RN-035: búsqueda por nombre (BUS-010).~~ Cerrada como decisión del equipo, Cilento, 26/11/2026.
 - ~~**PO y equipo:** validar ADR-0011, RN-029 y RN-030.~~ Resueltas el 20/11/2026: ADR-0011 aceptada, RN-029 aprobada con el reparto de fuentes de arriba y RN-030 aprobada tal como estaba.
 - ~~**PO:** validar RN-031 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasan de `basica` a `completa` (medido el 16/11/2026 en Federal A).~~ Cerradas como decisión del equipo, Cilento, 26/11/2026. RN-031 suma los contadores en 0 de Sportmonks.

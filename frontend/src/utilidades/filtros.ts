@@ -1,4 +1,5 @@
-import type { OrdenBusqueda } from '../tipos/api';
+import type { Liga, OrdenBusqueda } from '../tipos/api';
+import { formatearEur, POSICIONES } from './formato';
 
 export const ORDENES: Record<OrdenBusqueda, string> = {
   minutos: 'Minutos jugados',
@@ -70,4 +71,33 @@ export function filtrosDeParams(params: URLSearchParams): Record<string, string>
     if (valor?.trim()) valores[nombre] = valor;
   }
   return valores;
+}
+
+/** Etiqueta de un filtro activo: la del chip de Buscar y la de "Búsqueda usada" del PDF (CMP-002). */
+export function etiquetaFiltro(nombre: string, valor: string, ligas: Liga[]): string {
+  const numero = Number(valor);
+  switch (nombre) {
+    case 'nombre':
+      return `Nombre: ${valor}`;
+    case 'posicion':
+      return POSICIONES[valor as keyof typeof POSICIONES] ?? valor;
+    case 'liga_id':
+      return ligas.find((l) => String(l.id) === valor)?.nombre ?? `Liga ${valor}`;
+    case 'edad_min':
+      return `Edad desde ${valor}`;
+    case 'edad_max':
+      return `Edad hasta ${valor}`;
+    case 'presupuesto_max_eur':
+      return `Presupuesto hasta ${Number.isFinite(numero) ? formatearEur(numero) : valor}`;
+    case 'pases_min':
+      return `Pases desde ${valor}%`;
+    case 'duelos_min':
+      return `Duelos ganados desde ${valor}%`;
+    case 'recuperaciones_min':
+      return `Recuperaciones desde ${valor}`;
+    case 'minutos_min':
+      return `Minutos desde ${valor}`;
+    default:
+      return `${nombre}: ${valor}`;
+  }
 }

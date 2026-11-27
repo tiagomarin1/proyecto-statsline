@@ -6,7 +6,7 @@ import { useSesion } from '../contexto/SesionContext';
 import { LINK_WHATSAPP } from '../utilidades/contacto';
 import { marcarTourVisto, tourVisto } from '../utilidades/persistencia';
 import { Logo } from './Logo';
-import MenuMovil from './MenuMovil';
+import MenuNavegacion from './MenuNavegacion';
 import Tour from './Tour';
 
 export default function LayoutApp() {
@@ -14,14 +14,14 @@ export default function LayoutApp() {
   const avisar = useAvisar();
   const navegar = useNavigate();
   const { pathname } = useLocation();
-  // UI-007: el tour sale solo la primera vez con sesión; "Ver tour" lo reabre
+  // UI-007: el tour sale solo la primera vez con sesión; "Ayuda" lo reabre (UI-012)
   const [tourAbierto, setTourAbierto] = useState(() => tourVisto() === false);
   const cerrarTour = () => {
     marcarTourVisto();
     setTourAbierto(false);
   };
 
-  // Sombra + blur en la barra apenas se scrollea.
+  // UI-012: al scrollear la barra se compacta (64 → 56 px) y gana sombra.
   const [scrolleado, setScrolleado] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolleado(window.scrollY > 8);
@@ -45,16 +45,8 @@ export default function LayoutApp() {
           </Link>
           {usuario ? (
             <nav className="nav nav--app" aria-label="Principal">
-              <NavLink to="/buscar">Buscar</NavLink>
+              <NavLink to="/buscar">Buscar jugadores</NavLink>
               <NavLink to="/seguimiento">Seguimiento</NavLink>
-              <button className="nav__tour" type="button" onClick={() => setTourAbierto(true)}>
-                Ver tour
-              </button>
-              <span className="nav__sep" />
-              <span className="muted">{usuario.nombre.split(' ')[0]}</span>
-              <button className="btn btn--ghost btn--sm" type="button" onClick={cerrarSesion}>
-                Salir
-              </button>
             </nav>
           ) : (
             <nav className="nav nav--site" aria-label="Principal">
@@ -64,9 +56,10 @@ export default function LayoutApp() {
               </Link>
             </nav>
           )}
-          <MenuMovil
+          <span className="nav__sep nav__sep--isla" aria-hidden="true" />
+          <MenuNavegacion
             usuario={usuario}
-            onVerTour={() => setTourAbierto(true)}
+            onAyuda={() => setTourAbierto(true)}
             onSalir={cerrarSesion}
           />
         </div>

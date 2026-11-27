@@ -91,10 +91,23 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | UI-005 | Microanimaciones y movimiento coherente | en testing | P1 | — (nueva) | — | specs/interfaz/UI-005.md |
 | UI-006 | Responsive en celular | en testing | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
 | UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en testing | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
-| UI-008 | Navegación móvil: barra flotante y menú hamburguesa | en testing | P1 | — (nueva) | — | specs/interfaz/UI-008.md |
+| UI-008 | Navegación móvil: barra flotante y menú hamburguesa (escritorio y etiquetas en UI-012) | en testing | P1 | — (nueva) | — | specs/interfaz/UI-008.md |
 | UI-009 | Buscar en dos pasos: filtros y resultados | en testing | P1 | — (nueva) | — | specs/interfaz/UI-009.md |
 | UI-010 | Tarjeta de jugador y ficha rediseñadas | en testing | P1 | — (nueva) | — | specs/interfaz/UI-010.md |
-| CMP-006 | Comparación en columnas | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
+| CMP-006 | Comparación en columnas (las métricas pasan a filas apiladas con CMP-007) | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
+
+### Segunda tanda de mejoras (27/11/2026, pedido del equipo)
+
+| ID | Feature | Estado | Prioridad | Vence | Responsables | Spec |
+|---|---|---|---|---|---|---|
+| JUG-004 | Nombre y apellido completos en todo el sistema | en testing | P1 | — (nueva) | — | specs/jugador/JUG-004.md |
+| UI-013 | Tipografía: Archivo extendido en títulos y cifras | en testing | P1 | — (nueva) | — | specs/interfaz/UI-013.md |
+| UI-012 | Navegación: etiquetas y barra de escritorio flotante | en testing | P1 | — (nueva) | — | specs/interfaz/UI-012.md |
+| UI-011 | Hero más grande, animación de entrada y "Cómo funciona" animado | en testing | P1 | — (nueva) | — | specs/interfaz/UI-011.md |
+| CMP-007 | Comparación en filas apiladas y resumen final | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-007.md |
+| CMP-002 | Exportar la comparación en PDF (pasa de R2 al MVP) | en testing | P1 | — | — | specs/comparacion/CMP-002.md |
+
+El ajuste de los chips de filtros (más chicos, con área de toque de 24 px) es parte de UI-009 y no lleva ID nuevo.
 
 ### Mapeo con las tarjetas de Trello
 
@@ -122,7 +135,6 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | BUS-007 | Score del jugador (0-100) | borrador | RN-010 y RN-011 |
 | BUS-008 | Múltiples perfiles de búsqueda | borrador | |
 | JUG-002 | Buscar jugadores similares a uno dado | borrador | RN-013 |
-| CMP-002 | Exportar comparación en PDF | borrador | RN-014 |
 | SEG-002 | Compartir la lista de seguimiento | borrador | |
 | AUT-004 | Ingresar con Google u otras redes | borrador | |
 | BUS-009 | Montos en pesos argentinos | borrador | RN-004 |

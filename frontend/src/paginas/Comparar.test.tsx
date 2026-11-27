@@ -8,7 +8,19 @@ import { buscarJugadores, obtenerFicha } from '../servicios/jugadores';
 
 vi.mock('../servicios/comparaciones', () => ({ compararJugadores: vi.fn() }));
 const compararMock = vi.mocked(compararJugadores);
-vi.mock('../servicios/jugadores', () => ({ obtenerFicha: vi.fn(), buscarJugadores: vi.fn() }));
+vi.mock('../servicios/jugadores', () => ({
+  obtenerFicha: vi.fn(),
+  buscarJugadores: vi.fn(),
+  listarLigas: vi
+    .fn()
+    .mockResolvedValue([
+      { id: 1, nombre: 'Liga Profesional', cobertura: 'completa', temporada_actual: 2026 },
+    ]),
+}));
+vi.mock('../servicios/pdf', () => ({ descargarPdf: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('../contexto/SesionContext', () => ({
+  useSesion: () => ({ usuario: { nombre: 'Javier Ledesma', club: 'Deportivo Norte' } }),
+}));
 const buscarMock = vi.mocked(buscarJugadores);
 const fichaMock = vi.mocked(obtenerFicha);
 
@@ -20,7 +32,8 @@ const RESPUESTA: RespuestaComparacion = {
   jugadores: [
     {
       id: 1,
-      nombre: 'Ana Gómez',
+      nombre: 'A. Gómez',
+      nombre_completo: 'Ana Gómez',
       posicion: 'defensor',
       edad: 24,
       equipo: 'Club A',
@@ -30,7 +43,8 @@ const RESPUESTA: RespuestaComparacion = {
     },
     {
       id: 2,
-      nombre: 'Beto Ruiz',
+      nombre: 'B. Ruiz',
+      nombre_completo: 'Beto Ruiz',
       posicion: 'defensor',
       edad: 23,
       equipo: 'Club B',
@@ -91,13 +105,14 @@ describe('CMP-001: comparar jugadores', () => {
     // dato faltante en la fila de duelos (RN-008)
     expect(screen.getByText('Falta en 1')).toBeInTheDocument();
     expect(screen.getAllByText('Dato no disponible').length).toBeGreaterThan(0);
-    // veredicto
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
-    );
-    expect(screen.getByText(/es el más barato/)).toBeInTheDocument();
-    // exportar PDF queda para el release 2
-    expect(screen.getByText(/release 2/)).toBeInTheDocument();
+    // resumen final por jugador (CMP-007)
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(resumen).toHaveTextContent('Gana en 2 de 2: % pases completados, % duelos ganados');
+    expect(resumen).toHaveTextContent('No gana ninguna métrica');
+    expect(screen.queryByText(/barato/)).toBeNull();
+    // CMP-002: exportar PDF funciona (sin el chip R2)
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toBeEnabled();
+    expect(screen.queryByText(/release 2/)).toBeNull();
     expect(compararMock).toHaveBeenCalledWith([1, 2]);
     // sin fuentes distintas no hay aviso (CMP-003)
     expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
@@ -118,9 +133,7 @@ describe('CMP-001: comparar jugadores', () => {
 
     expect(await screen.findByText(AVISO)).toBeInTheDocument();
     // la comparación sigue ahí
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
-    );
+    expect(screen.getByRole('region', { name: 'Resumen' })).toHaveTextContent('Gana en 2 de 2');
     // el aviso no nombra las fuentes
     expect(screen.queryByText(/Sportmonks|API-Football/i)).not.toBeInTheDocument();
   });
@@ -132,7 +145,8 @@ const TRES: RespuestaComparacion = {
     ...RESPUESTA.jugadores,
     {
       id: 3,
-      nombre: 'Caro Díaz',
+      nombre: 'C. Díaz',
+      nombre_completo: 'Caro Díaz',
       posicion: 'defensor',
       edad: 25,
       equipo: 'Club C',
@@ -286,9 +300,10 @@ describe('CMP-004: barras interactivas', () => {
     expect(
       await screen.findByText(/Beto Ruiz y Caro Díaz empatan en métricas/),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
-      /Beto Ruiz\s*1\s*Caro Díaz\s*1/,
-    );
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(resumen).toHaveTextContent('Beto RuizGana en 1 de 3: % pases completados');
+    expect(resumen).toHaveTextContent('Caro DíazGana en 1 de 3: % duelos ganados');
+    expect(resumen).not.toHaveTextContent('Ana Gómez');
     // quedan 2 visibles: no se puede ocultar a otro
     expect(screen.getByRole('switch', { name: 'Mostrar a Beto Ruiz' })).toBeDisabled();
     expect(screen.getByRole('switch', { name: 'Mostrar a Caro Díaz' })).toBeDisabled();
@@ -364,7 +379,14 @@ describe('CMP-005: armar la comparación sin volver a Buscar', () => {
     compararMock.mockResolvedValue(TRES);
     buscarMock.mockResolvedValue({
       resultados: [
-        { id: 9, nombre: 'Dani Soto', equipo: 'Club D', posicion: 'defensor', edad: 22 },
+        {
+          id: 9,
+          nombre: 'D. Soto',
+          nombre_completo: 'Dani Soto',
+          equipo: 'Club D',
+          posicion: 'defensor',
+          edad: 22,
+        },
       ],
     } as never);
     renderizarEn('/comparar?ids=1,2,3');
@@ -457,7 +479,7 @@ describe('UI-007: guía en Comparar', () => {
   });
 });
 
-describe('CMP-006: comparación en columnas', () => {
+describe('CMP-006 y CMP-007: cabeceras en columnas y métricas en filas apiladas', () => {
   beforeEach(() => {
     fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
     compararMock.mockResolvedValue(TRES);
@@ -487,11 +509,28 @@ describe('CMP-006: comparación en columnas', () => {
     expect(container.querySelector('.bar__who')).toBeNull();
   });
 
-  it('cada fila tiene una celda por jugador con su número y una barra proporcional a ese número', async () => {
+  it('CMP-007: en cada métrica los jugadores van uno debajo del otro con nombre, barra y número', async () => {
     const { container } = renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const bloques = container.querySelectorAll('.mrow');
+    expect(bloques.length).toBe(3);
+    const filas = bloques[0].querySelectorAll('.fila-cmp');
+    expect([...filas].map((f) => f.querySelector('.fila-cmp__nombre')?.textContent)).toEqual([
+      'Ana Gómez',
+      'Beto Ruiz',
+      'Caro Díaz',
+    ]);
+    filas.forEach((f) => {
+      expect(f.querySelector('.fila-cmp__barra')).not.toBeNull();
+      expect(f.querySelector('.fila-cmp__num')).not.toBeNull();
+    });
+  });
+
+  it('CMP-007: la barra se llena hasta el valor (RN-037)', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     const ancho = (nombre: string) =>
-      (screen.getByRole('img', { name: nombre }).querySelector('.celda__barra') as HTMLElement)
+      (screen.getByRole('img', { name: nombre }).querySelector('.fila-cmp__barra') as HTMLElement)
         .style.width;
     // porcentajes: de 0 a 100
     expect(ancho('Ana Gómez, % pases completados, 87, Mejor')).toBe('87%');
@@ -499,22 +538,38 @@ describe('CMP-006: comparación en columnas', () => {
     // goles: contra el mayor de la fila (5)
     expect(ancho('Ana Gómez, Goles, 1, Peor')).toBe('20%');
     expect(ancho('Beto Ruiz, Goles, 5, Mejor')).toBe('100%');
+    // sin dato: barra vacía
     expect(ancho('Caro Díaz, Goles, Dato no disponible')).toBe('0%');
-    expect(container.querySelectorAll('.mrow').length).toBe(3);
   });
 
-  it('el mejor es verde y el peor rojo, con su etiqueta', async () => {
+  it('CMP-007: el mejor es verde y el peor rojo, con su etiqueta; el del medio, neutro', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
-    const mejor = screen.getByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const mejor = await screen.findByRole('img', {
+      name: 'Ana Gómez, % pases completados, 87, Mejor',
+    });
     const peor = screen.getByRole('img', { name: 'Caro Díaz, % pases completados, 80, Peor' });
     const medio = screen.getByRole('img', { name: 'Beto Ruiz, % pases completados, 83' });
-    expect(mejor.closest('.celda')).toHaveClass('is-best');
-    expect(peor.closest('.celda')).toHaveClass('is-worst');
-    expect(medio.closest('.celda')).not.toHaveClass('is-best');
-    expect(medio.closest('.celda')).not.toHaveClass('is-worst');
-    expect(within(mejor.closest('.celda') as HTMLElement).getByText('Mejor')).toBeInTheDocument();
-    expect(within(peor.closest('.celda') as HTMLElement).getByText('Peor')).toBeInTheDocument();
+    expect(mejor).toHaveClass('is-best');
+    expect(peor).toHaveClass('is-worst');
+    expect(medio).not.toHaveClass('is-best');
+    expect(medio).not.toHaveClass('is-worst');
+    expect(within(mejor).getByText('Mejor')).toBeInTheDocument();
+    expect(within(peor).getByText('Peor')).toBeInTheDocument();
+    expect(within(medio).queryByText(/Mejor|Peor/)).toBeNull();
+  });
+
+  it('CMP-007: las filas no escriben diferencias; quedan en el tooltip', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    const fila = await screen.findByRole('img', {
+      name: 'Beto Ruiz, % pases completados, 83',
+    });
+    expect(screen.queryByText(/vs\./)).toBeNull();
+    expect(screen.queryByText(/el mejor/)).toBeNull();
+    fireEvent.mouseEnter(fila);
+    const tip = await screen.findByRole('tooltip');
+    expect(tip).toHaveTextContent('vs. Ana Gómez');
+    expect(tip).toHaveTextContent('-4');
+    expect(fila).toHaveClass('is-activa');
   });
 
   it('"Editar jugadores" muestra por jugador Cambiar, Quitar y el interruptor de visibilidad', async () => {
@@ -534,17 +589,68 @@ describe('CMP-006: comparación en columnas', () => {
     }
   });
 
-  it('el valor de mercado va en la cabecera y la diferencia de valor abajo', async () => {
+  it('CMP-007: el valor de mercado va en la cabecera y en el resumen, sin diferencia de valor', async () => {
     renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('heading', { name: 'Ana Gómez' });
-    expect(screen.getByText('EUR 1.500.000')).toBeInTheDocument();
     expect(screen.getByText('EUR 900.000', { selector: '.cmp__head b' })).toBeInTheDocument();
-    expect(screen.getByText(/es el más barato de la comparación/)).toBeInTheDocument();
+    const resumen = screen.getByRole('region', { name: 'Resumen' });
+    expect(within(resumen).getByText('EUR 1.500.000')).toBeInTheDocument();
+    expect(within(resumen).getByText('EUR 900.000')).toBeInTheDocument();
+    // Caro no tiene valor: "Dato no disponible", nunca 0 (RN-008)
+    const caro = within(resumen).getByText('Caro Díaz').closest('article') as HTMLElement;
+    expect(within(caro).getByText('Dato no disponible')).toBeInTheDocument();
+    expect(caro).not.toHaveTextContent('EUR 0');
+    expect(screen.queryByText(/Diferencia de valor|barato/)).toBeNull();
+    expect(screen.queryByLabelText('Métricas ganadas')).toBeNull();
   });
 
-  it('no queda ninguna marca de "release 2" a la vista salvo la del botón de PDF', async () => {
+  it('no queda ninguna marca de "release 2" a la vista', async () => {
     renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('heading', { name: 'Ana Gómez' });
-    expect(screen.getAllByText(/release 2/)).toHaveLength(1);
+    expect(screen.queryByText(/release 2|R2/)).toBeNull();
+  });
+});
+
+describe('CMP-002: exportar PDF', () => {
+  beforeEach(() => {
+    fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
+    compararMock.mockResolvedValue(TRES);
+    sessionStorage.clear();
+  });
+  afterEach(() => {
+    compararMock.mockReset();
+    fichaMock.mockReset();
+  });
+
+  it('abre el diálogo y descarga con todos los jugadores aunque haya uno oculto', async () => {
+    const { descargarPdf } = await import('../servicios/pdf');
+    sessionStorage.setItem('statsline_ultima_busqueda', 'posicion=defensor&liga_id=1&ver=1');
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    // oculta a Ana y filtra la tabla: el PDF igual tiene todo
+    fireEvent.click(screen.getByRole('button', { name: 'Editar jugadores' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Mostrar a Ana Gómez' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Ataque' }));
+
+    const exportar = screen.getByRole('button', { name: 'Exportar PDF' });
+    fireEvent.click(exportar);
+    fireEvent.change(screen.getByLabelText('Notas (opcional)'), { target: { value: 'Ojo' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Descargar PDF' }));
+
+    await waitFor(() => expect(descargarPdf).toHaveBeenCalledTimes(1));
+    const contenido = vi.mocked(descargarPdf).mock.calls[0][0];
+    expect(contenido.jugadores.map((j) => j.nombre)).toEqual([
+      'Ana Gómez',
+      'Beto Ruiz',
+      'Caro Díaz',
+    ]);
+    expect(contenido.metricas).toHaveLength(3);
+    expect(contenido.encabezado.club).toBe('Deportivo Norte');
+    expect(contenido.busqueda).toEqual(['Defensor', 'Liga Profesional']);
+    expect(contenido.notas).toBe('Ojo');
+    expect(contenido.nombreArchivo).toMatch(/^StatsLine-comparacion-\d{4}-\d{2}-\d{2}\.pdf$/);
+    // el diálogo se cierra y el foco vuelve al botón
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(exportar).toHaveFocus();
   });
 });

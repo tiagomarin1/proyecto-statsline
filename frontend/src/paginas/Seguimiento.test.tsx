@@ -18,7 +18,8 @@ const listarMock = vi.mocked(listarSeguimiento);
 
 const jugador = (id: number): JugadorResumen => ({
   id,
-  nombre: `Jugador ${id}`,
+  nombre: `J. ${id}`,
+  nombre_completo: `Jugador ${id}`,
   posicion: 'delantero',
   edad: 22,
   equipo: 'Club',

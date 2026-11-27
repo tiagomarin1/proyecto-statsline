@@ -11,6 +11,7 @@ Convenciones:
 
 | Término | Nombre en código | Definición | No usar | Entidad |
 |---|---|---|---|---|
+| Nombre completo | `nombre_completo` | Nombre de pila y apellido del jugador, o lo que haya de ellos, o el `nombre` de la fuente si faltan los dos (RN-038, JUG-004). Es lo que muestra la interfaz | nombre largo, full_name | campo calculado de la respuesta |
 | Jugador | `jugador` | Futbolista que existe en la base, sincronizado desde API-Football | player, candidate, atleta, prospecto | `Jugador` |
 | Candidato | (solo UI) | Cómo se llama al jugador en la pantalla de resultados. En el código siempre es `jugador` | candidato en el código | — |
 | Liga | `liga` | Competición de API-Football que cubre el MVP | league, torneo, competencia | `Liga` |
@@ -35,7 +36,10 @@ Convenciones:
 | Comparación | `comparacion` | Vista de 2 o 3 jugadores lado a lado. No se guarda en el MVP | comparativa, versus | — |
 | Mejor / Peor | `mejor` / `peor` | Marca por métrica dentro de una comparación (RN-006) | ganador, perdedor | — |
 | Métricas ganadas | `metricas_ganadas` | Cantidad de métricas en las que un jugador es "Mejor" | — | — |
-| Diferencia de valor | `diferencia_valor_eur` | Valor más alto menos valor más bajo de una comparación | — | — |
+| Resumen de la comparación | `resumen_comparacion` | Bloque final de la comparación con una parte por jugador: en qué métricas gana y su valor de mercado (CMP-007) | veredicto, ganador | — |
+| Diferencia de valor | `diferencia_valor_eur` | Valor más alto menos valor más bajo de una comparación. La API lo sigue devolviendo, pero desde el 27/11/2026 la interfaz no lo muestra (RN-006) | — | — |
+| Reporte PDF | `pdf_comparacion` | PDF de la comparación que se arma en el navegador y se descarga (CMP-002, RN-014) | informe, export | — |
+| Notas del PDF | `notas` | Texto opcional de hasta 500 caracteres que el usuario escribe al exportar el PDF. No se guarda (CMP-002) | comentarios, observaciones | — |
 | Coincidencia con el perfil | `coincidencia` | Criterios del perfil que el jugador cumple, no cumple o no se pueden evaluar (RN-012) | match, % de coincidencia | — |
 | Estado de un criterio | `cumple` / `no_cumple` / `no_disponible` | Resultado de cada criterio de la coincidencia. `no_disponible` = falta el dato del jugador (RN-012) | ✓ / ✗ en el código | enum |
 | Excluidos sin valor | `excluidos_sin_valor` | Jugadores que cumplen todos los demás filtros y quedan afuera del presupuesto solo por no tener valor de mercado (RN-005) | — | campo de la respuesta |
@@ -47,7 +51,10 @@ Convenciones:
 | Jugador oculto | `jugador_oculto` | Jugador que se atenúa en la comparación y deja de contar para el resumen (RN-037) | — | — |
 | Tour | `tour` | Guía de 3 pasos para el usuario nuevo (UI-007) | onboarding (en el código) | — |
 | Progreso del flujo | `progreso_flujo` | Barra Buscar · Elegir · Comparar (UI-007) | stepper, wizard | — |
-| Menú móvil | `menu_movil` | Panel con todas las opciones de navegación que se abre con el botón de tres rayas en pantallas de menos de 768 px (UI-008) | hamburguesa, drawer, burger | — |
+| Menú de navegación | `menu_navegacion` | Panel que se abre con el botón de tres rayas. En el celular tiene todas las opciones (UI-008); en escritorio, las secundarias: tu nombre y club, Ayuda, Términos, WhatsApp y Salir (UI-012). Reemplaza al "menú móvil" | hamburguesa, drawer, burger, menu_movil | — |
+| Barra-isla | `topbar` | Barra de navegación flotante de escritorio, del ancho del contenedor, con esquinas redondeadas, que queda pegada arriba (UI-012) | navbar, header | — |
+| Ayuda | (solo UI) | Opción del menú que abre el tour de bienvenida. Se llamaba "Ver tour" (UI-012) | — | — |
+| Título escrito | `titulo_escrito` | El título del hero que se escribe letra por letra al cargar la home (UI-011) | typewriter | — |
 | Tarjeta de jugador | `tarjeta_jugador` | Card con todos los datos de un candidato, usada en los resultados y en el seguimiento (UI-010) | ficha corta, fila | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |

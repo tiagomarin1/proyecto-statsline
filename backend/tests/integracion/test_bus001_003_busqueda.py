@@ -378,6 +378,7 @@ def test_bus001_la_respuesta_tiene_la_forma_del_contrato(
             {
                 "id": jugador.id,
                 "nombre": "Nahuel Ferreyra",
+                "nombre_completo": "Nahuel Ferreyra",
                 "posicion": "defensor",
                 "edad": 23,
                 "equipo": "Deportivo Norte",

@@ -17,7 +17,8 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 // JugadorResumen (filas de resultados, lista de seguimiento)
 {
   "id": 1,
-  "nombre": "Nahuel Ferreyra",
+  "nombre": "N. Ferreyra",               // nombre para mostrar de la fuente, a veces abreviado
+  "nombre_completo": "Nahuel Ferreyra",  // JUG-004, RN-038. Nunca null: lo que muestra la interfaz
   "posicion": "defensor",               // RN-019, puede ser null
   "edad": 23,                           // RN-009, puede ser null
   "equipo": "Deportivo Norte",
@@ -109,7 +110,8 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 
 ```jsonc
 {
-  "id": 1, "nombre": "Nahuel Ferreyra", "posicion": "defensor", "edad": 23,
+  "id": 1, "nombre": "N. Ferreyra", "nombre_completo": "Nahuel Ferreyra",   // JUG-004, RN-038
+  "posicion": "defensor", "edad": 23,
   "fecha_nacimiento": "2003-04-12", "nacionalidad": "Argentina",
   "equipo": "Deportivo Norte",
   "liga": { "id": 2, "nombre": "Primera Nacional", "cobertura": "completa" },
@@ -133,7 +135,7 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 
 ## Comparaciones
 
-`POST /comparaciones` 🔒. **No guarda nada**: el historial es R3.
+`POST /comparaciones` 🔒. **No guarda nada**: el historial es R3. Exportar la comparación en PDF (CMP-002) no tiene endpoint: el PDF se arma en el navegador con esta respuesta.
 
 **Request:** `{"jugador_ids": [1, 2, 3]}`.
 
@@ -141,15 +143,16 @@ Diseño intencional de la API. FastAPI genera `/docs` a partir del código; este
 
 ```jsonc
 {
-  "jugadores": [{ "id", "nombre", "posicion", "edad", "equipo", "liga", "temporada", "valor_mercado_eur" }],
+  "jugadores": [{ "id", "nombre", "nombre_completo", "posicion", "edad", "equipo", "liga", "temporada", "valor_mercado_eur" }],
+                                              // nombre_completo: JUG-004, RN-038
   "filas": [
     { "metrica": "pases_precision_pct", "etiqueta": "% pases completados",
       "valores": [87.0, 83.0, 87.0],          // mismo orden que jugadores, null = no disponible
       "mejor": [1, 3], "peor": [2] }           // IDs, RN-006
   ],
   "metricas_ganadas": { "1": 4, "2": 1, "3": 3 },
-  "diferencia_valor_eur": 55000,              // null si menos de 2 tienen valor
-  "mas_barato_id": 1,                         // null si nadie tiene valor
+  "diferencia_valor_eur": 55000,              // null si menos de 2 tienen valor. Desde el 27/11/2026
+  "mas_barato_id": 1,                         // la interfaz no los muestra (RN-006, CMP-007). null si nadie tiene valor
   "aviso_fuentes": "El rating y los porcentajes vienen de fuentes distintas y no son directamente comparables."
                                               // CMP-003, RN-029. null si todos salen de la misma fuente
 }

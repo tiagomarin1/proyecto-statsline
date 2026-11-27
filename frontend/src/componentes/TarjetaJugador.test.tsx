@@ -6,7 +6,8 @@ import TarjetaJugador from './TarjetaJugador';
 
 const JUGADOR: JugadorResumen = {
   id: 7,
-  nombre: 'Nahuel Ferreyra',
+  nombre: 'N. Ferreyra',
+  nombre_completo: 'Nahuel Ferreyra',
   posicion: 'defensor',
   edad: 23,
   equipo: 'Deportivo Norte',
@@ -53,6 +54,25 @@ describe('UI-010: tarjeta de jugador', () => {
     expect(avatar).toHaveTextContent('NF');
     expect(avatar).toHaveAttribute('aria-hidden', 'true');
     expect(avatar).toHaveClass('avatar--defensor');
+  });
+
+  it('JUG-004: usa el nombre completo y no el abreviado de la fuente, también en las iniciales', () => {
+    const { container } = ver(
+      {
+        ...JUGADOR,
+        nombre: 'M. Rojo',
+        nombre_completo: 'Faustino Marcos Alberto Rojo',
+      },
+      { onAlternarSeleccion: vi.fn() },
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Faustino Marcos Alberto Rojo' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('M. Rojo')).toBeNull();
+    expect(container.querySelector('.avatar')).toHaveTextContent('FM');
+    expect(
+      screen.getByRole('checkbox', { name: 'Comparar a Faustino Marcos Alberto Rojo' }),
+    ).toBeInTheDocument();
   });
 
   it('muestra todos los datos con formato argentino', () => {

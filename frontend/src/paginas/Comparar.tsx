@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
 import Esqueleto from '../componentes/Esqueleto';
 import FilaMetrica from '../componentes/FilaMetrica';
 import BuscadorJugador from '../componentes/BuscadorJugador';
+import DialogoPdf from '../componentes/DialogoPdf';
 import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import RadarComparacion from '../componentes/RadarComparacion';
 import { ErrorApi } from '../servicios/api';
 import { compararJugadores } from '../servicios/comparaciones';
-import { obtenerFicha } from '../servicios/jugadores';
+import { listarLigas, obtenerFicha } from '../servicios/jugadores';
+import { descargarPdf } from '../servicios/pdf';
+import { useSesion } from '../contexto/SesionContext';
 import type { Metricas, RespuestaComparacion } from '../tipos/api';
 import {
   diferenciaGrande,
@@ -18,9 +21,10 @@ import {
   grupoDeMetrica,
   mejorYPeor,
   resumenComparacion,
+  resumenPorJugador,
 } from '../utilidades/comparacion';
-import { useProgreso, valorAnimado } from '../utilidades/movimiento';
-import { linkAResultados } from '../utilidades/persistencia';
+import { leerUltimaBusqueda, linkAResultados } from '../utilidades/persistencia';
+import { armarContenidoPdf, busquedaUsada } from '../utilidades/pdfComparacion';
 import { formatearEur, iniciales, POSICIONES } from '../utilidades/formato';
 
 /** Lee los ids de la URL (?ids=1,2,3) para que la comparación se pueda compartir y recargar. */
@@ -49,10 +53,13 @@ export default function Comparar() {
   const [editando, setEditando] = useState(false);
   const [focoMetrica, setFocoMetrica] = useState<string | null>(null);
   const [focoJugador, setFocoJugador] = useState<number | null>(null);
-  const progreso = useProgreso(!cargando);
   // CMP-005: cambiar o sumar un jugador sin volver a Buscar, y copiar el link
   const [buscando, setBuscando] = useState<{ reemplaza: number | null } | null>(null);
   const [copiado, setCopiado] = useState<'si' | 'manual' | null>(null);
+  // CMP-002: exportar PDF
+  const { usuario } = useSesion();
+  const [exportando, setExportando] = useState(false);
+  const botonPdf = useRef<HTMLButtonElement>(null);
 
   const clave = ids.join(',');
   useEffect(() => {
@@ -112,6 +119,28 @@ export default function Comparar() {
     }
   }
 
+  /** CMP-002: el PDF lleva siempre a todos los jugadores y todas las métricas (no lo que se
+   *  ocultó o filtró en pantalla) y la última búsqueda guardada en el navegador, si hay. */
+  async function exportarPdf(notas: string) {
+    if (!datos) return;
+    const query = leerUltimaBusqueda();
+    const ligas = query ? await listarLigas().catch(() => []) : [];
+    await descargarPdf(
+      armarContenidoPdf({
+        comparacion: datos,
+        club: usuario?.club,
+        fecha: new Date(),
+        busqueda: busquedaUsada(query, ligas),
+        notas,
+      }),
+    );
+  }
+
+  function cerrarPdf() {
+    setExportando(false);
+    botonPdf.current?.focus();
+  }
+
   if (ids.length < 2) {
     return (
       <div className="wrap app">
@@ -149,8 +178,7 @@ export default function Comparar() {
     );
   }
 
-  const { jugadores, filas, diferencia_valor_eur, mas_barato_id, aviso_fuentes } = datos;
-  const masBarato = jugadores.find((j) => j.id === mas_barato_id);
+  const { jugadores, filas, aviso_fuentes } = datos;
   const visibles = jugadores.filter((j) => !ocultos.includes(j.id));
 
   // Sin ocultos manda la API (RN-006); con ocultos se recalcula solo con los visibles (RN-037)
@@ -164,8 +192,10 @@ export default function Comparar() {
           ),
         },
   );
-  const ganadas = visibles.map(
-    (j) => [j, filasVisibles.filter((f) => f.mejor.includes(j.id)).length] as const,
+  // CMP-007: resumen final por jugador; el total son todas las métricas, aunque la tabla tenga filtros
+  const porJugador = resumenPorJugador(
+    filasVisibles.map((f) => ({ etiqueta: f.fila.etiqueta, mejor: f.mejor })),
+    visibles,
   );
   const resumen = resumenComparacion(
     filasVisibles.map((f) => ({ mejor: f.mejor })),
@@ -190,7 +220,7 @@ export default function Comparar() {
   const jugadoresFila = (metrica: string) =>
     jugadores.map((j, i) => ({
       id: j.id,
-      nombre: j.nombre,
+      nombre: j.nombre_completo,
       oculto: ocultos.includes(j.id),
       promedio: promedios[i]?.[metrica as keyof Metricas] ?? null,
     }));
@@ -230,9 +260,9 @@ export default function Comparar() {
                 onMouseLeave={() => setFocoJugador(null)}
               >
                 <span className={`avatar avatar--${j.posicion ?? 'nd'}`} aria-hidden="true">
-                  {iniciales(j.nombre)}
+                  {iniciales(j.nombre_completo)}
                 </span>
-                <h3>{j.nombre}</h3>
+                <h3>{j.nombre_completo}</h3>
                 <p className="pos">
                   {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} ·{' '}
                   {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}
@@ -245,7 +275,8 @@ export default function Comparar() {
                 </p>
                 <b className="val num">
                   {j.valor_mercado_eur !== null ? (
-                    formatearEur(j.valor_mercado_eur)
+                    // en tres columnas angostas puede cortar entre "EUR" y el número, nunca en el número
+                    formatearEur(j.valor_mercado_eur).replace(/\u00a0/g, ' ')
                   ) : (
                     <Dato valor={null} />
                   )}
@@ -291,11 +322,11 @@ export default function Comparar() {
               const oculto = ocultos.includes(j.id);
               return (
                 <li key={j.id}>
-                  <span className="cmp__editar-nombre">{j.nombre}</span>
+                  <span className="cmp__editar-nombre">{j.nombre_completo}</span>
                   <button
                     type="button"
                     className="btn btn--ghost btn--sm"
-                    aria-label={`Cambiar a ${j.nombre}`}
+                    aria-label={`Cambiar a ${j.nombre_completo}`}
                     onClick={() => setBuscando({ reemplaza: j.id })}
                   >
                     Cambiar
@@ -304,7 +335,7 @@ export default function Comparar() {
                     <button
                       type="button"
                       className="btn btn--ghost btn--sm"
-                      aria-label={`Quitar a ${j.nombre}`}
+                      aria-label={`Quitar a ${j.nombre_completo}`}
                       onClick={() => cambiarIds(ids.filter((x) => x !== j.id))}
                     >
                       Quitar
@@ -315,7 +346,7 @@ export default function Comparar() {
                     role="switch"
                     className="sw"
                     aria-checked={!oculto}
-                    aria-label={`Mostrar a ${j.nombre}`}
+                    aria-label={`Mostrar a ${j.nombre_completo}`}
                     disabled={!oculto && visibles.length <= 2}
                     onClick={() => alternar(j.id)}
                   >
@@ -432,7 +463,7 @@ export default function Comparar() {
               filas={filas}
               jugadores={jugadores.map((j) => ({
                 id: j.id,
-                nombre: j.nombre,
+                nombre: j.nombre_completo,
                 oculto: ocultos.includes(j.id),
               }))}
             />
@@ -462,48 +493,52 @@ export default function Comparar() {
           )}
         </section>
 
-        <div className="verdict">
-          <article className="card vcard" aria-label="Métricas ganadas">
-            <span>Métricas ganadas</span>
-            <ul className="vcard__lista">
-              {ganadas.map(([j, n]) => (
-                <li key={j.id}>
-                  <span>{j.nombre}</span>
-                  <b className="num">{valorAnimado(n, progreso)}</b>
-                </li>
-              ))}
-            </ul>
-            <p>Sobre {filas.length} métricas comparadas.</p>
-          </article>
-          <article className="card vcard">
-            <span>Diferencia de valor</span>
-            {diferencia_valor_eur !== null ? (
-              <>
-                <b className="num">{formatearEur(diferencia_valor_eur)}</b>
-                <p>
-                  {masBarato
-                    ? `${masBarato.nombre} es el más barato de la comparación.`
-                    : 'Entre el más caro y el más barato.'}
+        <section className="card resumen-cmp" aria-labelledby="titulo-resumen">
+          <h2 id="titulo-resumen">Resumen</h2>
+          <div
+            className="resumen-cmp__grilla"
+            style={{ gridTemplateColumns: `repeat(${porJugador.length}, minmax(0, 1fr))` }}
+          >
+            {porJugador.map((r) => (
+              <article key={r.id} className="resumen-cmp__jugador" aria-label={r.nombre}>
+                <b className="resumen-cmp__nombre">{r.nombre}</b>
+                {r.ganadas.length ? (
+                  <p className="resumen-cmp__gana">
+                    <b>{r.texto.slice(0, r.texto.indexOf(':') + 1)}</b> {r.ganadas.join(', ')}
+                  </p>
+                ) : (
+                  <p className="resumen-cmp__nada">{r.texto}</p>
+                )}
+                <p className="resumen-cmp__pie">
+                  <span>Valor de mercado</span>
+                  <b className="resumen-cmp__valor">
+                    {r.valor_mercado_eur !== null ? (
+                      formatearEur(r.valor_mercado_eur)
+                    ) : (
+                      <Dato valor={null} />
+                    )}
+                  </b>
                 </p>
-              </>
-            ) : (
-              <>
-                <b className="num">Costo no disponible</b>
-                <p>Hacen falta al menos dos jugadores con valor de mercado publicado.</p>
-              </>
-            )}
-          </article>
-        </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <div className="actions">
           <Link className="btn btn--ghost" to={linkAResultados()}>
             Volver a resultados
           </Link>
-          <button className="btn" type="button" disabled>
+          <button
+            ref={botonPdf}
+            className="btn btn--primary"
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => setExportando(true)}
+          >
             Exportar PDF
           </button>
-          <span className="chip chip--r2">Exportar PDF entra en el release 2</span>
         </div>
+        {exportando && <DialogoPdf onCerrar={cerrarPdf} onDescargar={exportarPdf} />}
       </div>
     </div>
   );

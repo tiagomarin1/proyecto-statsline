@@ -1,11 +1,13 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { type CSSProperties, type MouseEvent, useRef } from 'react';
+import { type CSSProperties, type MouseEvent, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import pasto from '../assets/hero/02-pasto-linea.webp';
 import pelota from '../assets/hero/06-pelota.webp';
+import { tocaEscribir } from '../utilidades/tituloEscrito';
+import TituloEscrito from './TituloEscrito';
 
 // Primera C y D quedan fuera: por ahora no tienen datos (RN-028).
 const LIGAS = ['Liga Profesional', 'Primera Nacional', 'B Metropolitana', 'Federal A'];
@@ -20,6 +22,13 @@ const EJEMPLO = [
 const formatoNum = new Intl.NumberFormat('es-AR');
 
 const DURACION = 9;
+
+/** UI-011: lo que entra escalonado después del título, en este orden (opacidad y un desplazamiento
+ *  corto). Son wrappers propios: no son los que mueve el pin de GSAP ni el "golpe" del botón. */
+const entra = (orden: number) => ({
+  className: 'hero-entra',
+  style: { '--orden': orden } as CSSProperties,
+});
 
 interface Props {
   conSesion: boolean;
@@ -37,6 +46,15 @@ interface Props {
  */
 export function HeroLinea({ conSesion, destino }: Props) {
   const raiz = useRef<HTMLElement>(null);
+  // UI-011: el título se escribe una vez por carga y con movimiento permitido; si no, el hero
+  // aparece completo (el estado en reposo es el completo)
+  const [entrada, setEntrada] = useState<'escribiendo' | 'listo' | null>(() =>
+    tocaEscribir() ? 'escribiendo' : null,
+  );
+  const clase = (base: string, orden: number) => {
+    const e = entra(orden);
+    return { className: `${base} ${e.className}`, style: e.style };
+  };
 
   useGSAP(
     () => {
@@ -57,10 +75,8 @@ export function HeroLinea({ conSesion, destino }: Props) {
           const movil = Boolean(ctx.conditions?.movil);
           const q = gsap.utils.selector(hero);
 
-          // El hero se fija (solo en escritorio) debajo de la barra superior, que es sticky.
-          const alturaBarra =
-            document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0;
-          hero.style.setProperty('--hero-barra', `${alturaBarra}px`);
+          // El hero se fija solo en escritorio. La barra es flotante y no ocupa lugar, también en
+          // escritorio (UI-012): el hero se fija contra el borde de arriba y la barra pasa por encima.
           if (!movil) hero.dataset.anim = 'true';
 
           const ancho = hero.getBoundingClientRect().width;
@@ -74,7 +90,6 @@ export function HeroLinea({ conSesion, destino }: Props) {
             defaults: { ease: 'none' },
             scrollTrigger: movil
               ? {
-                  // la barra del celular es flotante y no ocupa lugar: el hero empieza en el borde
                   trigger: hero,
                   start: 'top top',
                   end: 'bottom top',
@@ -83,7 +98,7 @@ export function HeroLinea({ conSesion, destino }: Props) {
                 }
               : {
                   trigger: hero,
-                  start: `top ${alturaBarra}px`,
+                  start: 'top top',
                   end: '+=300%',
                   pin: true,
                   scrub: 0.6,
@@ -127,7 +142,6 @@ export function HeroLinea({ conSesion, destino }: Props) {
 
           return () => {
             delete hero.dataset.anim;
-            hero.style.removeProperty('--hero-barra');
           };
         },
       );
@@ -148,7 +162,7 @@ export function HeroLinea({ conSesion, destino }: Props) {
   }
 
   return (
-    <section className="hero" ref={raiz}>
+    <section className="hero" ref={raiz} data-entrada={entrada ?? undefined}>
       <div className="hero__fondo" aria-hidden="true">
         <div className="hero__foto">
           <img src={pasto} alt="" width={1170} height={780} />
@@ -165,14 +179,12 @@ export function HeroLinea({ conSesion, destino }: Props) {
 
       <div className="hero__in wrap">
         <div className="hero__texto">
-          <p className="hero__etiqueta">Para clubes del fútbol argentino</p>
-          <h1>
-            Fichá con datos, no <em>a ojo</em>.
-          </h1>
-          <p className="hero__lead">
+          <p {...clase('hero__etiqueta', 0)}>Para clubes del fútbol argentino</p>
+          <TituloEscrito animar={entrada !== null} onTerminar={() => setEntrada('listo')} />
+          <p {...clase('hero__lead', 1)}>
             Compará jugadores por rendimiento y presupuesto, sin necesidad de un analista de datos.
           </p>
-          <div className="hero__cta">
+          <div {...clase('hero__cta', 2)}>
             <Link className="btn btn--oro btn--lg" to={destino}>
               {conSesion ? 'Buscar jugadores' : 'Empezar ahora'} <span aria-hidden="true">→</span>
             </Link>
@@ -184,7 +196,7 @@ export function HeroLinea({ conSesion, destino }: Props) {
           </div>
         </div>
 
-        <figure className="ejemplo" aria-label="Ejemplo de comparación">
+        <figure {...clase('ejemplo', 3)} aria-label="Ejemplo de comparación">
           <figcaption className="ejemplo__cab">
             <span>Comparación</span>
             <span className="ejemplo__rotulo">Ejemplo</span>
@@ -237,11 +249,11 @@ export function HeroLinea({ conSesion, destino }: Props) {
           </ul>
           <p className="ejemplo__resumen">
             <b>A gana en 2 de 3 métricas</b>
-            <span>Jugador A es EUR 890.000 más barato</span>
+            <span>Jugador B gana en % duelos</span>
           </p>
         </figure>
 
-        <ul className="ligas" aria-label="Ligas disponibles" tabIndex={0}>
+        <ul {...clase('ligas', 4)} aria-label="Ligas disponibles" tabIndex={0}>
           {LIGAS.map((liga) => (
             <li className="liga" key={liga}>
               {liga}
@@ -249,7 +261,7 @@ export function HeroLinea({ conSesion, destino }: Props) {
           ))}
         </ul>
 
-        <a className="hero__scroll" href="#como-funciona" onClick={irAComoFunciona}>
+        <a {...clase('hero__scroll', 5)} href="#como-funciona" onClick={irAComoFunciona}>
           Ver cómo funciona
           <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
             <path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" />

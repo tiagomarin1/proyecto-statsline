@@ -21,6 +21,7 @@ from app.servicios.estadistica_vigente import (
     recuperaciones_por_partido,
     redondear,
 )
+from app.servicios.nombre_completo import nombre_completo
 
 MIN_JUGADORES_COMPARACION = 2
 MAX_JUGADORES_COMPARACION = 3
@@ -93,6 +94,8 @@ def _consulta_jugadores(jugador_ids: list[int]) -> Select:
         select(
             Jugador.id,
             Jugador.nombre,
+            Jugador.nombre_pila,
+            Jugador.apellido,
             Jugador.fecha_nacimiento,
             Jugador.valor_mercado_eur,
             vigente.c.posicion,
@@ -171,6 +174,7 @@ def _a_comparado(fila, hoy: date) -> JugadorComparado:
     return JugadorComparado(
         id=fila["id"],
         nombre=fila["nombre"],
+        nombre_completo=nombre_completo(fila["nombre"], fila["nombre_pila"], fila["apellido"]),
         posicion=fila["posicion"],
         edad=calcular_edad(fila["fecha_nacimiento"], hoy),
         equipo=fila["equipo"],

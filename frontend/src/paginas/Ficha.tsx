@@ -133,10 +133,10 @@ export default function Ficha() {
               className={`avatar avatar--xl avatar--${ficha.posicion ?? 'nd'}`}
               aria-hidden="true"
             >
-              {iniciales(ficha.nombre)}
+              {iniciales(ficha.nombre_completo)}
             </span>
             <div>
-              <h1>{ficha.nombre}</h1>
+              <h1>{ficha.nombre_completo}</h1>
               <div className="ficha__meta">
                 {ficha.posicion && (
                   <span className="chip chip--accent">{POSICIONES[ficha.posicion]}</span>

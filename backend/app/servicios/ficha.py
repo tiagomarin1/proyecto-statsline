@@ -34,6 +34,7 @@ from app.servicios.estadistica_vigente import (
     recuperaciones_por_partido,
     redondear,
 )
+from app.servicios.nombre_completo import nombre_completo
 from app.servicios.trayectoria import ClubActual, armar_trayectoria
 
 # El promedio de un contador (minutos, goles...) no es entero: se muestra con 1 decimal
@@ -72,6 +73,7 @@ def obtener_ficha(
     return FichaJugador(
         id=fila["id"],
         nombre=fila["nombre"],
+        nombre_completo=nombre_completo(fila["nombre"], fila["nombre_pila"], fila["apellido"]),
         posicion=fila["posicion"],
         edad=edad,
         fecha_nacimiento=fila["fecha_nacimiento"],
@@ -104,6 +106,8 @@ def _consulta_ficha(jugador_id: int, usuario_id: int) -> Select:
         select(
             Jugador.id,
             Jugador.nombre,
+            Jugador.nombre_pila,
+            Jugador.apellido,
             Jugador.fecha_nacimiento,
             Jugador.nacionalidad,
             Jugador.valor_mercado_eur,

@@ -58,6 +58,14 @@ img { max-width: 100%; }
   --gutter: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
   --maxw: 1240px;
+
+  /* UI-013: Archivo extendido (el mismo eje de ancho del logotipo) en títulos y cifras.
+     El texto corrido, los botones y las etiquetas chicas quedan en el ancho normal. */
+  --ancho-titulo: 118%;
+  --ancho-cifra: 118%;
+  --peso-titulo: 800;
+  --peso-subtitulo: 700;
+  --espaciado-titulo: -0.02em;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -222,7 +230,6 @@ button, input, select { font: inherit; color: inherit; }
 .chip--warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .chip--bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
 .chip--accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-.chip--r2 { background: var(--surface-3); color: var(--fg-muted); border-color: transparent; font-size: 11px; letter-spacing: .04em; }
 
 .eyebrow {
   font-size: 12px;
@@ -389,7 +396,7 @@ button, input, select { font: inherit; color: inherit; }
   min-height: calc(100svh - 64px);
   display: flex;
 }
-.hero[data-anim] { height: calc(100svh - var(--hero-barra, 64px)); min-height: 0; }
+.hero[data-anim] { height: 100svh; min-height: 0; }
 .hero__in {
   position: relative; z-index: 3; width: 100%;
   display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
@@ -754,11 +761,6 @@ select.input::-ms-expand { display: none; }
 .mrow:last-child { border-bottom: 0; }
 .mrow__lbl { font-size: 13.5px; font-weight: 500; color: var(--fg-muted); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
 
-.verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
-.vcard { padding: 18px 20px; display: grid; gap: 6px; }
-.vcard span { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); }
-.vcard b { font-family: var(--font-display); font-size: 23px; font-variant-numeric: tabular-nums; }
-.vcard p { font-size: 13.5px; color: var(--fg-muted); }
 
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--fg-muted); align-items: center; }
 .legend i { display: inline-block; width: 13px; height: 13px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
@@ -912,9 +914,12 @@ select.input::-ms-expand { display: none; }
 .reveal--2 { animation-delay: .15s; }
 @keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-/* Beneficios */
-.feature { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
-.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--accent); }
+/* Beneficios ("Por qué StatsLine") y pasos de "Cómo funciona" (UI-011): la misma microanimación */
+.feature, .como__paso { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
+.feature:hover, .como__paso:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .feature:hover, .como__paso:hover { transform: none; }
+}
 .feature__i {
   width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
   font-size: 20px; color: var(--accent); background: var(--accent-soft);

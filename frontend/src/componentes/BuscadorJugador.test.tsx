@@ -8,7 +8,14 @@ vi.mock('../servicios/jugadores', () => ({ buscarJugadores: vi.fn() }));
 const buscarMock = vi.mocked(buscarJugadores);
 
 const j = (id: number, nombre: string): JugadorResumen =>
-  ({ id, nombre, equipo: 'Club', posicion: 'defensor', edad: 22 }) as JugadorResumen;
+  ({
+    id,
+    nombre: `${nombre[0]}.`,
+    nombre_completo: nombre,
+    equipo: 'Club',
+    posicion: 'defensor',
+    edad: 22,
+  }) as JugadorResumen;
 const resp = (resultados: JugadorResumen[]) => ({ resultados }) as RespuestaBusqueda;
 
 describe('CMP-005: buscador de jugadores', () => {

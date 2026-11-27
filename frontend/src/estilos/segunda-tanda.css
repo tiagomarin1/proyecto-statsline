@@ -1,0 +1,616 @@
+/* Segunda tanda de mejoras (27/11/2026): UI-009 (chips), UI-011, UI-012, UI-013, CMP-007 y
+   CMP-002. Se importa después de base.css y cierre-mvp.css: varias reglas de allá usan el atajo
+   `font:`, que vuelve el ancho a normal, y estas lo pisan. */
+
+/* ============ UI-013: tipografía ============ */
+
+h1,
+h2,
+h3 {
+  font-stretch: var(--ancho-titulo);
+  letter-spacing: var(--espaciado-titulo);
+  font-weight: var(--peso-subtitulo);
+}
+h1 {
+  font-weight: var(--peso-titulo);
+}
+
+/* Cifras destacadas: valores de mercado, números de métricas, KPIs, rating y minutos */
+.cifra,
+.pcard__kpi b,
+.pcard__m dd,
+.ficha__kpi b,
+.ficha__val,
+.mitem__num,
+.cmp__head .val,
+.fila-cmp__num,
+.resumen-cmp__valor,
+.vr__col b,
+.vr__v,
+.stat__big,
+.plan__price,
+.ejemplo__v {
+  font-family: var(--font-display);
+  font-stretch: var(--ancho-cifra);
+  letter-spacing: var(--espaciado-titulo);
+  font-variant-numeric: tabular-nums;
+}
+/* "Dato no disponible" dentro de una cifra es texto, no cifra */
+:is(
+    .cifra,
+    .pcard__kpi,
+    .pcard__m,
+    .ficha__kpi,
+    .mitem__num,
+    .cmp__head,
+    .fila-cmp__num,
+    .resumen-cmp__valor
+  )
+  .nd {
+  font-stretch: 100%;
+  letter-spacing: normal;
+}
+
+/* ============ UI-012: barra de escritorio flotante ("barra-isla") ============ */
+
+.nav__sep--isla {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --isla-h: 64px;
+    --isla-h-compacta: 56px;
+    --isla-top: 12px;
+  }
+  /* La barra es sticky y no ocupa lugar (margen negativo): el contenido pasa por debajo, como en
+     el celular. El fondo de .topbar es transparente; la isla es .topbar__in. */
+  .topbar,
+  .topbar.is-scrolled {
+    top: var(--isla-top);
+    height: var(--isla-h);
+    margin: var(--isla-top) 0 calc(-1 * (var(--isla-h) + var(--isla-top)));
+    padding-inline: var(--gutter) var(--gutter-r);
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+  }
+  .topbar__in {
+    pointer-events: auto;
+    /* el ancho del contenedor de la página (.wrap sin sus márgenes) */
+    max-width: calc(var(--maxw) - 32px);
+    height: var(--isla-h);
+    min-height: 0;
+    padding: 0 10px 0 22px;
+    gap: 6px;
+    border: 1px solid rgba(241, 239, 234, 0.14);
+    border-radius: 14px;
+    background: rgba(22, 24, 29, 0.94);
+    box-shadow: 0 6px 20px rgba(22, 24, 29, 0.18);
+    transition:
+      height var(--dur-2, 0.28s) ease,
+      box-shadow var(--dur-2, 0.28s) ease;
+  }
+  .topbar.is-scrolled .topbar__in {
+    height: var(--isla-h-compacta);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  }
+  .topbar .logo {
+    margin-right: auto;
+  }
+  .topbar .nav {
+    margin-left: 0;
+  }
+  .nav__sep--isla {
+    display: block;
+    width: 1px;
+    height: 24px;
+    margin-inline: 6px;
+    background: rgba(241, 239, 234, 0.18);
+  }
+  .nav a[aria-current='page'] {
+    color: var(--sl-oro);
+    background: rgba(203, 161, 53, 0.16);
+    font-weight: 700;
+  }
+  .nav--site .nav__cta {
+    margin-left: 4px;
+    background: var(--sl-oro);
+    color: var(--sl-grafito);
+    font-weight: 700;
+  }
+  .nav--site .nav__cta:hover {
+    background: #d8b456;
+    color: var(--sl-grafito);
+  }
+  /* Las páginas arrancan debajo de la isla; la home (hero) arranca en el borde, detrás */
+  .main {
+    padding-top: calc(var(--isla-h) + var(--isla-top));
+  }
+  .main--inicio {
+    padding-top: 0;
+  }
+  .hero {
+    min-height: 100svh;
+  }
+  .hero__in {
+    padding-top: calc(var(--isla-h) + var(--isla-top) + 32px);
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  .topbar__in {
+    transition: none;
+  }
+}
+
+/* ============ UI-011: hero más grande y animación de entrada ============ */
+
+/* Título: al menos 1,5 veces el de UI-003 (era clamp(38px, 5.4vw, 62px): 41 px a 768, 55 px a
+   1024 y 62 px a 1280) y en Archivo extendido. Se le da más columna al texto y se aprieta el
+   espacio vertical para que todo entre en 1280 x 800 sin pisar la barra ni la pelota. */
+.hero h1 {
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+@media (min-width: 768px) {
+  .hero__in {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+    column-gap: clamp(28px, 4vw, 56px);
+    padding-block: calc(var(--isla-h) + var(--isla-top) + 14px) calc(var(--b) + 10svh);
+  }
+  .hero__texto {
+    max-width: 760px;
+  }
+  .hero h1 {
+    /* en pantallas bajas (laptops de 720 px) también se limita por el alto */
+    font-size: min(clamp(62px, 8vw, 93px), 11.6svh);
+    line-height: 0.92;
+  }
+  .hero__etiqueta {
+    margin-bottom: 10px;
+  }
+  .hero__lead {
+    margin-top: 14px;
+  }
+  .hero__cta {
+    margin-top: 20px;
+  }
+  .ligas {
+    margin-top: 14px;
+  }
+}
+@media (max-width: 767px) {
+  /* celular: era clamp(31px, 9vw, 40px) */
+  .hero h1 {
+    font-size: clamp(47px, 13.4vw, 60px);
+  }
+}
+
+/* Letras del título que todavía no se escribieron: invisibles pero en el flujo (sin saltos) */
+.tit__l {
+  position: relative;
+}
+.tit__l.is-oculta {
+  visibility: hidden;
+}
+.tit__l.is-cursor::after {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  bottom: 0.08em;
+  right: -0.07em;
+  width: 0.06em;
+  border-radius: 0.03em;
+  background: var(--sl-oro);
+  animation: cursor-parpadeo 0.9s steps(1) infinite;
+}
+@keyframes cursor-parpadeo {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Entrada escalonada: solo mientras el hero tiene data-entrada. Sin JS, sin animación o con
+   movimiento reducido no hay atributo y se ve todo (el estado en reposo es el completo). */
+.hero[data-entrada='escribiendo'] .hero-entra {
+  opacity: 0;
+}
+.hero[data-entrada='escribiendo'] .ejemplo,
+.hero[data-entrada='escribiendo'] .ejemplo__barra {
+  animation: none;
+}
+.hero[data-entrada='listo'] .hero-entra {
+  animation: hero-entra 0.55s var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1)) backwards;
+  animation-delay: calc(var(--orden) * 110ms);
+}
+/* el indicador está centrado con translateX(-50%): su entrada lo conserva */
+.hero[data-entrada='listo'] .hero__scroll.hero-entra {
+  animation-name: hero-entra-centrado;
+}
+/* las barras de la tarjeta se llenan cuando la tarjeta aparece */
+.hero[data-entrada='listo'] .ejemplo__barra {
+  animation-delay: calc(3 * 110ms + var(--d, 0ms));
+}
+@keyframes hero-entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-entra-centrado {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-entra,
+  .tit__l.is-cursor::after {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ============ CMP-007: métricas en filas apiladas y resumen final ============ */
+
+/* Cabeceras compactas, una al lado de la otra */
+@media (min-width: 768px) {
+  .cmp__head {
+    padding: 12px 10px;
+    gap: 3px;
+  }
+  .cmp__head .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .cmp__head h3 {
+    font-size: 16px;
+  }
+  .cmp__head .val {
+    font-size: 18px;
+  }
+}
+@media (max-width: 767px) {
+  /* tres columnas en 360 px: la cifra ancha (UI-013) puede pasar a dos líneas, "EUR" y el número */
+  .cmp__head .val {
+    font-size: clamp(12px, 3.4vw, 14.5px);
+    line-height: 1.15;
+  }
+}
+
+.mrow__filas {
+  display: grid;
+  gap: 6px;
+}
+.fila-cmp__caja {
+  position: relative;
+}
+/* Cada jugador: nombre a la izquierda, "Mejor"/"Peor" y el número a la derecha, y debajo una
+   barra de ancho completo que se llena hasta el valor (RN-037) */
+.fila-cmp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'nombre valor'
+    'barra barra';
+  align-items: end;
+  column-gap: 12px;
+  row-gap: 6px;
+  padding: 8px 10px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: default;
+  transition:
+    transform var(--mov-rapido) var(--mov-curva),
+    background var(--mov-rapido) ease,
+    border-color var(--mov-rapido) ease,
+    opacity var(--mov-medio) ease;
+}
+.fila-cmp:hover,
+.fila-cmp.is-activa {
+  transform: translateX(3px);
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+.fila-cmp:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.fila-cmp.is-dim {
+  opacity: 0.4;
+}
+.fila-cmp.is-oculto {
+  opacity: 0.35;
+  filter: grayscale(0.8);
+}
+.fila-cmp__nombre {
+  grid-area: nombre;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.fila-cmp__valor {
+  grid-area: valor;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.fila-cmp__num {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+}
+.fila-cmp__num .nd {
+  font: italic 500 13px var(--font-body);
+}
+.fila-cmp__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.fila-cmp__tag--mejor {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.fila-cmp__tag--peor {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.fila-cmp__pista {
+  grid-area: barra;
+  position: relative;
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: visible;
+}
+.fila-cmp__barra {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--fg-faint);
+  transition: width var(--mov-lento, 0.6s) var(--mov-curva);
+}
+.fila-cmp.is-best .fila-cmp__barra {
+  background: var(--good);
+}
+.fila-cmp.is-best .fila-cmp__num {
+  color: var(--good);
+}
+.fila-cmp.is-worst .fila-cmp__barra {
+  background: var(--bad);
+}
+.fila-cmp.is-worst .fila-cmp__num {
+  color: var(--bad);
+}
+.fila-cmp__prom {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--fg);
+}
+/* Tooltip con las diferencias y el promedio, debajo de la fila */
+.fila-cmp__tip {
+  left: 10px;
+  right: auto;
+  top: calc(100% + 4px);
+}
+
+/* Resumen final: una parte por jugador */
+.resumen-cmp {
+  padding: 18px 20px 20px;
+  display: grid;
+  gap: 14px;
+}
+.resumen-cmp h2 {
+  font-size: 19px;
+}
+.resumen-cmp__grilla {
+  display: grid;
+  gap: 12px;
+}
+.resumen-cmp__jugador {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.resumen-cmp__nombre {
+  font-size: 15.5px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.resumen-cmp__gana,
+.resumen-cmp__nada {
+  font-size: 14px;
+  color: var(--fg-muted);
+}
+.resumen-cmp__gana b {
+  color: var(--fg);
+}
+.resumen-cmp__pie {
+  display: grid;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.resumen-cmp__pie > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.resumen-cmp__valor {
+  font-size: 20px;
+  font-weight: 800;
+}
+.resumen-cmp__valor .nd {
+  font: italic 500 13px var(--font-body);
+}
+
+@media (max-width: 767px) {
+  .mrow {
+    padding: 12px 10px;
+  }
+  .fila-cmp {
+    padding: 8px 8px 10px;
+    column-gap: 8px;
+  }
+  .fila-cmp__nombre {
+    font-size: 13.5px;
+  }
+  .fila-cmp__num {
+    font-size: 18px;
+  }
+  .fila-cmp__tag {
+    font-size: 10px;
+    padding-inline: 6px;
+  }
+  .fila-cmp__tip {
+    width: min(240px, 80vw);
+  }
+  /* el selector de grupo no entra en 360 px: hace salto de línea en vez de cortarse */
+  .cmp__filtros .seg {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  /* en el celular las partes del resumen van una debajo de la otra */
+  .resumen-cmp__grilla {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .resumen-cmp {
+    padding: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fila-cmp:hover,
+  .fila-cmp.is-activa {
+    transform: none;
+  }
+}
+
+/* ============ UI-009 (ajuste): chips de filtros y etiquetas de la selección más chicos ============ */
+
+.bf__chips,
+.selbar__names {
+  gap: 6px;
+}
+.bf__chips .chip,
+.selbar__names .chip {
+  min-height: 28px;
+  padding: 3px 4px 3px 10px;
+  gap: 4px;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+/* La "×" se ve chica pero su área de toque mide al menos 24 x 24 px (WCAG 2.2, 2.5.8) */
+.bf__chips .chip button,
+.selbar__names .chip button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.bf__chips .chip button::after,
+.selbar__names .chip button::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+.bf__chips .chip button:hover,
+.selbar__names .chip button:hover {
+  background: rgba(126, 97, 24, 0.16);
+}
+.bf__chips .btn--sm {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+/* el nombre completo puede ser largo: la etiqueta se corta con "…" y lo dice entero el title */
+.selbar__names .chip > span {
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============ CMP-002: diálogo de notas del PDF ============ */
+
+.dpdf {
+  width: min(100%, 520px);
+}
+.dpdf__tit {
+  font-size: 22px;
+}
+.dpdf__lbl {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dpdf__notas {
+  width: 100%;
+  min-height: 112px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.dpdf__notas:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.dpdf__contador {
+  margin-top: -4px;
+  font-size: 12.5px;
+  text-align: right;
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+.dpdf__error {
+  margin: 0;
+}

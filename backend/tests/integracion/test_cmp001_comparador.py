@@ -59,6 +59,7 @@ def test_cmp001_comparar_3_jugadores(cliente_con_sesion: TestClient, session: Se
     assert cuerpo["jugadores"][0] == {
         "id": jugador.id,
         "nombre": "Nahuel Ferreyra",
+        "nombre_completo": "Nahuel Ferreyra",
         "posicion": "defensor",
         "edad": 23,
         "equipo": "Deportivo Norte",

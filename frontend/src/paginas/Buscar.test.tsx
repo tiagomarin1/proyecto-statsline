@@ -30,7 +30,8 @@ const LIGAS: Liga[] = [
 function jugador(id: number): JugadorResumen {
   return {
     id,
-    nombre: `Jugador ${id}`,
+    nombre: `J. ${id}`,
+    nombre_completo: `Jugador ${id}`,
     posicion: 'defensor',
     edad: 24,
     equipo: 'Club',

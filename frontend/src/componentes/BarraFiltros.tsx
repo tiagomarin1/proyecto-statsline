@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { Liga } from '../tipos/api';
-import { filtrosDeParams, METRICAS, NOMBRE_LARGO_MAXIMO } from '../utilidades/filtros';
-import { formatearEur, POSICIONES } from '../utilidades/formato';
+import {
+  etiquetaFiltro,
+  filtrosDeParams,
+  METRICAS,
+  NOMBRE_LARGO_MAXIMO,
+} from '../utilidades/filtros';
+import { POSICIONES } from '../utilidades/formato';
 
 /** Lo que se espera después de la última tecla antes de pedir los resultados. */
 const ESPERA_MS = 350;
@@ -29,35 +34,6 @@ interface Props {
   onVerResultados?: (filtros: Record<string, string>) => void;
   /** UI-009: en el resumen, vuelve a la primera pantalla. */
   onModificar?: () => void;
-}
-
-/** Etiqueta del chip de un filtro activo. */
-function etiquetaChip(nombre: string, valor: string, ligas: Liga[]): string {
-  const numero = Number(valor);
-  switch (nombre) {
-    case 'nombre':
-      return `Nombre: ${valor}`;
-    case 'posicion':
-      return POSICIONES[valor as keyof typeof POSICIONES] ?? valor;
-    case 'liga_id':
-      return ligas.find((l) => String(l.id) === valor)?.nombre ?? `Liga ${valor}`;
-    case 'edad_min':
-      return `Edad desde ${valor}`;
-    case 'edad_max':
-      return `Edad hasta ${valor}`;
-    case 'presupuesto_max_eur':
-      return `Presupuesto hasta ${Number.isFinite(numero) ? formatearEur(numero) : valor}`;
-    case 'pases_min':
-      return `Pases desde ${valor}%`;
-    case 'duelos_min':
-      return `Duelos ganados desde ${valor}%`;
-    case 'recuperaciones_min':
-      return `Recuperaciones desde ${valor}`;
-    case 'minutos_min':
-      return `Minutos desde ${valor}`;
-    default:
-      return `${nombre}: ${valor}`;
-  }
 }
 
 /** Filtros que se aplican solos: los selectores al instante, y el nombre y los números al dejar
@@ -282,7 +258,7 @@ export default function BarraFiltros({
       {chips.length > 0 && (
         <ul className="bf__chips" aria-label="Filtros aplicados">
           {chips.map(([nombre, valor]) => {
-            const etiqueta = etiquetaChip(nombre, valor, ligas);
+            const etiqueta = etiquetaFiltro(nombre, valor, ligas);
             return (
               <li key={nombre} className="chip chip--accent">
                 <span>{etiqueta}</span>

@@ -5,7 +5,8 @@ describe('CMP-005: de la ficha al resumen para comparar', () => {
   it('copia lo que el comparador y la barra necesitan', () => {
     const ficha = {
       id: 7,
-      nombre: 'Ana Gómez',
+      nombre: 'A. Gómez',
+      nombre_completo: 'Ana Gómez',
       posicion: 'defensor',
       edad: 24,
       equipo: 'Club A',
@@ -26,7 +27,8 @@ describe('CMP-005: de la ficha al resumen para comparar', () => {
     } as unknown as FichaJugador;
     expect(resumenDeFicha(ficha)).toMatchObject({
       id: 7,
-      nombre: 'Ana Gómez',
+      nombre: 'A. Gómez',
+      nombre_completo: 'Ana Gómez',
       minutos_jugados: 1800,
       pases_precision_pct: 85,
       duelos_ganados_pct: null,

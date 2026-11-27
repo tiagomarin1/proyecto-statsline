@@ -1,11 +1,11 @@
 import type { FilaComparacion } from '../tipos/api';
-import { formatearEur } from './formato';
 import {
   diferenciaGrande,
   grupoDeMetrica,
   mejorYPeor,
   puntosRadar,
   resumenComparacion,
+  resumenPorJugador,
   porcentajeBarra,
 } from './comparacion';
 
@@ -56,30 +56,73 @@ describe('CMP-004: resumen en una frase', () => {
     { metrica: 'asistencias', etiqueta: 'Asistencias', valores: [3, 1], mejor: [1], peor: [2] },
   ];
   const jugadores = [
-    { id: 1, nombre: 'Ana Gómez', valor_mercado_eur: 1_500_000 },
-    { id: 2, nombre: 'Beto Ruiz', valor_mercado_eur: 900_000 },
+    { id: 1, nombre: 'A. Gómez', nombre_completo: 'Ana Gómez', valor_mercado_eur: 1_500_000 },
+    { id: 2, nombre: 'B. Ruiz', nombre_completo: 'Beto Ruiz', valor_mercado_eur: 900_000 },
   ];
 
-  it('cuenta las métricas ganadas y nombra al más barato', () => {
-    const r = resumenComparacion(filas, jugadores);
-    expect(r).toBe(
-      `Ana Gómez gana en 2 de 3 métricas; Beto Ruiz es ${formatearEur(600_000)} más barato.`,
-    );
+  it('CMP-007: cuenta las métricas ganadas y no habla de precios', () => {
+    expect(resumenComparacion(filas, jugadores)).toBe('Ana Gómez gana en 2 de 3 métricas.');
   });
 
   it('con empate de ganadas lo dice', () => {
-    const r = resumenComparacion(filas.slice(0, 2), jugadores);
-    expect(r).toBe(
-      `Ana Gómez y Beto Ruiz empatan en métricas (1 cada uno); Beto Ruiz es ${formatearEur(600_000)} más barato.`,
+    expect(resumenComparacion(filas.slice(0, 2), jugadores)).toBe(
+      'Ana Gómez y Beto Ruiz empatan en métricas (1 cada uno).',
     );
   });
 
-  it('sin costo comparable no habla de costo', () => {
-    const r = resumenComparacion(
-      filas,
-      jugadores.map((j) => ({ ...j, valor_mercado_eur: null })),
+  it('nadie gana nada', () => {
+    expect(
+      resumenComparacion(
+        filas.map((f) => ({ ...f, mejor: [] })),
+        jugadores,
+      ),
+    ).toBe('Ningún jugador se destaca en las métricas.');
+  });
+});
+
+describe('CMP-007: resumen final por jugador', () => {
+  const filas: FilaComparacion[] = [
+    {
+      metrica: 'minutos_jugados',
+      etiqueta: 'Minutos jugados',
+      valores: [900, 800],
+      mejor: [1],
+      peor: [2],
+    },
+    { metrica: 'goles', etiqueta: 'Goles', valores: [4, 4], mejor: [1, 2], peor: [] },
+    { metrica: 'rating', etiqueta: 'Rating', valores: [6.8, null], mejor: [], peor: [] },
+  ];
+  const jugadores = [
+    { id: 1, nombre: 'A. Gómez', nombre_completo: 'Ana Gómez', valor_mercado_eur: 1_500_000 },
+    { id: 2, nombre: 'B. Ruiz', nombre_completo: 'Beto Ruiz', valor_mercado_eur: null },
+  ];
+
+  it('lista las métricas que gana cada uno, en el orden de la tabla, y su valor', () => {
+    expect(resumenPorJugador(filas, jugadores)).toEqual([
+      {
+        id: 1,
+        nombre: 'Ana Gómez',
+        ganadas: ['Minutos jugados', 'Goles'],
+        texto: 'Gana en 2 de 3: Minutos jugados, Goles',
+        valor_mercado_eur: 1_500_000,
+      },
+      {
+        id: 2,
+        nombre: 'Beto Ruiz',
+        ganadas: ['Goles'],
+        texto: 'Gana en 1 de 3: Goles',
+        valor_mercado_eur: null,
+      },
+    ]);
+  });
+
+  it('si no gana ninguna lo dice', () => {
+    const r = resumenPorJugador(
+      filas.map((f) => ({ ...f, mejor: f.mejor.filter((id) => id !== 2) })),
+      jugadores,
     );
-    expect(r).toBe('Ana Gómez gana en 2 de 3 métricas.');
+    expect(r[1].texto).toBe('No gana ninguna métrica');
+    expect(r[1].ganadas).toEqual([]);
   });
 });
 
