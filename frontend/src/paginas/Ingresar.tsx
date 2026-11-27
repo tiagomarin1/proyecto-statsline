@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, type Location } from 'react-router-dom'
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
 import { ErrorApi } from '../servicios/api';
+import { primerNombre } from '../utilidades/formato';
 
 export default function Ingresar() {
   const { ingresar } = useSesion();
@@ -24,7 +25,7 @@ export default function Ingresar() {
         email: String(datos.get('email')),
         contrasena: String(datos.get('contrasena')),
       });
-      avisar(`Hola, ${u.nombre.split(' ')[0]}.`);
+      avisar(`Hola, ${primerNombre(u.nombre)}.`);
       navegar(desde, { replace: true });
     } catch (err) {
       setError(err instanceof ErrorApi ? err.message : 'No pudimos conectar con el servidor.');
