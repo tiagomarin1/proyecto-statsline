@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import type { JugadorResumen } from '../tipos/api';
+import VistaRapida from './VistaRapida';
 
 interface Props {
   seleccion: JugadorResumen[];
@@ -10,8 +13,10 @@ interface Props {
 /** Barra fija al pie de Buscar: muestra los seleccionados y lanza la comparación (CMP-001). */
 export default function BarraSeleccion({ seleccion, onQuitar, onLimpiar, onComparar }: Props) {
   const n = seleccion.length;
+  const [rapida, setRapida] = useState(false);
   return (
     <div className="selbar" aria-label="Jugadores seleccionados para comparar">
+      {rapida && n >= 2 && <VistaRapida seleccion={seleccion} />}
       <div className="selbar__names">
         {n === 0 ? (
           <span className="muted">Seleccioná 2 o 3 jugadores para comparar</span>
@@ -30,13 +35,31 @@ export default function BarraSeleccion({ seleccion, onQuitar, onLimpiar, onCompa
           ))
         )}
       </div>
+      {n >= 2 && (
+        <button
+          className="btn btn--ghost btn--sm"
+          type="button"
+          aria-expanded={rapida}
+          onClick={() => setRapida(!rapida)}
+        >
+          Vista rápida
+        </button>
+      )}
       {n > 0 && (
         <button className="btn btn--ghost btn--sm" type="button" onClick={onLimpiar}>
           Quitar todos
         </button>
       )}
       <button className="btn btn--primary" type="button" disabled={n < 2} onClick={onComparar}>
-        Comparar{n ? ` ${n}` : ''}
+        Comparar
+        {n ? (
+          <span key={n} className="bump">
+            {' '}
+            {n}
+          </span>
+        ) : (
+          ''
+        )}
       </button>
     </div>
   );

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import type { JugadorResumen } from '../tipos/api';
@@ -36,5 +36,22 @@ describe('UI-002: panel de detalle', () => {
 
     expect(screen.getByText('Club A · Liga Profesional')).toBeInTheDocument();
     expect(screen.queryByText(/2026/)).toBeNull();
+  });
+
+  it('CMP-005: "Comparar con…" suma al jugador a la comparación', () => {
+    const onCompararCon = vi.fn();
+    render(
+      <MemoryRouter>
+        <PanelJugador
+          jugador={JUGADOR}
+          filtros=""
+          onCerrar={() => {}}
+          onAlternarSeguimiento={() => {}}
+          onCompararCon={onCompararCon}
+        />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Comparar con…' }));
+    expect(onCompararCon).toHaveBeenCalledWith(JUGADOR);
   });
 });

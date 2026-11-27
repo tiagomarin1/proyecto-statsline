@@ -21,6 +21,12 @@ const BENEFICIOS = [
   },
 ];
 
+const PASOS = [
+  { titulo: 'Buscá', texto: 'Definí el perfil: posición, edad, liga, presupuesto y métricas.' },
+  { titulo: 'Elegí 2 o 3', texto: 'Marcá a los candidatos que más te interesan.' },
+  { titulo: 'Compará', texto: 'Mirá sus métricas y su costo lado a lado y decidí con datos.' },
+];
+
 /** Home pública: hero con la pelota que recorre la línea (UI-003), beneficios y CTA final. */
 export default function Inicio() {
   const { usuario } = useSesion();
@@ -47,6 +53,30 @@ export default function Inicio() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="band band--paso" aria-label="Cómo funciona">
+        <div className="wrap">
+          <div className="section__head">
+            <span className="eyebrow">Cómo funciona</span>
+            <h2>De la búsqueda a la decisión en tres pasos.</h2>
+          </div>
+          <ol className="como">
+            {PASOS.map((p, i) => (
+              <li
+                key={p.titulo}
+                className="card como__paso"
+                style={{ animationDelay: `${i * 90}ms` }}
+              >
+                <b className="como__n" aria-hidden="true">
+                  {i + 1}
+                </b>
+                <h3>{p.titulo}</h3>
+                <p>{p.texto}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import BarraFiltros from '../componentes/BarraFiltros';
+import AyudaAtajos from '../componentes/AyudaAtajos';
 import BarraSeleccion from '../componentes/BarraSeleccion';
+import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import PanelJugador from '../componentes/PanelJugador';
 import Paginacion from '../componentes/Paginacion';
 import TablaJugadores from '../componentes/TablaJugadores';
@@ -32,6 +34,8 @@ import {
 } from '../utilidades/filtros';
 import { POSICIONES } from '../utilidades/formato';
 import { usePantallaChica } from '../utilidades/pantalla';
+import { guardarUltimaBusqueda } from '../utilidades/persistencia';
+import { PLANTILLAS } from '../utilidades/plantillas';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
 function mensajeDeError(e: unknown) {
@@ -83,6 +87,7 @@ function resumenDePerfil(perfil: PerfilBusqueda, ligas: Liga[]) {
 export default function Buscar() {
   const [params, setParams] = useSearchParams();
   const navegar = useNavigate();
+  const ubicacion = useLocation();
   const avisar = useAvisar();
   const pantallaChica = usePantallaChica();
   const [ligas, setLigas] = useState<Liga[]>([]);
@@ -92,6 +97,21 @@ export default function Buscar() {
   // Selección para comparar (CMP-001). Guarda el jugador entero para que la barra lo muestre
   // aunque cambie de página de resultados.
   const [seleccion, setSeleccion] = useState<JugadorResumen[]>([]);
+  // CMP-005: "Comparar con…" desde la ficha o el panel llega con el jugador de origen
+  const origen = (ubicacion.state as { comparar?: JugadorResumen } | null)?.comparar;
+  useEffect(() => {
+    if (!origen) return;
+    setSeleccion((s) =>
+      s.some((x) => x.id === origen.id) ? s : [...s, origen].slice(0, MAX_COMPARAR),
+    );
+    avisar('Elegí a quién compararlo');
+    navegar(`${ubicacion.pathname}${ubicacion.search}`, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origen?.id]);
+  const [ayudaAbierta, setAyudaAbierta] = useState(false);
+  // UI-007: "Volver a resultados" desde la comparación devuelve a esta misma búsqueda
+  const consulta = params.toString();
+  useEffect(() => guardarUltimaBusqueda(consulta), [consulta]);
   // Jugador cuyo detalle está abierto en el panel (UI-002)
   const [elegidoId, setElegidoId] = useState<number | null>(null);
   // BUS-005: el perfil guardado (uno por usuario, RN-023) y lo que falta para guardar uno
@@ -229,9 +249,48 @@ export default function Buscar() {
     setSeleccion([...seleccion, j]);
   }
 
+  /** CMP-005: desde el panel, deja al jugador seleccionado y pide elegir al otro */
+  function compararCon(j: JugadorResumen) {
+    if (!seleccion.some((s) => s.id === j.id)) {
+      if (seleccion.length >= MAX_COMPARAR) {
+        avisar(`Se pueden comparar hasta ${MAX_COMPARAR} jugadores a la vez.`);
+        return;
+      }
+      setSeleccion([...seleccion, j]);
+    }
+    setElegidoId(null);
+    avisar('Elegí a quién compararlo');
+  }
+
   function compararSeleccion() {
     navegar(`/comparar?ids=${seleccion.map((s) => s.id).join(',')}`);
   }
+
+  // UI-007: atajos de teclado. No actúan mientras se escribe en un campo ni con un diálogo abierto.
+  useEffect(() => {
+    function alTeclear(e: KeyboardEvent) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName) || t.isContentEditable)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      if (e.key === '/') {
+        const campo = document.getElementById('nombre');
+        if (campo) {
+          e.preventDefault();
+          campo.focus();
+        }
+      } else if (e.key === 'c' && seleccion.length >= 2) {
+        compararSeleccion();
+      } else if (e.key === '?') {
+        setAyudaAbierta(true);
+      }
+    }
+    document.addEventListener('keydown', alTeclear);
+    return () => document.removeEventListener('keydown', alTeclear);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seleccion]);
+
+  const sinFiltros = ![...params.keys()].some((k) => k !== 'orden' && k !== 'pagina');
 
   const filtrosSinPaginado = new URLSearchParams(params);
   filtrosSinPaginado.delete('pagina');
@@ -246,6 +305,8 @@ export default function Buscar() {
         </div>
       </div>
 
+      <ProgresoFlujo paso={seleccion.length >= 2 ? 2 : 1} />
+
       <BarraFiltros
         params={params}
         ligas={ligas}
@@ -257,7 +318,27 @@ export default function Buscar() {
         resumenPerfil={perfilGuardado && resumenDePerfil(perfilGuardado, ligas)}
         errorPerfil={errorPerfil}
         camposInvalidos={camposInvalidos}
+        chica={pantallaChica}
+        totalResultados={respuesta?.total ?? null}
       />
+
+      {sinFiltros && (
+        <section className="plantillas" aria-label="Empezá con una plantilla">
+          <h2>Empezá con una plantilla</h2>
+          <div className="plantillas__lista">
+            {PLANTILLAS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className="chip"
+                onClick={() => aplicarFiltros(p.filtros)}
+              >
+                {p.titulo}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="results">
         <div className="results__bar">
@@ -377,6 +458,7 @@ export default function Buscar() {
                           filtros={params.toString()}
                           onCerrar={() => setElegidoId(null)}
                           onAlternarSeguimiento={alternar}
+                          onCompararCon={compararCon}
                         />
                       )}
                     </div>
@@ -391,6 +473,8 @@ export default function Buscar() {
             )}
           </>
         )}
+
+        {ayudaAbierta && <AyudaAtajos onCerrar={() => setAyudaAbierta(false)} />}
 
         {seleccion.length > 0 && (
           <BarraSeleccion

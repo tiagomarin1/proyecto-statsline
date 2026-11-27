@@ -23,6 +23,10 @@ interface Props {
   errorPerfil?: string;
   /** Campos que se marcan como inválidos (`edad` marca los dos extremos del rango). */
   camposInvalidos?: string[];
+  /** UI-006: en celular el formulario va en un panel que sube desde abajo. */
+  chica?: boolean;
+  /** UI-006: lo que dice el botón del panel: "Ver N resultados". */
+  totalResultados?: number | null;
 }
 
 /** Etiqueta del chip de un filtro activo. */
@@ -65,7 +69,11 @@ export default function BarraFiltros({
   resumenPerfil,
   errorPerfil,
   camposInvalidos = [],
+  chica = false,
+  totalResultados = null,
 }: Props) {
+  const [abierta, setAbierta] = useState(false);
+  const hoja = useRef<HTMLDivElement>(null);
   const aplicados = filtrosDeParams(params);
   const clave = JSON.stringify(aplicados);
   const [valores, setValores] = useState(aplicados);
@@ -83,6 +91,17 @@ export default function BarraFiltros({
   }, [clave]);
 
   useEffect(() => () => clearTimeout(temporizador.current), []);
+
+  // UI-006: con el panel abierto el foco va a él y la página de atrás no se mueve
+  useEffect(() => {
+    if (!abierta) return;
+    hoja.current?.focus();
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previo;
+    };
+  }, [abierta]);
 
   function cambiar(nombre: string, valor: string, inmediato: boolean) {
     const nuevos = { ...actuales.current };
@@ -116,8 +135,8 @@ export default function BarraFiltros({
   const hayMetricas = METRICAS.some((m) => valores[m.nombre] !== undefined);
   const chips = Object.entries(aplicados);
 
-  return (
-    <section className="card bf" aria-label="Filtros de búsqueda">
+  const formulario = (
+    <>
       <div className="bf__fila">
         {/* BUS-010: viaja tal como se escribe; el backend lo normaliza y lo compara (RN-035) */}
         <div className="bf__campo">
@@ -255,7 +274,11 @@ export default function BarraFiltros({
           <span>{errorPerfil}</span>
         </div>
       )}
+    </>
+  );
 
+  const listaChips = (
+    <>
       {chips.length > 0 && (
         <ul className="bf__chips" aria-label="Filtros aplicados">
           {chips.map(([nombre, valor]) => {
@@ -279,6 +302,73 @@ export default function BarraFiltros({
             </button>
           </li>
         </ul>
+      )}
+    </>
+  );
+
+  if (!chica) {
+    return (
+      <section className="card bf" aria-label="Filtros de búsqueda">
+        {formulario}
+        {listaChips}
+      </section>
+    );
+  }
+
+  const textoVer =
+    totalResultados === null
+      ? 'Ver resultados'
+      : `Ver ${totalResultados} ${totalResultados === 1 ? 'resultado' : 'resultados'}`;
+
+  return (
+    <section className="card bf bf--chica" aria-label="Filtros de búsqueda">
+      <div className="bf__tira">
+        <button
+          className="btn btn--primary"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={abierta}
+          onClick={() => setAbierta(true)}
+        >
+          Filtros{chips.length > 0 ? ` (${chips.length})` : ''}
+        </button>
+      </div>
+      {listaChips}
+      {abierta && (
+        <>
+          <div
+            className="hoja__fondo"
+            data-testid="fondo-filtros"
+            onClick={() => setAbierta(false)}
+          />
+          <div
+            ref={hoja}
+            className="hoja"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filtros"
+            tabIndex={-1}
+            onKeyDown={(e) => e.key === 'Escape' && setAbierta(false)}
+          >
+            <div className="hoja__cab">
+              <h2>Filtros</h2>
+              <button
+                type="button"
+                className="hoja__x"
+                aria-label="Cerrar filtros"
+                onClick={() => setAbierta(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="hoja__cuerpo">{formulario}</div>
+            <div className="hoja__pie">
+              <button className="btn btn--primary" type="button" onClick={() => setAbierta(false)}>
+                {textoVer}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </section>
   );

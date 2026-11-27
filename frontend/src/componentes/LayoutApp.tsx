@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
 import { LINK_WHATSAPP } from '../utilidades/contacto';
+import { marcarTourVisto, tourVisto } from '../utilidades/persistencia';
 import { Logo } from './Logo';
+import Tour from './Tour';
 
 export default function LayoutApp() {
   const { usuario, salir } = useSesion();
   const avisar = useAvisar();
   const navegar = useNavigate();
+  const { pathname } = useLocation();
+  // UI-007: el tour sale solo la primera vez con sesión; "Ver tour" lo reabre
+  const [tourAbierto, setTourAbierto] = useState(() => tourVisto() === false);
+  const cerrarTour = () => {
+    marcarTourVisto();
+    setTourAbierto(false);
+  };
 
   // Sombra + blur en la barra apenas se scrollea.
   const [scrolleado, setScrolleado] = useState(false);
@@ -37,6 +46,9 @@ export default function LayoutApp() {
             <nav className="nav nav--app" aria-label="Principal">
               <NavLink to="/buscar">Buscar</NavLink>
               <NavLink to="/seguimiento">Seguimiento</NavLink>
+              <button className="nav__tour" type="button" onClick={() => setTourAbierto(true)}>
+                Ver tour
+              </button>
               <span className="nav__sep" />
               <span className="muted">{usuario.nombre.split(' ')[0]}</span>
               <button className="btn btn--ghost btn--sm" type="button" onClick={cerrarSesion}>
@@ -54,7 +66,9 @@ export default function LayoutApp() {
         </div>
       </header>
 
-      <main className="main">
+      {usuario && tourAbierto && <Tour onCerrar={cerrarTour} />}
+
+      <main key={pathname} className="main main--in">
         <Outlet />
       </main>
 

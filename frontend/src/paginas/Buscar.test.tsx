@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import type { JugadorResumen, Liga, PerfilBusqueda, RespuestaBusqueda } from '../tipos/api';
 import Buscar from './Buscar';
@@ -731,5 +731,103 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
       expect(avisarMock).toHaveBeenCalledWith('No se pudo guardar el perfil de búsqueda.'),
     );
     expect(screen.getByText(RESUMEN)).toBeInTheDocument();
+  });
+});
+
+describe('CMP-005: llegar a Buscar desde "Comparar con…"', () => {
+  beforeEach(() => {
+    avisarMock.mockReset();
+    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
+  });
+
+  it('deja al jugador de origen seleccionado y avisa a quién compararlo', async () => {
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/buscar', state: { comparar: jugador(9) } }]}>
+        <Buscar />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByLabelText('Jugadores seleccionados para comparar')).toBeTruthy();
+    expect(screen.getByText('Jugador 9')).toBeInTheDocument();
+    await waitFor(() => expect(avisarMock).toHaveBeenCalledWith('Elegí a quién compararlo'));
+  });
+});
+
+describe('UI-007: guía en Buscar', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
+  });
+  afterEach(() => buscarMock.mockReset());
+
+  it('sin filtros ofrece plantillas y al tocar una aplica sus filtros', async () => {
+    renderizar();
+    const region = await screen.findByRole('region', { name: 'Empezá con una plantilla' });
+    fireEvent.click(within(region).getByRole('button', { name: 'Defensor joven hasta EUR 1 M' }));
+    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBe('defensor'));
+    expect(ultimosFiltros().get('edad_max')).toBe('23');
+    expect(ultimosFiltros().get('presupuesto_max_eur')).toBe('1000000');
+    // ya hay filtros: las plantillas se van
+    expect(screen.queryByRole('region', { name: 'Empezá con una plantilla' })).toBeNull();
+  });
+
+  it('con filtros en la URL no hay plantillas', async () => {
+    renderizar('/buscar?posicion=defensor');
+    await screen.findByText('Jugador 1');
+    expect(screen.queryByRole('region', { name: 'Empezá con una plantilla' })).toBeNull();
+  });
+
+  it('muestra el progreso: paso 1 sin selección y paso 2 con dos jugadores', async () => {
+    renderizar();
+    await screen.findByText('Jugador 1');
+    const nav = screen.getByRole('navigation', { name: 'Progreso' });
+    expect(within(nav).getByText('Buscar').closest('li')).toHaveAttribute('aria-current', 'step');
+    const marcas = screen.getAllByRole('checkbox', { name: /Comparar/ });
+    fireEvent.click(marcas[0]);
+    fireEvent.click(marcas[1]);
+    expect(within(nav).getByText('Elegir').closest('li')).toHaveAttribute('aria-current', 'step');
+  });
+
+  it('guarda la búsqueda para "Volver a resultados"', async () => {
+    renderizar('/buscar?posicion=defensor&pagina=2');
+    await screen.findByText('Jugador 1');
+    expect(sessionStorage.getItem('statsline_ultima_busqueda')).toBe('posicion=defensor&pagina=2');
+  });
+
+  it('"/" lleva el foco al nombre, y no actúa mientras se escribe en un campo', async () => {
+    renderizar();
+    await screen.findByText('Jugador 1');
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveFocus();
+    // con el foco en el campo, "/" y "c" son texto, no atajos
+    fireEvent.keyDown(screen.getByLabelText('Nombre del jugador'), { key: 'c' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('"c" abre la comparación con 2 seleccionados, y con 1 no hace nada', async () => {
+    render(
+      <MemoryRouter initialEntries={['/buscar']}>
+        <Routes>
+          <Route path="/buscar" element={<Buscar />} />
+          <Route path="/comparar" element={<p>pantalla comparar</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByText('Jugador 1');
+    const marcas = screen.getAllByRole('checkbox', { name: /Comparar/ });
+    fireEvent.click(marcas[0]);
+    fireEvent.keyDown(document.body, { key: 'c' });
+    expect(screen.getByLabelText('Jugadores seleccionados para comparar')).toBeInTheDocument();
+    fireEvent.click(marcas[1]);
+    fireEvent.keyDown(document.body, { key: 'c' });
+    await screen.findByText('pantalla comparar');
+  });
+
+  it('"?" muestra los atajos y Escape los cierra', async () => {
+    renderizar();
+    await screen.findByText('Jugador 1');
+    fireEvent.keyDown(document.body, { key: '?' });
+    expect(screen.getByRole('dialog', { name: 'Atajos de teclado' })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

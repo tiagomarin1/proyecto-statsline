@@ -2,6 +2,14 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (release de cierre del MVP)
+- CMP-004 (en testing): las barras de Comparar son interactivas. Entran animadas al aparecer en pantalla, tienen tooltip (valor, diferencia contra los otros y contra el promedio de la posición) al pasar, tocar o enfocar con Tab, resaltado cruzado de métrica y de jugador, marca del promedio de la posición (RN-015, se pide a la ficha de cada jugador), destaque del "Mejor", resumen en una frase, filtros de la tabla (grupo, "Solo diferencias grandes", "Ocultar métricas sin datos"), interruptor para ocultar un jugador (RN-006 se recalcula con los visibles) y vista Radar. **RN-037 (propuesta)** fija el umbral del 10 %, los grupos y la escala. El percentil contra la posición queda pendiente. Solo frontend: el contrato de API no cambia.
+- CMP-005 (en testing): en Comparar se puede cambiar, quitar o sumar un jugador por nombre (BUS-010) sin volver a Buscar, y copiar el link. "Comparar con…" en la ficha y en el panel de detalle, y "Vista rápida" en la barra de selección. Exportar PDF sigue en CMP-002 (R2).
+- UI-005 (en testing): tokens de movimiento, esqueletos de carga, pop de la estrella y del check, transición entre pantallas, entrada escalonada de tarjetas y filas. Todo respeta "reducir movimiento".
+- UI-006 (en testing): en celular, Comparar con tira de jugadores y barras apiladas, filtros en un panel que sube desde abajo (con "Ver N resultados"), ficha por pestañas (Métricas, Coincidencia, Trayectoria), barra de selección compacta con safe area y áreas táctiles de 44 px. Verificado sin scroll horizontal a 375 px.
+- UI-007 (en testing): tour de 3 pasos la primera vez con sesión ("Ver tour" en el menú), barra de progreso Buscar · Elegir · Comparar, "Cómo funciona" en la home, plantillas de búsqueda **(supuesto: los valores los eligió el equipo)**, el "i" con la definición de cada métrica, "Volver a resultados" que conserva filtros y página, y atajos de teclado (`/`, `c`, `?`). El E2E de la demo salta el tour al ingresar.
+- Descartado por el equipo: modo oscuro manual, estados de error nuevos, etiquetas de calidad del dato, PWA y medición de uso.
+
 ## 2026-11-27
 - Link nuevo: la app pasa a https://statsline.onrender.com. Render no deja cambiar el subdominio de un servicio existente, así que se creó un servicio nuevo, `statsline`, con la misma base de Aiven, las mismas variables y el health check en `/api/v1/salud`. Se actualizaron el monitor de UptimeRobot y `URL_PUBLICA`. El secret `RENDER_DEPLOY_HOOK` del repo tiene que pasar al deploy hook del servicio nuevo, y después se da de baja `statsline-4dyy`.
 - UI-004 hecho: página pública `/terminos` con los términos y condiciones (incluye los derechos de la Ley 25.326), link a los términos desde el registro, y en el pie de todas las páginas "Términos" y "Escribinos por WhatsApp" con el mensaje ya escrito (PR #46).

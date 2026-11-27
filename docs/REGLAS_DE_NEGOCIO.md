@@ -596,10 +596,24 @@ Usada en: BUS-010.
 
 Usada en: AUT-003.
 
+### RN-037 Cómo se leen las barras de la comparación (propuesta, 27/11/2026)
+
+- **Diferencia grande:** una fila tiene una diferencia grande si `(máximo − mínimo) / máximo >= 0,10`, entre los jugadores que tienen el dato. Con menos de 2 valores, o con máximo 0, no la tiene. El filtro "Solo diferencias grandes" oculta el resto.
+- **Escala de la barra:** el 100 % de una fila es el mayor valor entre los jugadores y el promedio de la posición (RN-015), así la marca del promedio siempre entra.
+- **Grupos de métricas:** Ataque (goles, asistencias), Pase y defensa (% pases, % duelos, recuperaciones por partido) y Participación (minutos, partidos, rating).
+- **Jugador oculto:** el resumen y Mejor/Peor se recalculan solo con los jugadores visibles, aplicando RN-006. Siempre quedan al menos 2.
+- **Radar:** solo con las métricas en porcentaje y el rating; el rating (0 a 10) se multiplica por 10 para estar en la escala 0-100. Sin el dato, el eje queda sin punto (RN-008).
+- **Pendiente:** el percentil contra la posición no entra hasta definir de qué universo se calcula.
+
+**Ejemplo:** pases A 87, B 83, C 80: la diferencia es (87 − 80) / 87 = 8 %, no es grande. Duelos A 61, B 45: (61 − 45) / 61 = 26 %, sí. Con goles A 0 y B 0, el máximo es 0: no es grande.
+
+Usada en: CMP-004.
+
 ---
 
 ## Pendientes
 
+- **PO:** validar RN-037 **(propuesta)**: lectura de las barras de la comparación (CMP-004).
 - ~~**PO:** validar RN-035: búsqueda por nombre (BUS-010).~~ Cerrada como decisión del equipo, Cilento, 26/11/2026.
 - ~~**PO y equipo:** validar ADR-0011, RN-029 y RN-030.~~ Resueltas el 20/11/2026: ADR-0011 aceptada, RN-029 aprobada con el reparto de fuentes de arriba y RN-030 aprobada tal como estaba.
 - ~~**PO:** validar RN-031 a RN-034 **(propuestas)**. RN-028 (cobertura esperada de cada liga) se revisa con esto: con Sportmonks, Primera Nacional y Federal A pasan de `basica` a `completa` (medido el 16/11/2026 en Federal A).~~ Cerradas como decisión del equipo, Cilento, 26/11/2026. RN-031 suma los contadores en 0 de Sportmonks.
