@@ -145,3 +145,120 @@ h1 {
     transition: none;
   }
 }
+
+/* ============ UI-011: hero más grande y animación de entrada ============ */
+
+/* Título: al menos 1,5 veces el de UI-003 (era clamp(38px, 5.4vw, 62px): 41 px a 768, 55 px a
+   1024 y 62 px a 1280) y en Archivo extendido. Se le da más columna al texto y se aprieta el
+   espacio vertical para que todo entre en 1280 x 800 sin pisar la barra ni la pelota. */
+.hero h1 {
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+@media (min-width: 768px) {
+  .hero__in {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+    column-gap: clamp(28px, 4vw, 56px);
+    padding-block: calc(var(--isla-h) + var(--isla-top) + 14px) calc(var(--b) + 10svh);
+  }
+  .hero__texto {
+    max-width: 760px;
+  }
+  .hero h1 {
+    /* en pantallas bajas (laptops de 720 px) también se limita por el alto */
+    font-size: min(clamp(62px, 8vw, 93px), 11.6svh);
+    line-height: 0.92;
+  }
+  .hero__etiqueta {
+    margin-bottom: 10px;
+  }
+  .hero__lead {
+    margin-top: 14px;
+  }
+  .hero__cta {
+    margin-top: 20px;
+  }
+  .ligas {
+    margin-top: 14px;
+  }
+}
+@media (max-width: 767px) {
+  /* celular: era clamp(31px, 9vw, 40px) */
+  .hero h1 {
+    font-size: clamp(47px, 13.4vw, 60px);
+  }
+}
+
+/* Letras del título que todavía no se escribieron: invisibles pero en el flujo (sin saltos) */
+.tit__l {
+  position: relative;
+}
+.tit__l.is-oculta {
+  visibility: hidden;
+}
+.tit__l.is-cursor::after {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  bottom: 0.08em;
+  right: -0.07em;
+  width: 0.06em;
+  border-radius: 0.03em;
+  background: var(--sl-oro);
+  animation: cursor-parpadeo 0.9s steps(1) infinite;
+}
+@keyframes cursor-parpadeo {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Entrada escalonada: solo mientras el hero tiene data-entrada. Sin JS, sin animación o con
+   movimiento reducido no hay atributo y se ve todo (el estado en reposo es el completo). */
+.hero[data-entrada='escribiendo'] .hero-entra {
+  opacity: 0;
+}
+.hero[data-entrada='escribiendo'] .ejemplo,
+.hero[data-entrada='escribiendo'] .ejemplo__barra {
+  animation: none;
+}
+.hero[data-entrada='listo'] .hero-entra {
+  animation: hero-entra 0.55s var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1)) backwards;
+  animation-delay: calc(var(--orden) * 110ms);
+}
+/* el indicador está centrado con translateX(-50%): su entrada lo conserva */
+.hero[data-entrada='listo'] .hero__scroll.hero-entra {
+  animation-name: hero-entra-centrado;
+}
+/* las barras de la tarjeta se llenan cuando la tarjeta aparece */
+.hero[data-entrada='listo'] .ejemplo__barra {
+  animation-delay: calc(3 * 110ms + var(--d, 0ms));
+}
+@keyframes hero-entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-entra-centrado {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-entra,
+  .tit__l.is-cursor::after {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

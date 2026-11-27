@@ -846,7 +846,8 @@ kbd {
   padding: 22px;
   display: grid;
   gap: 8px;
-  animation: entrada var(--mov-lento) var(--mov-curva) both;
+  /* backwards y no both: con both la animación deja transform: none y anula el hover (UI-011) */
+  animation: entrada var(--mov-lento) var(--mov-curva) backwards;
 }
 .como__n {
   width: 36px;
@@ -1196,7 +1197,8 @@ kbd {
   }
 }
 .pgrid > .pcard {
-  animation: entrada var(--mov-medio) var(--mov-curva) both;
+  /* backwards y no both: con both la animación deja transform: none y anula :hover y :active */
+  animation: entrada var(--mov-medio) var(--mov-curva) backwards;
 }
 .pgrid > .pcard:nth-child(2) {
   animation-delay: 40ms;
