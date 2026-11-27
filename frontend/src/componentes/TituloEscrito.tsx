@@ -1,8 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 
-import { reduceMovimiento } from '../utilidades/movimiento';
+import { marcarEscrito, TEXTO_TITULO, tocaEscribir } from '../utilidades/tituloEscrito';
 
-export const TEXTO_TITULO = 'Fichá con datos, no a ojo.';
 // "a ojo" va en <em> (dorado) también mientras se escribe
 const TRAMOS = [
   { texto: 'Fichá con datos, no ', em: false },
@@ -12,18 +11,6 @@ const TRAMOS = [
 const MS_POR_LETRA = 50;
 const MS_CURSOR_FINAL = 500;
 const LETRAS = TEXTO_TITULO.length;
-
-// Una sola vez por carga de la página: al volver a la home dentro de la sesión ya aparece completo
-let yaSeEscribio = false;
-
-/** Solo para los tests: vuelve al estado de una carga nueva. */
-export function reiniciarTituloEscrito() {
-  yaSeEscribio = false;
-}
-
-/** ¿Hay que escribir el título? Es pura (StrictMode puede llamarla dos veces): el uso se marca
- *  recién cuando empieza a escribirse. */
-export const tocaEscribir = (): boolean => !yaSeEscribio && !reduceMovimiento();
 
 interface Props {
   /** se avisa al terminar de escribir (no se llama si aparece completo) */
@@ -45,7 +32,7 @@ export default function TituloEscrito({ onTerminar, animar }: Props) {
 
   useEffect(() => {
     if (!escribe) return;
-    yaSeEscribio = true;
+    marcarEscrito();
     let n = 0;
     const tic = window.setInterval(() => {
       n += 1;

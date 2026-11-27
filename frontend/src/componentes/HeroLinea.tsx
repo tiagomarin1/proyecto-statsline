@@ -6,7 +6,8 @@ import { Link } from 'react-router-dom';
 
 import pasto from '../assets/hero/02-pasto-linea.webp';
 import pelota from '../assets/hero/06-pelota.webp';
-import TituloEscrito, { tocaEscribir } from './TituloEscrito';
+import { tocaEscribir } from '../utilidades/tituloEscrito';
+import TituloEscrito from './TituloEscrito';
 
 // Primera C y D quedan fuera: por ahora no tienen datos (RN-028).
 const LIGAS = ['Liga Profesional', 'Primera Nacional', 'B Metropolitana', 'Federal A'];

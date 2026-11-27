@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 
-import TituloEscrito, { reiniciarTituloEscrito, TEXTO_TITULO } from './TituloEscrito';
+import { reiniciarTituloEscrito, TEXTO_TITULO } from '../utilidades/tituloEscrito';
+import TituloEscrito from './TituloEscrito';
 
 const LETRAS = TEXTO_TITULO.length;
 

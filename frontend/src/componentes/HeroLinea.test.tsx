@@ -3,7 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MemoryRouter } from 'react-router-dom';
 
 import { HeroLinea } from './HeroLinea';
-import { reiniciarTituloEscrito } from './TituloEscrito';
+import { reiniciarTituloEscrito } from '../utilidades/tituloEscrito';
 
 type Modo = 'escritorio' | 'movil' | 'reducido';
 
