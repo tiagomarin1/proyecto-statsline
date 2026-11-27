@@ -8,7 +8,19 @@ import { buscarJugadores, obtenerFicha } from '../servicios/jugadores';
 
 vi.mock('../servicios/comparaciones', () => ({ compararJugadores: vi.fn() }));
 const compararMock = vi.mocked(compararJugadores);
-vi.mock('../servicios/jugadores', () => ({ obtenerFicha: vi.fn(), buscarJugadores: vi.fn() }));
+vi.mock('../servicios/jugadores', () => ({
+  obtenerFicha: vi.fn(),
+  buscarJugadores: vi.fn(),
+  listarLigas: vi
+    .fn()
+    .mockResolvedValue([
+      { id: 1, nombre: 'Liga Profesional', cobertura: 'completa', temporada_actual: 2026 },
+    ]),
+}));
+vi.mock('../servicios/pdf', () => ({ descargarPdf: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('../contexto/SesionContext', () => ({
+  useSesion: () => ({ usuario: { nombre: 'Javier Ledesma', club: 'Deportivo Norte' } }),
+}));
 const buscarMock = vi.mocked(buscarJugadores);
 const fichaMock = vi.mocked(obtenerFicha);
 
@@ -98,8 +110,9 @@ describe('CMP-001: comparar jugadores', () => {
     expect(resumen).toHaveTextContent('Gana en 2 de 2: % pases completados, % duelos ganados');
     expect(resumen).toHaveTextContent('No gana ninguna métrica');
     expect(screen.queryByText(/barato/)).toBeNull();
-    // exportar PDF queda para el release 2
-    expect(screen.getByText(/release 2/)).toBeInTheDocument();
+    // CMP-002: exportar PDF funciona (sin el chip R2)
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toBeEnabled();
+    expect(screen.queryByText(/release 2/)).toBeNull();
     expect(compararMock).toHaveBeenCalledWith([1, 2]);
     // sin fuentes distintas no hay aviso (CMP-003)
     expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
@@ -591,9 +604,53 @@ describe('CMP-006 y CMP-007: cabeceras en columnas y métricas en filas apiladas
     expect(screen.queryByLabelText('Métricas ganadas')).toBeNull();
   });
 
-  it('no queda ninguna marca de "release 2" a la vista salvo la del botón de PDF', async () => {
+  it('no queda ninguna marca de "release 2" a la vista', async () => {
     renderizarEn('/comparar?ids=1,2,3');
     await screen.findByRole('heading', { name: 'Ana Gómez' });
-    expect(screen.getAllByText(/release 2/)).toHaveLength(1);
+    expect(screen.queryByText(/release 2|R2/)).toBeNull();
+  });
+});
+
+describe('CMP-002: exportar PDF', () => {
+  beforeEach(() => {
+    fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
+    compararMock.mockResolvedValue(TRES);
+    sessionStorage.clear();
+  });
+  afterEach(() => {
+    compararMock.mockReset();
+    fichaMock.mockReset();
+  });
+
+  it('abre el diálogo y descarga con todos los jugadores aunque haya uno oculto', async () => {
+    const { descargarPdf } = await import('../servicios/pdf');
+    sessionStorage.setItem('statsline_ultima_busqueda', 'posicion=defensor&liga_id=1&ver=1');
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    // oculta a Ana y filtra la tabla: el PDF igual tiene todo
+    fireEvent.click(screen.getByRole('button', { name: 'Editar jugadores' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Mostrar a Ana Gómez' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Ataque' }));
+
+    const exportar = screen.getByRole('button', { name: 'Exportar PDF' });
+    fireEvent.click(exportar);
+    fireEvent.change(screen.getByLabelText('Notas (opcional)'), { target: { value: 'Ojo' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Descargar PDF' }));
+
+    await waitFor(() => expect(descargarPdf).toHaveBeenCalledTimes(1));
+    const contenido = vi.mocked(descargarPdf).mock.calls[0][0];
+    expect(contenido.jugadores.map((j) => j.nombre)).toEqual([
+      'Ana Gómez',
+      'Beto Ruiz',
+      'Caro Díaz',
+    ]);
+    expect(contenido.metricas).toHaveLength(3);
+    expect(contenido.encabezado.club).toBe('Deportivo Norte');
+    expect(contenido.busqueda).toEqual(['Defensor', 'Liga Profesional']);
+    expect(contenido.notas).toBe('Ojo');
+    expect(contenido.nombreArchivo).toMatch(/^StatsLine-comparacion-\d{4}-\d{2}-\d{2}\.pdf$/);
+    // el diálogo se cierra y el foco vuelve al botón
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(exportar).toHaveFocus();
   });
 });
