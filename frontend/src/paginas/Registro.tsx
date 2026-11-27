@@ -5,7 +5,7 @@ import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
 import { ErrorApi } from '../servicios/api';
 import type { RolUsuario } from '../tipos/api';
-import { ROLES } from '../utilidades/formato';
+import { primerNombre, ROLES } from '../utilidades/formato';
 
 type Errores = Record<string, string>;
 
@@ -60,7 +60,7 @@ export default function Registro() {
         contrasena: String(d.get('contrasena')),
         acepta_terminos: d.get('acepta_terminos') === 'on',
       });
-      avisar(`Cuenta creada. Bienvenido, ${u.nombre.split(' ')[0]}.`);
+      avisar(`Cuenta creada. Bienvenido, ${primerNombre(u.nombre)}.`);
       navegar('/buscar', { replace: true });
     } catch (err) {
       if (err instanceof ErrorApi) {

@@ -2,6 +2,7 @@ import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { LINK_WHATSAPP } from '../utilidades/contacto';
+import { nombrePropio } from '../utilidades/formato';
 import { usePantallaChica } from '../utilidades/pantalla';
 
 interface Props {
@@ -116,7 +117,8 @@ export default function MenuNavegacion({ usuario, onAyuda, onSalir }: Props) {
           <nav id="menu-navegacion" className="mnav__panel" aria-label="Menú">
             {usuario && (
               <p className="mnav__quien">
-                <b>{usuario.nombre}</b>
+                {/* el nombre con mayúscula inicial; el club se muestra como lo escribió (UI-012) */}
+                <b>{nombrePropio(usuario.nombre)}</b>
                 {!chica && usuario.club && <span>{usuario.club}</span>}
               </p>
             )}

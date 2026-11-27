@@ -343,3 +343,43 @@ describe('UI-012: barra de escritorio flotante con menú', () => {
     Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
   });
 });
+
+describe('UI-012: nombre del usuario con mayúscula inicial', () => {
+  beforeEach(() => {
+    localStorage.setItem('statsline_tour_visto', '1');
+    document.documentElement.style.overflow = '';
+  });
+  afterEach(() => {
+    usuario = TIAGO;
+  });
+  const abrirMenu = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+    return screen.getByRole('navigation', { name: 'Menú' });
+  };
+
+  it('en escritorio el menú muestra "Tiago Marin" y deja el club como está', () => {
+    simularPantalla(false);
+    usuario = { nombre: 'tiago marin', club: 'all boys' };
+    ver();
+    const menu = abrirMenu();
+    expect(within(menu).getByText('Tiago Marin')).toBeInTheDocument();
+    expect(within(menu).queryByText('tiago marin')).toBeNull();
+    expect(within(menu).getByText('all boys')).toBeInTheDocument();
+  });
+
+  it('en el celular el menú muestra "Tiago Marin"', () => {
+    simularPantalla(true);
+    usuario = { nombre: 'TIAGO MARIN', club: 'CA Platense' };
+    ver();
+    expect(within(abrirMenu()).getByText('Tiago Marin')).toBeInTheDocument();
+  });
+
+  it('un nombre ya bien escrito no cambia', () => {
+    simularPantalla(false);
+    usuario = { nombre: 'Juan McDonald', club: 'AFA' };
+    ver();
+    const menu = abrirMenu();
+    expect(within(menu).getByText('Juan McDonald')).toBeInTheDocument();
+    expect(within(menu).getByText('AFA')).toBeInTheDocument();
+  });
+});

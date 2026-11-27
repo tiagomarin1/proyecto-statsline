@@ -56,6 +56,7 @@ Convenciones:
 | Ayuda | (solo UI) | Opción del menú que abre el tour de bienvenida. Se llamaba "Ver tour" (UI-012) | — | — |
 | Título escrito | `titulo_escrito` | El título del hero que se escribe letra por letra al cargar la home (UI-011) | typewriter | — |
 | Tarjeta de jugador | `tarjeta_jugador` | Card con todos los datos de un candidato, usada en los resultados y en el seguimiento (UI-010) | ficha corta, fila | — |
+| Nombre propio | `nombrePropio` | Cómo se muestra el nombre del usuario: con mayúscula inicial, partículas en minúscula y sin tocar lo que ya mezcla mayúsculas ("tiago marin" → "Tiago Marin"). Solo al mostrarlo; lo guardado no cambia (UI-012). No se aplica al club ni a los jugadores | capitalizar, title case | función del frontend |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |
 | Enviador de correo | `enviador` | Lo que manda los mails: Brevo en producción, el log en desarrollo y la memoria en los tests (AUT-003) | mailer, sender | `EnviadorCorreo` |
