@@ -91,16 +91,13 @@ export default function Comparar() {
   const { jugadores, filas, metricas_ganadas, diferencia_valor_eur, mas_barato_id, aviso_fuentes } =
     datos;
   const masBarato = jugadores.find((j) => j.id === mas_barato_id);
-  const temporadas = [...new Set(jugadores.map((j) => j.temporada))];
-  const subtitulo =
-    temporadas.length === 1 ? `Temporada ${temporadas[0]}` : 'Temporada vigente de cada jugador';
 
   return (
     <div className="wrap app">
       <div className="app__head">
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1>Comparar jugadores</h1>
-          <p>Métricas lado a lado · {subtitulo}</p>
+          <p>Métricas lado a lado</p>
         </div>
       </div>
 
@@ -123,8 +120,7 @@ export default function Comparar() {
                 {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} · {j.equipo}
               </p>
               <p className="pos">
-                {j.liga.nombre} · Temporada {j.temporada} ·{' '}
-                {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}{' '}
+                {j.liga.nombre} · {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}{' '}
                 {j.liga.cobertura === 'basica' && (
                   <span className="chip chip--warn">Datos básicos</span>
                 )}

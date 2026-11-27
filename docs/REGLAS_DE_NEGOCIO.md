@@ -413,7 +413,7 @@ si ninguna cumple: se usa la más nueva y la liga queda sin_datos o basica segú
 ```
 
 - **El umbral de 100** evita que, al arrancar una temporada, la liga pase a una temporada con 2 o 3 jugadores cargados. Hasta que la nueva tenga el plantel, la liga sigue en la anterior.
-- **Se mezclan temporadas:** la búsqueda en todas las ligas, el comparador y el promedio de la posición (RN-015) pueden juntar jugadores de temporadas distintas. Cada jugador muestra su temporada ("Primera Nacional · Temporada 2025").
+- **Se mezclan temporadas:** la búsqueda en todas las ligas, el comparador y el promedio de la posición (RN-015) pueden juntar jugadores de temporadas distintas. La interfaz no muestra la temporada (decisión del equipo, Cilento, 26/11/2026); la API la sigue devolviendo.
 - Con `--temporada` (corrida manual) no se aplica la regla: se usa la temporada pedida.
 
 **Ejemplo (datos del 29/10):** Liga Profesional → 2026 (unos 1.200 jugadores con minutos). Primera Nacional → 2026 tiene 4 jugadores y ninguno con minutos, así que no alcanza → 2025. Primera C → ni 2026, ni 2025, ni 2024 llegan a 100 → queda en 2026, `sin_datos`.

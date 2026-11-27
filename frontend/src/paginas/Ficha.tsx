@@ -105,7 +105,6 @@ export default function Ficha() {
               <span className="chip">{ficha.liga.nombre}</span>
               {ficha.edad !== null && <span className="chip">{ficha.edad} años</span>}
               {ficha.nacionalidad && <span className="chip">{ficha.nacionalidad}</span>}
-              <span className="chip">Temporada {ficha.temporada}</span>
               {ficha.liga.cobertura === 'basica' && (
                 <span className="chip chip--warn">Datos básicos</span>
               )}
