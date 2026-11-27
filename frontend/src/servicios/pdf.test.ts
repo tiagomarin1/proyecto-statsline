@@ -36,7 +36,13 @@ describe('CMP-002: humo del PDF', () => {
     const { blob, paginas } = await generarPdf(contenido);
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.type).toBe('application/pdf');
-    const inicio = new TextDecoder().decode(new Uint8Array(await blob.arrayBuffer()).slice(0, 4));
+    // jsdom no trae Blob.arrayBuffer(): se lee con FileReader
+    const bytes = await new Promise<ArrayBuffer>((resolver) => {
+      const lector = new FileReader();
+      lector.onload = () => resolver(lector.result as ArrayBuffer);
+      lector.readAsArrayBuffer(blob.slice(0, 4));
+    });
+    const inicio = new TextDecoder().decode(new Uint8Array(bytes));
     expect(inicio).toBe('%PDF');
     expect(paginas).toBeGreaterThanOrEqual(1);
     expect(paginas).toBeLessThanOrEqual(2);

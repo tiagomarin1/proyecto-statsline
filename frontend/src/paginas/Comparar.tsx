@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
 import Esqueleto from '../componentes/Esqueleto';
 import FilaMetrica from '../componentes/FilaMetrica';
 import BuscadorJugador from '../componentes/BuscadorJugador';
+import DialogoPdf from '../componentes/DialogoPdf';
 import ProgresoFlujo from '../componentes/ProgresoFlujo';
 import RadarComparacion from '../componentes/RadarComparacion';
 import { ErrorApi } from '../servicios/api';
 import { compararJugadores } from '../servicios/comparaciones';
-import { obtenerFicha } from '../servicios/jugadores';
+import { listarLigas, obtenerFicha } from '../servicios/jugadores';
+import { descargarPdf } from '../servicios/pdf';
+import { useSesion } from '../contexto/SesionContext';
 import type { Metricas, RespuestaComparacion } from '../tipos/api';
 import {
   diferenciaGrande,
@@ -20,7 +23,8 @@ import {
   resumenComparacion,
   resumenPorJugador,
 } from '../utilidades/comparacion';
-import { linkAResultados } from '../utilidades/persistencia';
+import { leerUltimaBusqueda, linkAResultados } from '../utilidades/persistencia';
+import { armarContenidoPdf, busquedaUsada } from '../utilidades/pdfComparacion';
 import { formatearEur, iniciales, POSICIONES } from '../utilidades/formato';
 
 /** Lee los ids de la URL (?ids=1,2,3) para que la comparación se pueda compartir y recargar. */
@@ -52,6 +56,10 @@ export default function Comparar() {
   // CMP-005: cambiar o sumar un jugador sin volver a Buscar, y copiar el link
   const [buscando, setBuscando] = useState<{ reemplaza: number | null } | null>(null);
   const [copiado, setCopiado] = useState<'si' | 'manual' | null>(null);
+  // CMP-002: exportar PDF
+  const { usuario } = useSesion();
+  const [exportando, setExportando] = useState(false);
+  const botonPdf = useRef<HTMLButtonElement>(null);
 
   const clave = ids.join(',');
   useEffect(() => {
@@ -109,6 +117,28 @@ export default function Comparar() {
     } catch {
       setCopiado('manual');
     }
+  }
+
+  /** CMP-002: el PDF lleva siempre a todos los jugadores y todas las métricas (no lo que se
+   *  ocultó o filtró en pantalla) y la última búsqueda guardada en el navegador, si hay. */
+  async function exportarPdf(notas: string) {
+    if (!datos) return;
+    const query = leerUltimaBusqueda();
+    const ligas = query ? await listarLigas().catch(() => []) : [];
+    await descargarPdf(
+      armarContenidoPdf({
+        comparacion: datos,
+        club: usuario?.club,
+        fecha: new Date(),
+        busqueda: busquedaUsada(query, ligas),
+        notas,
+      }),
+    );
+  }
+
+  function cerrarPdf() {
+    setExportando(false);
+    botonPdf.current?.focus();
   }
 
   if (ids.length < 2) {
@@ -498,11 +528,17 @@ export default function Comparar() {
           <Link className="btn btn--ghost" to={linkAResultados()}>
             Volver a resultados
           </Link>
-          <button className="btn" type="button" disabled>
+          <button
+            ref={botonPdf}
+            className="btn btn--primary"
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => setExportando(true)}
+          >
             Exportar PDF
           </button>
-          <span className="chip chip--r2">Exportar PDF entra en el release 2</span>
         </div>
+        {exportando && <DialogoPdf onCerrar={cerrarPdf} onDescargar={exportarPdf} />}
       </div>
     </div>
   );
