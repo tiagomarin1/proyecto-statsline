@@ -58,6 +58,14 @@ img { max-width: 100%; }
   --gutter: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
   --maxw: 1240px;
+
+  /* UI-013: Archivo extendido (el mismo eje de ancho del logotipo) en títulos y cifras.
+     El texto corrido, los botones y las etiquetas chicas quedan en el ancho normal. */
+  --ancho-titulo: 118%;
+  --ancho-cifra: 118%;
+  --peso-titulo: 800;
+  --peso-subtitulo: 700;
+  --espaciado-titulo: -0.02em;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,0 +1,52 @@
+/* Segunda tanda de mejoras (27/11/2026): UI-009 (chips), UI-011, UI-012, UI-013, CMP-007 y
+   CMP-002. Se importa después de base.css y cierre-mvp.css: varias reglas de allá usan el atajo
+   `font:`, que vuelve el ancho a normal, y estas lo pisan. */
+
+/* ============ UI-013: tipografía ============ */
+
+h1,
+h2,
+h3 {
+  font-stretch: var(--ancho-titulo);
+  letter-spacing: var(--espaciado-titulo);
+  font-weight: var(--peso-subtitulo);
+}
+h1 {
+  font-weight: var(--peso-titulo);
+}
+
+/* Cifras destacadas: valores de mercado, números de métricas, KPIs, rating y minutos */
+.cifra,
+.pcard__kpi b,
+.pcard__m dd,
+.ficha__kpi b,
+.ficha__val,
+.mitem__num,
+.cmp__head .val,
+.fila-cmp__num,
+.resumen-cmp__valor,
+.vr__col b,
+.vr__v,
+.stat__big,
+.plan__price,
+.ejemplo__v {
+  font-family: var(--font-display);
+  font-stretch: var(--ancho-cifra);
+  letter-spacing: var(--espaciado-titulo);
+  font-variant-numeric: tabular-nums;
+}
+/* "Dato no disponible" dentro de una cifra es texto, no cifra */
+:is(
+    .cifra,
+    .pcard__kpi,
+    .pcard__m,
+    .ficha__kpi,
+    .mitem__num,
+    .cmp__head,
+    .fila-cmp__num,
+    .resumen-cmp__valor
+  )
+  .nd {
+  font-stretch: 100%;
+  letter-spacing: normal;
+}
