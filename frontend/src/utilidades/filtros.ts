@@ -36,9 +36,8 @@ export function sinOrdenNoDisponible(params: URLSearchParams): URLSearchParams {
 // RN-035: el back rechaza con 422 un nombre más largo
 export const NOMBRE_LARGO_MAXIMO = 60;
 
-/** Candidatos por página: la tabla pide más que las tarjetas (el máximo del contrato es 50). */
-export const TAMANO_TABLA = 15;
-export const TAMANO_TARJETAS = 6;
+/** Candidatos por página: 12 llenan la grilla de tarjetas de 1, 2 y 3 columnas (el máximo del contrato es 50). */
+export const TAMANO_TARJETAS = 12;
 
 /** Los filtros que se aplican solos desde la barra. `orden` y `pagina` no son filtros. */
 export const NOMBRES_FILTRO = [

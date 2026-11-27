@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+import BarraSeleccion from '../componentes/BarraSeleccion';
 
 import Esqueleto from '../componentes/Esqueleto';
 import TarjetaJugador from '../componentes/TarjetaJugador';
@@ -7,10 +9,13 @@ import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
 import { alternarSeguimiento, listarSeguimiento } from '../servicios/seguimiento';
 import type { JugadorResumen } from '../tipos/api';
+import { useSeleccion } from '../utilidades/seleccion';
 
 export default function Seguimiento() {
   const { usuario } = useSesion();
   const avisar = useAvisar();
+  const navegar = useNavigate();
+  const { seleccion, alternar, quitar: quitarDeSeleccion, limpiar } = useSeleccion(avisar);
   const [jugadores, setJugadores] = useState<JugadorResumen[] | null>(null);
   const [error, setError] = useState('');
 
@@ -24,6 +29,7 @@ export default function Seguimiento() {
     try {
       avisar(await alternarSeguimiento(j));
       setJugadores((actuales) => actuales?.filter((x) => x.id !== j.id) ?? null);
+      quitarDeSeleccion(j.id);
     } catch {
       avisar('No se pudo actualizar la lista.');
     }
@@ -54,11 +60,25 @@ export default function Seguimiento() {
         </div>
       )}
       {!!jugadores?.length && (
-        <div className="follow">
+        <div className="pgrid">
           {jugadores.map((j) => (
-            <TarjetaJugador key={j.id} jugador={j} onAlternarSeguimiento={quitar} />
+            <TarjetaJugador
+              key={j.id}
+              jugador={j}
+              onAlternarSeguimiento={quitar}
+              seleccionado={seleccion.some((x) => x.id === j.id)}
+              onAlternarSeleccion={alternar}
+            />
           ))}
         </div>
+      )}
+      {seleccion.length > 0 && (
+        <BarraSeleccion
+          seleccion={seleccion}
+          onQuitar={quitarDeSeleccion}
+          onLimpiar={limpiar}
+          onComparar={() => navegar(`/comparar?ids=${seleccion.map((s) => s.id).join(',')}`)}
+        />
       )}
     </div>
   );

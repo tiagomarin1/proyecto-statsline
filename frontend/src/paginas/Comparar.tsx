@@ -21,9 +21,7 @@ import {
 } from '../utilidades/comparacion';
 import { useProgreso, valorAnimado } from '../utilidades/movimiento';
 import { linkAResultados } from '../utilidades/persistencia';
-import { formatearEur, POSICIONES } from '../utilidades/formato';
-
-const LETRAS = ['A', 'B', 'C'];
+import { formatearEur, iniciales, POSICIONES } from '../utilidades/formato';
 
 /** Lee los ids de la URL (?ids=1,2,3) para que la comparación se pueda compartir y recargar. */
 function idsDeUrl(params: URLSearchParams): number[] {
@@ -47,6 +45,8 @@ export default function Comparar() {
   const [soloGrandes, setSoloGrandes] = useState(false);
   const [soloCompletas, setSoloCompletas] = useState(false);
   const [vista, setVista] = useState<'barras' | 'radar'>('barras');
+  const [mostrarPromedio, setMostrarPromedio] = useState(false);
+  const [editando, setEditando] = useState(false);
   const [focoMetrica, setFocoMetrica] = useState<string | null>(null);
   const [focoJugador, setFocoJugador] = useState<number | null>(null);
   const progreso = useProgreso(!cargando);
@@ -167,11 +167,9 @@ export default function Comparar() {
   const ganadas = visibles.map(
     (j) => [j, filasVisibles.filter((f) => f.mejor.includes(j.id)).length] as const,
   );
-  const letrasVisibles = visibles.map((j) => LETRAS[jugadores.indexOf(j)]);
   const resumen = resumenComparacion(
     filasVisibles.map((f) => ({ mejor: f.mejor })),
     visibles,
-    letrasVisibles,
   );
 
   const filasMostradas = filasVisibles.filter(({ fila }) => {
@@ -193,7 +191,6 @@ export default function Comparar() {
     jugadores.map((j, i) => ({
       id: j.id,
       nombre: j.nombre,
-      letra: LETRAS[i],
       oculto: ocultos.includes(j.id),
       promedio: promedios[i]?.[metrica as keyof Metricas] ?? null,
     }));
@@ -223,7 +220,7 @@ export default function Comparar() {
           className="cmp__heads"
           style={{ gridTemplateColumns: `repeat(${jugadores.length}, minmax(0, 1fr))` }}
         >
-          {jugadores.map((j, i) => {
+          {jugadores.map((j) => {
             const oculto = ocultos.includes(j.id);
             return (
               <article
@@ -232,34 +229,69 @@ export default function Comparar() {
                 onMouseEnter={() => setFocoJugador(j.id)}
                 onMouseLeave={() => setFocoJugador(null)}
               >
-                <span className="k">Jugador {LETRAS[i]}</span>
+                <span className={`avatar avatar--${j.posicion ?? 'nd'}`} aria-hidden="true">
+                  {iniciales(j.nombre)}
+                </span>
                 <h3>{j.nombre}</h3>
                 <p className="pos">
-                  {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} · {j.equipo}
+                  {j.posicion ? POSICIONES[j.posicion] : 'Posición no disponible'} ·{' '}
+                  {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}
                 </p>
                 <p className="pos">
-                  {j.liga.nombre} · {j.edad !== null ? `${j.edad} años` : 'Edad no disponible'}{' '}
+                  {j.equipo}{' '}
                   {j.liga.cobertura === 'basica' && (
                     <span className="chip chip--warn">Datos básicos</span>
                   )}
                 </p>
-                <div className="val">
-                  <span className="muted" style={{ fontSize: 13 }}>
-                    Valor
-                  </span>
-                  <br />
-                  <b className="num">
-                    {j.valor_mercado_eur !== null ? (
-                      formatearEur(j.valor_mercado_eur)
-                    ) : (
-                      <Dato valor={null} />
-                    )}
-                  </b>
-                </div>
-                <div className="cmp__acciones">
-                  <Link className="btn btn--ghost btn--sm" to={`/ficha/${j.id}`}>
-                    Ver ficha
-                  </Link>
+                <b className="val num">
+                  {j.valor_mercado_eur !== null ? (
+                    formatearEur(j.valor_mercado_eur)
+                  ) : (
+                    <Dato valor={null} />
+                  )}
+                </b>
+                <Link className="btn btn--ghost btn--sm" to={`/ficha/${j.id}`}>
+                  Ver ficha
+                </Link>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="cmp__rapido">
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            aria-expanded={editando}
+            onClick={() => setEditando(!editando)}
+          >
+            Editar jugadores
+          </button>
+          {jugadores.length < 3 && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setBuscando({ reemplaza: null })}
+            >
+              Sumar jugador
+            </button>
+          )}
+          <button type="button" className="btn btn--ghost btn--sm" onClick={copiarLink}>
+            Copiar link
+          </button>
+          {copiado === 'si' && (
+            <span className="chip chip--good" role="status">
+              Link copiado
+            </span>
+          )}
+        </div>
+        {editando && (
+          <ul className="cmp__editar" aria-label="Editar jugadores">
+            {jugadores.map((j) => {
+              const oculto = ocultos.includes(j.id);
+              return (
+                <li key={j.id}>
+                  <span className="cmp__editar-nombre">{j.nombre}</span>
                   <button
                     type="button"
                     className="btn btn--ghost btn--sm"
@@ -292,31 +324,11 @@ export default function Comparar() {
                     </span>
                     <span aria-hidden="true">{oculto ? 'Oculto' : 'Visible'}</span>
                   </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="cmp__rapido">
-          {jugadores.length < 3 && (
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setBuscando({ reemplaza: null })}
-            >
-              Sumar jugador
-            </button>
-          )}
-          <button type="button" className="btn btn--ghost btn--sm" onClick={copiarLink}>
-            Copiar link
-          </button>
-          {copiado === 'si' && (
-            <span className="chip chip--good" role="status">
-              Link copiado
-            </span>
-          )}
-        </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         {copiado === 'manual' && (
           <label className="cmp__link">
             Link de la comparación
@@ -388,19 +400,29 @@ export default function Comparar() {
                 />
                 Ocultar métricas sin datos
               </label>
+              <label className="chk">
+                <input
+                  type="checkbox"
+                  checked={mostrarPromedio}
+                  onChange={(e) => setMostrarPromedio(e.target.checked)}
+                />
+                Mostrar promedio de la posición
+              </label>
               <div className="legend">
                 <span>
-                  <i style={{ background: 'var(--accent)' }} />
-                  Mejor en la métrica
+                  <i style={{ background: 'var(--good)' }} />
+                  Mejor
                 </span>
                 <span>
-                  <i style={{ background: 'var(--line-strong)' }} />
-                  Peor en la métrica
+                  <i style={{ background: 'var(--bad)' }} />
+                  Peor
                 </span>
-                <span>
-                  <i className="legend__prom" />
-                  Promedio de la posición
-                </span>
+                {mostrarPromedio && (
+                  <span>
+                    <i className="legend__prom" />
+                    Promedio de la posición
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -408,10 +430,9 @@ export default function Comparar() {
           {vista === 'radar' ? (
             <RadarComparacion
               filas={filas}
-              jugadores={jugadores.map((j, i) => ({
+              jugadores={jugadores.map((j) => ({
                 id: j.id,
                 nombre: j.nombre,
-                letra: LETRAS[i],
                 oculto: ocultos.includes(j.id),
               }))}
             />
@@ -435,19 +456,23 @@ export default function Comparar() {
                 atenuada={focoMetrica !== null && focoMetrica !== fila.metrica}
                 jugadorFoco={focoJugador}
                 onFocoMetrica={setFocoMetrica}
+                mostrarPromedio={mostrarPromedio}
               />
             ))
           )}
         </section>
 
         <div className="verdict">
-          <article className="card vcard">
+          <article className="card vcard" aria-label="Métricas ganadas">
             <span>Métricas ganadas</span>
-            <b className="num">
-              {ganadas
-                .map(([j, n]) => `${LETRAS[jugadores.indexOf(j)]} ${valorAnimado(n, progreso)}`)
-                .join(' · ')}
-            </b>
+            <ul className="vcard__lista">
+              {ganadas.map(([j, n]) => (
+                <li key={j.id}>
+                  <span>{j.nombre}</span>
+                  <b className="num">{valorAnimado(n, progreso)}</b>
+                </li>
+              ))}
+            </ul>
             <p>Sobre {filas.length} métricas comparadas.</p>
           </article>
           <article className="card vcard">

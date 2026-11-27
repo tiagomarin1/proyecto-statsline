@@ -92,9 +92,9 @@ INF-001 → DAT-001 → DAT-002 → AUT-001 → AUT-002 → BUS-001..004 → BUS
 | UI-006 | Responsive en celular | en testing | P1 | — (nueva) | — | specs/interfaz/UI-006.md |
 | UI-007 | Guía para el usuario nuevo: tour, progreso del flujo, plantillas, glosario, atajos | en testing | P1 | — (nueva) | — | specs/interfaz/UI-007.md |
 | UI-008 | Navegación móvil: barra flotante y menú hamburguesa | en testing | P1 | — (nueva) | — | specs/interfaz/UI-008.md |
-| UI-009 | Buscar en dos pasos: filtros y resultados | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-009.md |
-| UI-010 | Tarjeta de jugador y ficha rediseñadas | en desarrollo | P1 | — (nueva) | — | specs/interfaz/UI-010.md |
-| CMP-006 | Comparación en columnas | en desarrollo | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
+| UI-009 | Buscar en dos pasos: filtros y resultados | en testing | P1 | — (nueva) | — | specs/interfaz/UI-009.md |
+| UI-010 | Tarjeta de jugador y ficha rediseñadas | en testing | P1 | — (nueva) | — | specs/interfaz/UI-010.md |
+| CMP-006 | Comparación en columnas | en testing | P1 | — (nueva) | — | specs/comparacion/CMP-006.md |
 
 ### Mapeo con las tarjetas de Trello
 

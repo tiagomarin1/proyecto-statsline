@@ -6,7 +6,7 @@ import {
   mejorYPeor,
   puntosRadar,
   resumenComparacion,
-  escalaDeFila,
+  porcentajeBarra,
 } from './comparacion';
 
 describe('CMP-004 / RN-037: diferencia grande', () => {
@@ -49,14 +49,6 @@ describe('CMP-004: grupos de métricas (RN-037)', () => {
   });
 });
 
-describe('CMP-004: escala de la fila', () => {
-  it('es el mayor valor entre los jugadores y el promedio', () => {
-    expect(escalaDeFila([80, 70], [85])).toBe(85);
-    expect(escalaDeFila([80, null], [null])).toBe(80);
-    expect(escalaDeFila([null, null], [])).toBe(0);
-  });
-});
-
 describe('CMP-004: resumen en una frase', () => {
   const filas: FilaComparacion[] = [
     { metrica: 'goles', etiqueta: 'Goles', valores: [4, 2], mejor: [1], peor: [2] },
@@ -69,14 +61,16 @@ describe('CMP-004: resumen en una frase', () => {
   ];
 
   it('cuenta las métricas ganadas y nombra al más barato', () => {
-    const r = resumenComparacion(filas, jugadores, ['A', 'B']);
-    expect(r).toBe(`A gana en 2 de 3 métricas; B es ${formatearEur(600_000)} más barato.`);
+    const r = resumenComparacion(filas, jugadores);
+    expect(r).toBe(
+      `Ana Gómez gana en 2 de 3 métricas; Beto Ruiz es ${formatearEur(600_000)} más barato.`,
+    );
   });
 
   it('con empate de ganadas lo dice', () => {
-    const r = resumenComparacion(filas.slice(0, 2), jugadores, ['A', 'B']);
+    const r = resumenComparacion(filas.slice(0, 2), jugadores);
     expect(r).toBe(
-      `A y B empatan en métricas (1 cada uno); B es ${formatearEur(600_000)} más barato.`,
+      `Ana Gómez y Beto Ruiz empatan en métricas (1 cada uno); Beto Ruiz es ${formatearEur(600_000)} más barato.`,
     );
   });
 
@@ -84,9 +78,8 @@ describe('CMP-004: resumen en una frase', () => {
     const r = resumenComparacion(
       filas,
       jugadores.map((j) => ({ ...j, valor_mercado_eur: null })),
-      ['A', 'B'],
     );
-    expect(r).toBe('A gana en 2 de 3 métricas.');
+    expect(r).toBe('Ana Gómez gana en 2 de 3 métricas.');
   });
 });
 
@@ -107,5 +100,35 @@ describe('CMP-004: radar', () => {
     expect(ejes.map((e) => e.etiqueta)).toEqual(['% pases', 'Rating']);
     expect(ejes[0].valores).toEqual([80, null]);
     expect(ejes[1].valores).toEqual([70, 65]);
+  });
+});
+
+describe('CMP-006 / RN-037: lo que representa la barra', () => {
+  const fila = [87, 83, 80];
+  it('los porcentajes se miden de 0 a 100', () => {
+    expect(porcentajeBarra('pases_precision_pct', 87, fila)).toBe(87);
+    expect(porcentajeBarra('duelos_ganados_pct', 61.5, [61.5, 40])).toBe(61.5);
+  });
+  it('el rating se mide de 0 a 10', () => {
+    expect(porcentajeBarra('rating', 6.8, [6.8, 7.1])).toBe(68);
+  });
+  it('los conteos se miden contra el mayor de la fila', () => {
+    expect(porcentajeBarra('goles', 1, [1, 5, null])).toBe(20);
+    expect(porcentajeBarra('goles', 5, [1, 5, null])).toBe(100);
+    expect(porcentajeBarra('minutos_jugados', 1800, [1800, 2400])).toBe(75);
+  });
+  it('un 0 deja la barra vacía y, si todos valen 0, no divide por cero', () => {
+    expect(porcentajeBarra('goles', 0, [0, 3])).toBe(0);
+    expect(porcentajeBarra('goles', 0, [0, 0])).toBe(0);
+  });
+  it('sin dato la barra queda vacía (RN-008)', () => {
+    expect(porcentajeBarra('goles', null, [1, 5, null])).toBe(0);
+    expect(porcentajeBarra('pases_precision_pct', null, [80, null])).toBe(0);
+  });
+  it('nunca pasa de 100', () => {
+    expect(porcentajeBarra('pases_precision_pct', 120, [120])).toBe(100);
+  });
+  it('la escala de los conteos con la marca del promedio incluye el promedio', () => {
+    expect(porcentajeBarra('goles', 2, [2, 3], 6)).toBe(33.3);
   });
 });
