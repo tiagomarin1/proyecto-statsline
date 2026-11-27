@@ -36,4 +36,23 @@ describe('CMP-005: vista rápida en la barra de selección', () => {
     fireEvent.click(boton);
     expect(screen.queryByRole('region', { name: 'Vista rápida de la comparación' })).toBeNull();
   });
+
+  it('UI-010: dice "Jugadores a comparar" y muestra una etiqueta con el nombre completo de cada uno', () => {
+    render(<BarraSeleccion seleccion={[j(1, 'Nahuel Ferreyra'), j(2, 'S. Arias')]} {...props} />);
+    expect(screen.getByText('Jugadores a comparar')).toBeInTheDocument();
+    const etiquetas = document.querySelectorAll('.selbar__names .chip');
+    expect([...etiquetas].map((e) => e.textContent?.replace('×', ''))).toEqual([
+      'Nahuel Ferreyra',
+      'S. Arias',
+    ]);
+    expect(
+      screen.getByRole('button', { name: 'Quitar a Nahuel Ferreyra de la comparación' }),
+    ).toBeInTheDocument();
+  });
+
+  it('UI-010: sin nadie seleccionado explica qué hacer', () => {
+    render(<BarraSeleccion seleccion={[]} {...props} />);
+    expect(screen.getByText('Jugadores a comparar')).toBeInTheDocument();
+    expect(screen.getByText('Seleccioná 2 o 3 jugadores para comparar')).toBeInTheDocument();
+  });
 });

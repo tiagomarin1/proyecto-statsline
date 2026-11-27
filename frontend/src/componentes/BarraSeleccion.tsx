@@ -17,6 +17,7 @@ export default function BarraSeleccion({ seleccion, onQuitar, onLimpiar, onCompa
   return (
     <div className="selbar" aria-label="Jugadores seleccionados para comparar">
       {rapida && n >= 2 && <VistaRapida seleccion={seleccion} />}
+      <p className="selbar__titulo">Jugadores a comparar</p>
       <div className="selbar__names">
         {n === 0 ? (
           <span className="muted">Seleccioná 2 o 3 jugadores para comparar</span>

@@ -599,7 +599,7 @@ Usada en: AUT-003.
 ### RN-037 Cómo se leen las barras de la comparación (propuesta, 27/11/2026)
 
 - **Diferencia grande:** una fila tiene una diferencia grande si `(máximo − mínimo) / máximo >= 0,10`, entre los jugadores que tienen el dato. Con menos de 2 valores, o con máximo 0, no la tiene. El filtro "Solo diferencias grandes" oculta el resto.
-- **Escala de la barra:** el 100 % de una fila es el mayor valor entre los jugadores y el promedio de la posición (RN-015), así la marca del promedio siempre entra.
+- **Escala de la barra (actualizada el 27/11/2026, CMP-006):** el relleno de cada barra representa el número de la celda. Los porcentajes (`pases_precision_pct`, `duelos_ganados_pct`) se miden de 0 a 100 %; el rating, de 0 a 10; el resto (minutos, partidos, goles, asistencias y recuperaciones por partido) contra el mayor valor de la fila entre los jugadores visibles. Un valor 0 deja la barra vacía.
 - **Grupos de métricas:** Ataque (goles, asistencias), Pase y defensa (% pases, % duelos, recuperaciones por partido) y Participación (minutos, partidos, rating).
 - **Jugador oculto:** el resumen y Mejor/Peor se recalculan solo con los jugadores visibles, aplicando RN-006. Siempre quedan al menos 2.
 - **Radar:** solo con las métricas en porcentaje y el rating; el rating (0 a 10) se multiplica por 10 para estar en la escala 0-100. Sin el dato, el eje queda sin punto (RN-008).
@@ -607,7 +607,7 @@ Usada en: AUT-003.
 
 **Ejemplo:** pases A 87, B 83, C 80: la diferencia es (87 − 80) / 87 = 8 %, no es grande. Duelos A 61, B 45: (61 − 45) / 61 = 26 %, sí. Con goles A 0 y B 0, el máximo es 0: no es grande.
 
-Usada en: CMP-004.
+Usada en: CMP-004 y CMP-006.
 
 ---
 

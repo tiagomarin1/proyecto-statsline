@@ -3,7 +3,7 @@ import { puntosRadar } from '../utilidades/comparacion';
 
 interface Props {
   filas: Pick<FilaComparacion, 'metrica' | 'etiqueta' | 'valores'>[];
-  jugadores: { id: number; nombre: string; letra: string; oculto: boolean }[];
+  jugadores: { id: number; nombre: string; oculto: boolean }[];
 }
 
 const COLORES = ['var(--accent)', 'var(--good)', 'var(--bad)'];
@@ -25,7 +25,7 @@ export default function RadarComparacion({ filas, jugadores }: Props) {
     .filter((j) => !j.oculto)
     .map((j) => {
       const i = jugadores.indexOf(j);
-      return `${j.letra}: ${ejes.map((e) => `${e.etiqueta} ${e.valores[i] ?? 'dato no disponible'}`).join(', ')}`;
+      return `${j.nombre}: ${ejes.map((e) => `${e.etiqueta} ${e.valores[i] ?? 'dato no disponible'}`).join(', ')}`;
     })
     .join('. ');
   return (
@@ -78,7 +78,7 @@ export default function RadarComparacion({ filas, jugadores }: Props) {
         {jugadores.map((j, i) => (
           <li key={j.id} className={j.oculto ? 'is-oculto' : ''}>
             <i style={{ background: COLORES[i] }} />
-            {j.letra} · {j.nombre}
+            {j.nombre}
           </li>
         ))}
       </ul>

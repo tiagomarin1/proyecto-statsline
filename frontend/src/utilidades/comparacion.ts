@@ -54,10 +54,23 @@ export function mejorYPeor(valores: Record<number, number | null>): {
   };
 }
 
-/** RN-037: el 100 % es el mayor valor entre los jugadores y el promedio de la posición. */
-export function escalaDeFila(valores: (number | null)[], promedios: (number | null)[]): number {
-  const todos = [...disponibles(valores), ...disponibles(promedios)];
-  return todos.length ? Math.max(...todos) : 0;
+const ES_PORCENTAJE = new Set(['pases_precision_pct', 'duelos_ganados_pct']);
+const redondear1 = (x: number) => Math.round(x * 10) / 10;
+
+/** RN-037 (CMP-006): cuánto llena la barra, de 0 a 100. Representa el número de la celda: los
+ *  porcentajes de 0 a 100, el rating de 0 a 10 y el resto contra el mayor valor de la fila (y del
+ *  promedio, si se muestra su marca). Sin dato o con 0 la barra queda vacía. */
+export function porcentajeBarra(
+  metrica: string,
+  valor: number | null,
+  valoresFila: (number | null)[],
+  promedio: number | null = null,
+): number {
+  if (valor === null || valor <= 0) return 0;
+  if (ES_PORCENTAJE.has(metrica)) return Math.min(100, redondear1(valor));
+  if (metrica === 'rating') return Math.min(100, redondear1(valor * 10));
+  const mayor = Math.max(...disponibles(valoresFila), promedio ?? 0);
+  return mayor > 0 ? Math.min(100, redondear1((valor / mayor) * 100)) : 0;
 }
 
 interface JugadorValor {
@@ -66,12 +79,12 @@ interface JugadorValor {
   valor_mercado_eur: number | null;
 }
 
-/** Frase de arriba de la comparación. `letras` va en el mismo orden que `jugadores`. */
+/** Frase de arriba de la comparación, con el nombre completo de cada jugador (CMP-006). */
 export function resumenComparacion(
   filas: Pick<FilaComparacion, 'mejor'>[],
   jugadores: JugadorValor[],
-  letras: string[],
 ): string {
+  const letras = jugadores.map((j) => j.nombre);
   const ganadas = jugadores.map((j) => filas.filter((f) => f.mejor.includes(j.id)).length);
   const tope = Math.max(...ganadas);
   const lideres = letras.filter((_, i) => ganadas[i] === tope);

@@ -63,6 +63,10 @@ function respuesta(
   };
 }
 
+/** `/buscar` es la pantalla de filtros; `/buscar?ver=1` es la de resultados (UI-009). */
+const RESULTADOS = '/buscar?ver=1';
+const resultados = (extra = '') => (extra ? `${RESULTADOS}&${extra}` : RESULTADOS);
+
 function renderizar(ruta = '/buscar') {
   return render(
     <MemoryRouter initialEntries={[ruta]}>
@@ -76,10 +80,183 @@ function ultimosFiltros() {
   return buscarMock.mock.lastCall![0];
 }
 
-describe('BUS-006: búsqueda y selección', () => {
+/** Pasa de la pantalla de filtros a la de resultados, como lo hace el usuario. */
+async function verResultados() {
+  fireEvent.click(screen.getByRole('button', { name: 'Ver resultados' }));
+  await screen.findByRole('heading', { name: 'Candidatos' });
+}
+
+describe('UI-009: la primera pantalla son los filtros', () => {
   afterEach(() => {
     buscarMock.mockReset();
     avisarMock.mockReset();
+    ligasMock.mockResolvedValue([]);
+  });
+
+  it('muestra solo los filtros: no hay candidatos, no se piden a la API y no hay plantillas', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+
+    expect(await screen.findByLabelText('Nombre del jugador')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Candidatos' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Empezá con una plantilla' })).toBeNull();
+    expect(screen.queryByText(/plantilla/i)).toBeNull();
+    expect(buscarMock).not.toHaveBeenCalled();
+  });
+
+  it('"Ver resultados" es el botón principal y "Guardar perfil de búsqueda" el secundario', async () => {
+    renderizar();
+    const ver = await screen.findByRole('button', { name: 'Ver resultados' });
+    const guardar = screen.getByRole('button', { name: 'Guardar perfil de búsqueda' });
+
+    expect(ver).toHaveClass('btn--primary');
+    expect(guardar).not.toHaveClass('btn--primary');
+    expect(guardar).toHaveClass('btn--ghost');
+  });
+
+  it('cambiar los filtros no pide resultados hasta tocar "Ver resultados"', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    fireEvent.change(await screen.findByLabelText('Edad mínima'), { target: { value: '25' } });
+    fireEvent.change(screen.getByLabelText('Posición'), { target: { value: 'defensor' } });
+
+    await new Promise((r) => setTimeout(r, 500));
+    expect(buscarMock).not.toHaveBeenCalled();
+  });
+
+  it('"Ver resultados" aplica los filtros del formulario y muestra a los candidatos', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
+    renderizar();
+    fireEvent.change(await screen.findByLabelText('Posición'), { target: { value: 'defensor' } });
+    fireEvent.change(screen.getByLabelText('Edad máxima'), { target: { value: '24' } });
+
+    await verResultados();
+
+    expect(await screen.findByText('Jugador 1')).toBeInTheDocument();
+    expect(screen.getByText('2 resultados')).toBeInTheDocument();
+    expect(ultimosFiltros().get('posicion')).toBe('defensor');
+    expect(ultimosFiltros().get('edad_max')).toBe('24');
+    // `ver` es del frontend: no viaja a la API
+    expect(ultimosFiltros().has('ver')).toBe(false);
+    // la pantalla de filtros ya no está
+    expect(screen.queryByLabelText('Edad máxima')).not.toBeInTheDocument();
+  });
+
+  it('sin ningún filtro "Ver resultados" muestra a todos los jugadores', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    await verResultados();
+
+    expect(await screen.findByText('Jugador 1')).toBeInTheDocument();
+    expect([...ultimosFiltros().keys()].sort()).toEqual(['tamano']);
+  });
+
+  it('incluye lo que se acaba de escribir aunque todavía no se haya aplicado solo', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar();
+    fireEvent.change(await screen.findByLabelText('Nombre del jugador'), {
+      target: { value: 'arias' },
+    });
+    // sin esperar al instante de espera de los campos de texto
+    fireEvent.click(screen.getByRole('button', { name: 'Ver resultados' }));
+
+    await screen.findByText('Jugador 1');
+    expect(ultimosFiltros().get('nombre')).toBe('arias');
+  });
+
+  it('pide 12 candidatos por página para llenar la grilla de tarjetas', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados());
+    await screen.findByText('Jugador 1');
+
+    expect(ultimosFiltros().get('tamano')).toBe('12');
+  });
+});
+
+describe('UI-009: pantalla de resultados', () => {
+  afterEach(() => {
+    buscarMock.mockReset();
+    avisarMock.mockReset();
+    ligasMock.mockResolvedValue([]);
+  });
+
+  it('muestra el total, un chip por filtro activo y "Modificar filtros"', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor&edad_min=25'));
+    await screen.findByText('Jugador 1');
+
+    expect(screen.getByText('1 resultados')).toBeInTheDocument();
+    const chips = screen.getByRole('list', { name: 'Filtros aplicados' });
+    expect(within(chips).getByText('Defensor')).toBeInTheDocument();
+    expect(within(chips).getByText('Edad desde 25')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Modificar filtros' })).toBeInTheDocument();
+  });
+
+  it('la x de un chip quita solo ese filtro y sigue en resultados', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor&edad_min=25'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtro Defensor' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('posicion')).toBeNull();
+      expect(ultimosFiltros().get('edad_min')).toBe('25');
+    });
+    expect(screen.getByRole('heading', { name: 'Candidatos' })).toBeInTheDocument();
+  });
+
+  it('"Limpiar todo" quita todos los filtros y sigue en resultados', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor&edad_min=25'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('posicion')).toBeNull();
+      expect(ultimosFiltros().get('edad_min')).toBeNull();
+    });
+    expect(screen.getByRole('heading', { name: 'Candidatos' })).toBeInTheDocument();
+  });
+
+  it('"Modificar filtros" vuelve a la primera pantalla con los filtros cargados', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor&edad_min=25'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modificar filtros' }));
+
+    expect(await screen.findByLabelText('Edad mínima')).toHaveValue(25);
+    expect(screen.getByLabelText('Posición')).toHaveValue('defensor');
+    expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+  });
+
+  it('la selección para comparar se mantiene al modificar los filtros', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
+    renderizar(resultados());
+    await screen.findByText('Jugador 1');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 1' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modificar filtros' }));
+    await screen.findByLabelText('Edad mínima');
+    const barra = screen.getByLabelText('Jugadores seleccionados para comparar');
+    expect(within(barra).getByText('Jugador 1')).toBeInTheDocument();
+
+    await verResultados();
+    await screen.findByText('Jugador 2');
+    expect(screen.getByRole('checkbox', { name: 'Comparar a Jugador 1' })).toBeChecked();
+  });
+
+  it('el selector "Ordenar por" está en todas las pantallas y cambia el orden', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados());
+    await screen.findByText('Jugador 1');
+
+    fireEvent.change(screen.getByLabelText('Ordenar por'), { target: { value: 'valor' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('orden')).toBe('valor'));
   });
 
   it('sin resultados ofrece relajar el filtro (sin la frase de sugerencia)', async () => {
@@ -89,7 +266,7 @@ describe('BUS-006: búsqueda y selección', () => {
         sugerencia: { filtro: 'pases_min', etiqueta: 'el mínimo de pases', cantidad: 3 },
       }),
     );
-    renderizar();
+    renderizar(resultados('pases_min=99'));
 
     expect(
       await screen.findByText('No hay jugadores que cumplan estos filtros'),
@@ -98,9 +275,84 @@ describe('BUS-006: búsqueda y selección', () => {
     expect(screen.queryByText(/aparecen/)).not.toBeInTheDocument();
   });
 
+  it('sin coincidencias deja limpiar los filtros y sigue en resultados', async () => {
+    buscarMock.mockResolvedValue(respuesta([], { total: 0 }));
+    renderizar(resultados('nombre=zzzz'));
+
+    expect(
+      await screen.findByText('No hay jugadores que cumplan estos filtros'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Nombre: zzzz')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todos los filtros' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
+    expect(ultimosFiltros().has('ver')).toBe(false);
+  });
+
+  it('sin coincidencias por otro filtro ofrece relajarlo y mantiene el nombre', async () => {
+    buscarMock.mockResolvedValue(
+      respuesta([], {
+        total: 0,
+        sugerencia: { filtro: 'posicion', etiqueta: 'la posición', cantidad: 1 },
+      }),
+    );
+    renderizar(resultados('nombre=arias&posicion=arquero'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Relajar la posición' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBeNull());
+    expect(ultimosFiltros().get('nombre')).toBe('arias');
+  });
+
+  it('mientras llegan los resultados nuevos se ven los anteriores atenuados', async () => {
+    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor'));
+    await screen.findByText('Jugador 1');
+
+    buscarMock.mockReturnValue(new Promise(() => {})); // el pedido queda en curso
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtro Defensor' }));
+
+    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBeNull());
+    expect(screen.getByText('Jugador 1').closest('[aria-busy]')).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
+  });
+
+  it('un 422 muestra el mensaje con la etiqueta del campo y sin resultados viejos', async () => {
+    buscarMock.mockRejectedValue(
+      new ErrorApi(422, {
+        detalle: 'Hay datos inválidos en el pedido.',
+        codigo: 'validacion',
+        errores: [{ campo: 'nombre', mensaje: 'Puede tener hasta 60 caracteres.' }],
+      }),
+    );
+    renderizar(resultados(`nombre=${'a'.repeat(61)}`));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Nombre del jugador: Puede tener hasta 60 caracteres.',
+    );
+    expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
+  });
+
+  it('si el pedido falla muestra el error y no deja los resultados anteriores', async () => {
+    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
+    renderizar(resultados('posicion=defensor'));
+    await screen.findByText('Jugador 1');
+
+    buscarMock.mockRejectedValue(new Error('sin red'));
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtro Defensor' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No pudimos conectar con el servidor.',
+    );
+    expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+  });
+
   it('no deja seleccionar un cuarto jugador y avisa el tope (CMP-001)', async () => {
     buscarMock.mockResolvedValue(respuesta([1, 2, 3, 4].map(jugador)));
-    renderizar();
+    renderizar(resultados());
 
     await screen.findByText('Jugador 1');
     const checks = screen.getAllByRole('checkbox');
@@ -116,6 +368,59 @@ describe('BUS-006: búsqueda y selección', () => {
   });
 });
 
+describe('BUS-006: rating solo con una liga elegida (RN-029)', () => {
+  afterEach(() => {
+    buscarMock.mockReset();
+    ligasMock.mockResolvedValue([]);
+  });
+
+  it('sin liga, el selector no ofrece Rating', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados());
+    await screen.findByText('Jugador 1');
+
+    const selector = screen.getByLabelText('Ordenar por');
+    expect(within(selector).queryByRole('option', { name: 'Rating' })).not.toBeInTheDocument();
+  });
+
+  it('con una liga elegida, Rating se puede ordenar', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('liga_id=1'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.change(screen.getByLabelText('Ordenar por'), { target: { value: 'rating' } });
+
+    await waitFor(() => expect(ultimosFiltros().get('orden')).toBe('rating'));
+  });
+
+  it('al quitar la liga mientras se ordena por rating, vuelve al orden por minutos', async () => {
+    ligasMock.mockResolvedValue(LIGAS);
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('liga_id=1&orden=rating'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Quitar filtro Liga Profesional' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('liga_id')).toBeNull();
+      expect(ultimosFiltros().get('orden')).toBeNull();
+    });
+  });
+
+  it('"Limpiar todo" con orden por rating también vuelve al orden por minutos', async () => {
+    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
+    renderizar(resultados('liga_id=1&orden=rating'));
+    await screen.findByText('Jugador 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    await waitFor(() => {
+      expect(ultimosFiltros().get('liga_id')).toBeNull();
+      expect(ultimosFiltros().get('orden')).toBeNull();
+    });
+  });
+});
+
 describe('BUS-002: filtro de liga que llega por la URL', () => {
   afterEach(() => {
     buscarMock.mockReset();
@@ -123,7 +428,6 @@ describe('BUS-002: filtro de liga que llega por la URL', () => {
   });
 
   it('muestra la liga elegida aunque las ligas carguen después del formulario', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     ligasMock.mockResolvedValue(LIGAS);
     renderizar('/buscar?liga_id=2');
 
@@ -137,11 +441,10 @@ describe('BUS-002: filtro de liga que llega por la URL', () => {
     await screen.findByDisplayValue('Primera Nacional');
 
     fireEvent.change(screen.getByLabelText('Posición'), { target: { value: 'defensor' } });
+    await verResultados();
 
-    await waitFor(() => {
-      expect(ultimosFiltros().get('posicion')).toBe('defensor');
-      expect(ultimosFiltros().get('liga_id')).toBe('2');
-    });
+    expect(ultimosFiltros().get('posicion')).toBe('defensor');
+    expect(ultimosFiltros().get('liga_id')).toBe('2');
   });
 });
 
@@ -149,7 +452,6 @@ describe('BUS-004: presupuesto (RN-003)', () => {
   afterEach(() => buscarMock.mockReset());
 
   it('acepta cualquier monto, sin el tope de EUR 400.000 (decisión del equipo, 26/11)', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     renderizar('/buscar?presupuesto_max_eur=5000000');
 
     const campo = await screen.findByLabelText('Presupuesto máximo (EUR)');
@@ -165,15 +467,10 @@ describe('BUS-004: presupuesto (RN-003)', () => {
       new ErrorApi(422, {
         detalle: 'Hay datos inválidos en el pedido.',
         codigo: 'validacion',
-        errores: [
-          {
-            campo: 'presupuesto_max_eur',
-            mensaje: 'Tiene que ser mayor que 0.',
-          },
-        ],
+        errores: [{ campo: 'presupuesto_max_eur', mensaje: 'Tiene que ser mayor que 0.' }],
       }),
     );
-    renderizar('/buscar?presupuesto_max_eur=0');
+    renderizar(resultados('presupuesto_max_eur=0'));
 
     const alerta = await screen.findByRole('alert');
     expect(alerta).toHaveTextContent('Presupuesto máximo (EUR): Tiene que ser mayor que 0.');
@@ -181,260 +478,30 @@ describe('BUS-004: presupuesto (RN-003)', () => {
   });
 });
 
-describe('UI-002: filtros en vivo, tabla y panel de detalle', () => {
-  afterEach(() => {
-    buscarMock.mockReset();
-    ligasMock.mockResolvedValue([]);
-    vi.unstubAllGlobals();
-  });
-
-  it('los filtros se aplican solos, sin botón "Aplicar filtros"', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(screen.queryByRole('button', { name: 'Aplicar filtros' })).not.toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('Edad mínima'), { target: { value: '25' } });
-
-    await waitFor(() => expect(ultimosFiltros().get('edad_min')).toBe('25'));
-  });
-
-  it('pide 15 candidatos por página para llenar la tabla', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(ultimosFiltros().get('tamano')).toBe('15');
-  });
-
-  it('muestra un chip por filtro activo y la x quita solo ese filtro', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?posicion=defensor&edad_min=25');
-    await screen.findByText('Jugador 1');
-
-    const chips = screen.getByRole('list', { name: 'Filtros aplicados' });
-    expect(within(chips).getByText('Defensor')).toBeInTheDocument();
-    expect(within(chips).getByText('Edad desde 25')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtro Defensor' }));
-
-    await waitFor(() => {
-      expect(ultimosFiltros().get('posicion')).toBeNull();
-      expect(ultimosFiltros().get('edad_min')).toBe('25');
-    });
-  });
-
-  it('"Limpiar todo" quita todos los filtros', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?posicion=defensor&edad_min=25');
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
-
-    await waitFor(() => {
-      expect(ultimosFiltros().get('posicion')).toBeNull();
-      expect(ultimosFiltros().get('edad_min')).toBeNull();
-    });
-  });
-
-  it('muestra una fila por jugador y "Dato no disponible" en vez de 0 (RN-008)', async () => {
-    buscarMock.mockResolvedValue(
-      respuesta([
-        jugador(1),
-        { ...jugador(2), pases_precision_pct: null, valor_mercado_eur: null },
-      ]),
-    );
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    const tabla = screen.getByRole('table');
-    expect(within(tabla).getAllByRole('row')).toHaveLength(3); // encabezado + 2 jugadores
-    const fila2 = within(tabla).getByText('Jugador 2').closest('tr')!;
-    expect(within(fila2).getAllByText('Dato no disponible').length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('ordena por la columna que se toca e indica la activa', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(screen.getByRole('columnheader', { name: /Min\./ })).toHaveAttribute(
-      'aria-sort',
-      'descending',
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /Ordenar por Valor/ }));
-
-    await waitFor(() => expect(ultimosFiltros().get('orden')).toBe('valor'));
-    expect(screen.getByRole('columnheader', { name: /Valor/ })).toHaveAttribute(
-      'aria-sort',
-      'ascending',
-    );
-  });
-
-  it('las columnas que el backend no ordena no son clicables', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(screen.queryByRole('button', { name: /Ordenar por Duelos/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Ordenar por Recup/ })).not.toBeInTheDocument();
-  });
-
-  it('abre el detalle sin salir de la lista y lo cierra con Escape', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
-    renderizar('/buscar?posicion=defensor');
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Ver detalle de Jugador 1' }));
-
-    const panel = await screen.findByRole('complementary', { name: 'Detalle de Jugador 1' });
-    expect(within(panel).getByRole('link', { name: /Ver ficha completa/ })).toHaveAttribute(
-      'href',
-      '/ficha/1?posicion=defensor',
-    );
-    expect(screen.getByText('Jugador 2')).toBeInTheDocument(); // la lista sigue a la vista
-
-    fireEvent.keyDown(document, { key: 'Escape' });
-
-    await waitFor(() => expect(screen.queryByRole('complementary')).not.toBeInTheDocument());
-  });
-
-  it('cierra el detalle si el jugador ya no está en la lista', async () => {
-    buscarMock.mockResolvedValueOnce(respuesta([jugador(1), jugador(2)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-    fireEvent.click(screen.getByRole('button', { name: 'Ver detalle de Jugador 1' }));
-    await screen.findByRole('complementary');
-
-    buscarMock.mockResolvedValue(respuesta([jugador(2)]));
-    fireEvent.change(screen.getByLabelText('Posición'), { target: { value: 'arquero' } });
-
-    await waitFor(() => expect(screen.queryByRole('complementary')).not.toBeInTheDocument());
-  });
-
-  it('marcar el check no abre el detalle', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 1' }));
-
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Quitar a Jugador 1/ })).toBeInTheDocument();
-  });
-
-  it('en pantalla chica muestra tarjetas y el selector de orden', async () => {
-    vi.stubGlobal('matchMedia', (consulta: string) => ({
-      matches: true,
-      media: consulta,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Ordenar por')).toBeInTheDocument();
-  });
-});
-
-describe('BUS-006: rating solo con una liga elegida (RN-029)', () => {
-  afterEach(() => {
-    buscarMock.mockReset();
-    ligasMock.mockResolvedValue([]);
-    vi.unstubAllGlobals();
-  });
-
-  it('sin liga, Rating no se puede ordenar y explica por qué', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    expect(screen.queryByRole('button', { name: /Ordenar por Rating/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /Rating/ })).toHaveAttribute(
-      'title',
-      'Elegí una liga para ordenar por rating.',
-    );
-  });
-
-  it('con una liga elegida, Rating se puede ordenar', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?liga_id=1');
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(screen.getByRole('button', { name: /Ordenar por Rating/ }));
-
-    await waitFor(() => expect(ultimosFiltros().get('orden')).toBe('rating'));
-  });
-
-  it('al quitar la liga mientras se ordena por rating, vuelve al orden por minutos', async () => {
-    ligasMock.mockResolvedValue(LIGAS);
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?liga_id=1&orden=rating');
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Quitar filtro Liga Profesional' }));
-
-    await waitFor(() => {
-      expect(ultimosFiltros().get('liga_id')).toBeNull();
-      expect(ultimosFiltros().get('orden')).toBeNull();
-    });
-  });
-
-  it('"Limpiar todo" con orden por rating también vuelve al orden por minutos', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?liga_id=1&orden=rating');
-    await screen.findByText('Jugador 1');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
-
-    await waitFor(() => {
-      expect(ultimosFiltros().get('liga_id')).toBeNull();
-      expect(ultimosFiltros().get('orden')).toBeNull();
-    });
-  });
-
-  it('en pantalla chica, el selector no ofrece Rating sin liga', async () => {
-    vi.stubGlobal('matchMedia', (consulta: string) => ({
-      matches: true,
-      media: consulta,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    const selector = screen.getByLabelText('Ordenar por');
-    expect(within(selector).queryByRole('option', { name: 'Rating' })).not.toBeInTheDocument();
-  });
-});
-
 describe('BUS-010: búsqueda por nombre (RN-035)', () => {
   afterEach(() => buscarMock.mockReset());
 
-  it('al escribir un nombre se aplica solo y viaja tal como se escribió', async () => {
+  it('el nombre viaja tal como se escribió, con tope de 60 caracteres en el campo', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     renderizar();
-    await screen.findByText('Jugador 1');
 
-    const campo = screen.getByLabelText('Nombre del jugador');
+    const campo = await screen.findByLabelText('Nombre del jugador');
     expect(campo).toHaveAttribute('maxLength', '60');
     fireEvent.change(campo, { target: { value: 'S. Beltrán' } });
+    await verResultados();
 
     // Sin normalizar: RN-035 vive solo en el backend
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('S. Beltrán'));
+    expect(ultimosFiltros().get('nombre')).toBe('S. Beltrán');
   });
 
-  it('el nombre de la URL se ve en el campo y en un chip, y la x quita solo ese filtro', async () => {
+  it('el nombre de la URL se ve en el campo y, en resultados, en un chip que se quita solo', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?nombre=arias&posicion=defensor');
-    await screen.findByText('Jugador 1');
+    const { unmount } = renderizar('/buscar?nombre=arias&posicion=defensor');
+    expect(await screen.findByLabelText('Nombre del jugador')).toHaveValue('arias');
+    unmount();
 
-    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('arias');
+    renderizar(resultados('nombre=arias&posicion=defensor'));
+    await screen.findByText('Jugador 1');
     const chips = screen.getByRole('list', { name: 'Filtros aplicados' });
     expect(within(chips).getByText('Nombre: arias')).toBeInTheDocument();
 
@@ -444,129 +511,54 @@ describe('BUS-010: búsqueda por nombre (RN-035)', () => {
       expect(ultimosFiltros().get('nombre')).toBeNull();
       expect(ultimosFiltros().get('posicion')).toBe('defensor');
     });
-    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('');
   });
 
   it('"Limpiar todo" también quita el nombre', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
-    renderizar('/buscar?nombre=arias');
+    renderizar(resultados('nombre=arias'));
     await screen.findByText('Jugador 1');
     expect(ultimosFiltros().get('nombre')).toBe('arias');
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpiar todo' }));
 
     await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
-    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('');
   });
 
-  it('se combina con los demás filtros, vuelve a la página 1 y conserva el orden', async () => {
+  it('se combina con los demás filtros, sin página y conservando el orden', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     renderizar('/buscar?posicion=defensor&orden=valor&pagina=2');
-    await screen.findByText('Jugador 1');
 
-    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
+    fireEvent.change(await screen.findByLabelText('Nombre del jugador'), {
+      target: { value: 'arias' },
+    });
+    await verResultados();
 
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('arias'));
+    expect(ultimosFiltros().get('nombre')).toBe('arias');
     expect(ultimosFiltros().get('posicion')).toBe('defensor');
     expect(ultimosFiltros().get('orden')).toBe('valor');
     expect(ultimosFiltros().get('pagina')).toBeNull();
   });
 
   it('no pierde el espacio entre palabras mientras se escribe', async () => {
-    buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     renderizar();
-    await screen.findByText('Jugador 1');
 
-    const campo = screen.getByLabelText('Nombre del jugador');
+    const campo = await screen.findByLabelText('Nombre del jugador');
     fireEvent.change(campo, { target: { value: 'santiago ' } });
 
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('santiago '));
+    await new Promise((r) => setTimeout(r, 500));
     expect(campo).toHaveValue('santiago ');
   });
 
-  it('un texto vacío o de solo espacios no manda el filtro', async () => {
+  it('un texto de solo espacios no manda el filtro', async () => {
     buscarMock.mockResolvedValue(respuesta([jugador(1)]));
     renderizar('/buscar?nombre=arias');
-    await screen.findByText('Jugador 1');
 
-    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: '   ' } });
+    fireEvent.change(await screen.findByLabelText('Nombre del jugador'), {
+      target: { value: '   ' },
+    });
+    await verResultados();
 
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
-  });
-
-  it('mientras llegan los resultados nuevos se ven los anteriores atenuados', async () => {
-    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    buscarMock.mockReturnValue(new Promise(() => {})); // el pedido queda en curso
-    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
-
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBe('arias'));
-    expect(screen.getByText('Jugador 1').closest('[aria-busy]')).toHaveAttribute(
-      'aria-busy',
-      'true',
-    );
-  });
-
-  it('sin coincidencias muestra el estado vacío y deja limpiar los filtros', async () => {
-    buscarMock.mockResolvedValue(respuesta([], { total: 0 }));
-    renderizar('/buscar?nombre=zzzz');
-
-    expect(
-      await screen.findByText('No hay jugadores que cumplan estos filtros'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Nombre: zzzz')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Limpiar todos los filtros' }));
-
-    await waitFor(() => expect(ultimosFiltros().get('nombre')).toBeNull());
-  });
-
-  it('sin coincidencias por otro filtro ofrece relajarlo y mantiene el nombre', async () => {
-    buscarMock.mockResolvedValue(
-      respuesta([], {
-        total: 0,
-        sugerencia: { filtro: 'posicion', etiqueta: 'la posición', cantidad: 1 },
-      }),
-    );
-    renderizar('/buscar?nombre=arias&posicion=arquero');
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Relajar la posición' }));
-
-    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBeNull());
-    expect(ultimosFiltros().get('nombre')).toBe('arias');
-    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('arias');
-  });
-
-  it('un 422 muestra el mensaje con la etiqueta del campo y sin resultados viejos', async () => {
-    buscarMock.mockRejectedValue(
-      new ErrorApi(422, {
-        detalle: 'Hay datos inválidos en el pedido.',
-        codigo: 'validacion',
-        errores: [{ campo: 'nombre', mensaje: 'Puede tener hasta 60 caracteres.' }],
-      }),
-    );
-    renderizar(`/buscar?nombre=${'a'.repeat(61)}`);
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Nombre del jugador: Puede tener hasta 60 caracteres.',
-    );
-    expect(screen.queryByText(/resultados/)).not.toBeInTheDocument();
-  });
-
-  it('si el pedido falla muestra el error y no deja los resultados anteriores', async () => {
-    buscarMock.mockResolvedValueOnce(respuesta([jugador(1)]));
-    renderizar();
-    await screen.findByText('Jugador 1');
-
-    buscarMock.mockRejectedValue(new Error('sin red'));
-    fireEvent.change(screen.getByLabelText('Nombre del jugador'), { target: { value: 'arias' } });
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No pudimos conectar con el servidor.',
-    );
-    expect(screen.queryByText('Jugador 1')).not.toBeInTheDocument();
+    expect(ultimosFiltros().get('nombre')).toBeNull();
   });
 });
 
@@ -606,13 +598,15 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
     renderizar(
       '/buscar?posicion=defensor&liga_id=2&edad_min=20&edad_max=27&pases_min=80&orden=pases',
     );
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
 
     fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
 
     await waitFor(() => expect(guardarPerfilMock).toHaveBeenCalledWith(PERFIL));
     await waitFor(() => expect(avisarMock).toHaveBeenCalledWith('Perfil de búsqueda guardado.'));
     expect(await screen.findByText(RESUMEN)).toBeInTheDocument();
+    // guardar el perfil no pide resultados
+    expect(buscarMock).not.toHaveBeenCalled();
   });
 
   it('con un campo obligatorio vacío lo marca y muestra el mensaje de RN-023', async () => {
@@ -624,7 +618,7 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
       }),
     );
     renderizar('/buscar?posicion=defensor&edad_min=20&edad_max=27');
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
 
     fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
 
@@ -645,7 +639,7 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
       }),
     );
     renderizar('/buscar?posicion=defensor&liga_id=2&edad_min=20');
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
 
     fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
 
@@ -654,10 +648,10 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
     expect(screen.getByLabelText('Edad máxima')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('guarda lo recién escrito aunque todavía no se haya aplicado a la búsqueda', async () => {
+  it('guarda lo recién escrito aunque todavía no se haya aplicado a la URL', async () => {
     guardarPerfilMock.mockResolvedValue(PERFIL);
     renderizar('/buscar?posicion=defensor&liga_id=2&edad_min=20');
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
 
     fireEvent.change(screen.getByLabelText('Edad máxima'), { target: { value: '27' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' }));
@@ -669,7 +663,7 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
 
   it('sin perfil guardado no ofrece cargarlo', async () => {
     renderizar();
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
 
     expect(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' })).toBeInTheDocument();
     expect(
@@ -677,27 +671,27 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('muestra el resumen del perfil guardado y al cargarlo aplica sus filtros', async () => {
+  it('al cargar el perfil guardado llena el formulario, sin pedir resultados', async () => {
     obtenerPerfilMock.mockResolvedValue(PERFIL);
     renderizar('/buscar?nombre=Rojo&presupuesto_max_eur=500000&orden=pases');
 
     expect(await screen.findByText(RESUMEN)).toBeInTheDocument();
-
     fireEvent.click(screen.getByRole('button', { name: 'Cargar perfil guardado' }));
 
-    await waitFor(() => {
-      const filtros = ultimosFiltros();
-      expect(filtros.get('posicion')).toBe('defensor');
-      expect(filtros.get('liga_id')).toBe('2');
-      expect(filtros.get('edad_min')).toBe('20');
-      expect(filtros.get('edad_max')).toBe('27');
-      expect(filtros.get('pases_min')).toBe('80');
-      // El perfil reemplaza a los filtros que había: el nombre no es parte del perfil
-      expect(filtros.get('nombre')).toBeNull();
-      expect(filtros.get('presupuesto_max_eur')).toBeNull();
-      expect(filtros.get('orden')).toBe('pases');
-    });
-    expect(screen.getByLabelText('Edad mínima')).toHaveValue(20);
+    await waitFor(() => expect(screen.getByLabelText('Edad mínima')).toHaveValue(20));
+    expect(screen.getByLabelText('Posición')).toHaveValue('defensor');
+    expect(screen.getByLabelText('Edad máxima')).toHaveValue(27);
+    // El perfil reemplaza a los filtros que había: el nombre no es parte del perfil
+    expect(screen.getByLabelText('Nombre del jugador')).toHaveValue('');
+    expect(screen.getByLabelText('Presupuesto máximo (EUR)')).toHaveValue(null);
+    expect(buscarMock).not.toHaveBeenCalled();
+
+    await verResultados();
+    expect(ultimosFiltros().get('posicion')).toBe('defensor');
+    expect(ultimosFiltros().get('liga_id')).toBe('2');
+    expect(ultimosFiltros().get('pases_min')).toBe('80');
+    expect(ultimosFiltros().get('nombre')).toBeNull();
+    expect(ultimosFiltros().get('orden')).toBe('pases');
   });
 
   it('guardar con un perfil ya guardado lo reemplaza y lo avisa', async () => {
@@ -735,10 +729,7 @@ describe('BUS-005: guardar y cargar el perfil de búsqueda (RN-023)', () => {
 });
 
 describe('CMP-005: llegar a Buscar desde "Comparar con…"', () => {
-  beforeEach(() => {
-    avisarMock.mockReset();
-    buscarMock.mockResolvedValue(respuesta([jugador(1), jugador(2)]));
-  });
+  beforeEach(() => avisarMock.mockReset());
 
   it('deja al jugador de origen seleccionado y avisa a quién compararlo', async () => {
     render(
@@ -746,8 +737,8 @@ describe('CMP-005: llegar a Buscar desde "Comparar con…"', () => {
         <Buscar />
       </MemoryRouter>,
     );
-    expect(await screen.findByLabelText('Jugadores seleccionados para comparar')).toBeTruthy();
-    expect(screen.getByText('Jugador 9')).toBeInTheDocument();
+    const barra = await screen.findByLabelText('Jugadores seleccionados para comparar');
+    expect(within(barra).getByText('Jugador 9')).toBeInTheDocument();
     await waitFor(() => expect(avisarMock).toHaveBeenCalledWith('Elegí a quién compararlo'));
   });
 });
@@ -759,43 +750,27 @@ describe('UI-007: guía en Buscar', () => {
   });
   afterEach(() => buscarMock.mockReset());
 
-  it('sin filtros ofrece plantillas y al tocar una aplica sus filtros', async () => {
-    renderizar();
-    const region = await screen.findByRole('region', { name: 'Empezá con una plantilla' });
-    fireEvent.click(within(region).getByRole('button', { name: 'Defensor joven hasta EUR 1 M' }));
-    await waitFor(() => expect(ultimosFiltros().get('posicion')).toBe('defensor'));
-    expect(ultimosFiltros().get('edad_max')).toBe('23');
-    expect(ultimosFiltros().get('presupuesto_max_eur')).toBe('1000000');
-    // ya hay filtros: las plantillas se van
-    expect(screen.queryByRole('region', { name: 'Empezá con una plantilla' })).toBeNull();
-  });
-
-  it('con filtros en la URL no hay plantillas', async () => {
-    renderizar('/buscar?posicion=defensor');
-    await screen.findByText('Jugador 1');
-    expect(screen.queryByRole('region', { name: 'Empezá con una plantilla' })).toBeNull();
-  });
-
   it('muestra el progreso: paso 1 sin selección y paso 2 con dos jugadores', async () => {
-    renderizar();
+    renderizar(resultados());
     await screen.findByText('Jugador 1');
     const nav = screen.getByRole('navigation', { name: 'Progreso' });
     expect(within(nav).getByText('Buscar').closest('li')).toHaveAttribute('aria-current', 'step');
-    const marcas = screen.getAllByRole('checkbox', { name: /Comparar/ });
-    fireEvent.click(marcas[0]);
-    fireEvent.click(marcas[1]);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 1' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 2' }));
     expect(within(nav).getByText('Elegir').closest('li')).toHaveAttribute('aria-current', 'step');
   });
 
-  it('guarda la búsqueda para "Volver a resultados"', async () => {
-    renderizar('/buscar?posicion=defensor&pagina=2');
+  it('guarda la búsqueda, con los resultados pedidos, para "Volver a resultados"', async () => {
+    renderizar('/buscar?ver=1&posicion=defensor&pagina=2');
     await screen.findByText('Jugador 1');
-    expect(sessionStorage.getItem('statsline_ultima_busqueda')).toBe('posicion=defensor&pagina=2');
+    expect(sessionStorage.getItem('statsline_ultima_busqueda')).toBe(
+      'ver=1&posicion=defensor&pagina=2',
+    );
   });
 
   it('"/" lleva el foco al nombre, y no actúa mientras se escribe en un campo', async () => {
     renderizar();
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
     fireEvent.keyDown(document.body, { key: '/' });
     expect(screen.getByLabelText('Nombre del jugador')).toHaveFocus();
     // con el foco en el campo, "/" y "c" son texto, no atajos
@@ -805,7 +780,7 @@ describe('UI-007: guía en Buscar', () => {
 
   it('"c" abre la comparación con 2 seleccionados, y con 1 no hace nada', async () => {
     render(
-      <MemoryRouter initialEntries={['/buscar']}>
+      <MemoryRouter initialEntries={[resultados()]}>
         <Routes>
           <Route path="/buscar" element={<Buscar />} />
           <Route path="/comparar" element={<p>pantalla comparar</p>} />
@@ -813,18 +788,17 @@ describe('UI-007: guía en Buscar', () => {
       </MemoryRouter>,
     );
     await screen.findByText('Jugador 1');
-    const marcas = screen.getAllByRole('checkbox', { name: /Comparar/ });
-    fireEvent.click(marcas[0]);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 1' }));
     fireEvent.keyDown(document.body, { key: 'c' });
     expect(screen.getByLabelText('Jugadores seleccionados para comparar')).toBeInTheDocument();
-    fireEvent.click(marcas[1]);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Comparar a Jugador 2' }));
     fireEvent.keyDown(document.body, { key: 'c' });
     await screen.findByText('pantalla comparar');
   });
 
   it('"?" muestra los atajos y Escape los cierra', async () => {
     renderizar();
-    await screen.findByText('Jugador 1');
+    await screen.findByLabelText('Nombre del jugador');
     fireEvent.keyDown(document.body, { key: '?' });
     expect(screen.getByRole('dialog', { name: 'Atajos de teclado' })).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });

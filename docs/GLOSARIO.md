@@ -45,9 +45,10 @@ Convenciones:
 | Diferencia grande | `diferencia_grande` | Fila de la comparación donde el mejor supera al peor en al menos 10 % del mayor (RN-037) | — | — |
 | Marca del promedio | `marca_promedio` | Línea vertical sobre la barra que indica el promedio de la posición (RN-015) | — | — |
 | Jugador oculto | `jugador_oculto` | Jugador que se atenúa en la comparación y deja de contar para el resumen (RN-037) | — | — |
-| Plantilla de búsqueda | `plantilla_busqueda` | Conjunto de filtros listo para aplicar en Buscar (UI-007) | preset, atajo de filtros | — |
 | Tour | `tour` | Guía de 3 pasos para el usuario nuevo (UI-007) | onboarding (en el código) | — |
 | Progreso del flujo | `progreso_flujo` | Barra Buscar · Elegir · Comparar (UI-007) | stepper, wizard | — |
+| Menú móvil | `menu_movil` | Panel con todas las opciones de navegación que se abre con el botón de tres rayas en pantallas de menos de 768 px (UI-008) | hamburguesa, drawer, burger | — |
+| Tarjeta de jugador | `tarjeta_jugador` | Card con todos los datos de un candidato, usada en los resultados y en el seguimiento (UI-010) | ficha corta, fila | — |
 | Usuario | `usuario` | Persona con cuenta en la plataforma | user, cliente | `Usuario` |
 | Link de recuperación | `token_recuperacion` | Link del mail para elegir una contraseña nueva. Lleva un token firmado que vence a los 60 minutos y sirve una sola vez (RN-036, AUT-003) | reset, token de reseteo, password reset | — |
 | Enviador de correo | `enviador` | Lo que manda los mails: Brevo en producción, el log en desarrollo y la memoria en los tests (AUT-003) | mailer, sender | `EnviadorCorreo` |

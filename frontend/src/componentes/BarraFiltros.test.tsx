@@ -5,50 +5,57 @@ import BarraFiltros from './BarraFiltros';
 const base = { ligas: [], onCambiar: vi.fn() };
 const conFiltros = new URLSearchParams('posicion=defensor&edad_min=20');
 
-describe('UI-006: filtros en un panel que sube (celular)', () => {
-  it('en pantalla ancha el formulario se ve siempre y no hay botón "Filtros"', () => {
-    render(<BarraFiltros {...base} params={new URLSearchParams()} />);
+describe('UI-009: filtros y resumen', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('el modo filtros muestra el formulario con "Ver resultados" como botón principal', () => {
+    render(<BarraFiltros {...base} params={new URLSearchParams()} onGuardarPerfil={vi.fn()} />);
     expect(screen.getByLabelText('Nombre del jugador')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^Filtros/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Ver resultados' })).toHaveClass('btn--primary');
+    expect(screen.getByRole('button', { name: 'Guardar perfil de búsqueda' })).toHaveClass(
+      'btn--ghost',
+    );
   });
 
-  it('en celular el formulario está cerrado y los chips quedan visibles arriba de la lista', () => {
-    render(<BarraFiltros {...base} chica params={conFiltros} totalResultados={12} />);
+  it('"Ver resultados" entrega los filtros del formulario', () => {
+    const onVer = vi.fn();
+    render(<BarraFiltros {...base} params={conFiltros} onVerResultados={onVer} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ver resultados' }));
+    expect(onVer).toHaveBeenCalledWith({ posicion: 'defensor', edad_min: '20' });
+  });
+
+  it('"Ver resultados" incluye lo que se acaba de escribir y no cae en el aplicado solo', () => {
+    vi.useFakeTimers();
+    const onVer = vi.fn();
+    render(<BarraFiltros {...base} params={conFiltros} onVerResultados={onVer} />);
+    fireEvent.change(screen.getByLabelText('Edad máxima'), { target: { value: '27' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ver resultados' }));
+    vi.advanceTimersByTime(1000);
+    expect(onVer).toHaveBeenCalledWith({ posicion: 'defensor', edad_min: '20', edad_max: '27' });
+    // lo pendiente se cancela: no se aplica además por su cuenta
+    expect(base.onCambiar).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('el modo filtros no muestra chips ni "Modificar filtros"', () => {
+    render(<BarraFiltros {...base} params={conFiltros} />);
+    expect(screen.queryByRole('list', { name: 'Filtros aplicados' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Modificar filtros' })).toBeNull();
+  });
+
+  it('el modo resumen muestra los chips, "Limpiar todo" y "Modificar filtros", sin formulario', () => {
+    const onModificar = vi.fn();
+    render(<BarraFiltros {...base} modo="resumen" params={conFiltros} onModificar={onModificar} />);
     expect(screen.queryByLabelText('Nombre del jugador')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Filtros (2)' })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Filtros aplicados' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Limpiar todo' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Modificar filtros' }));
+    expect(onModificar).toHaveBeenCalled();
   });
 
-  it('"Filtros" abre el panel y "Ver N resultados" lo cierra', () => {
-    render(<BarraFiltros {...base} chica params={conFiltros} totalResultados={12} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Filtros (2)' }));
-    expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Nombre del jugador')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Ver 12 resultados' }));
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
-  it('se cierra con la "x", con Escape y tocando el fondo', () => {
-    render(<BarraFiltros {...base} chica params={conFiltros} totalResultados={1} />);
-    const abrir = () => fireEvent.click(screen.getByRole('button', { name: 'Filtros (2)' }));
-
-    abrir();
-    expect(screen.getByRole('button', { name: 'Ver 1 resultado' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar filtros' }));
-    expect(screen.queryByRole('dialog')).toBeNull();
-
-    abrir();
-    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
-    expect(screen.queryByRole('dialog')).toBeNull();
-
-    abrir();
-    fireEvent.click(screen.getByTestId('fondo-filtros'));
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
-  it('sin total todavía dice "Ver resultados"', () => {
-    render(<BarraFiltros {...base} chica params={new URLSearchParams()} totalResultados={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }));
-    expect(screen.getByRole('button', { name: 'Ver resultados' })).toBeInTheDocument();
+  it('el modo resumen sin filtros dice que se muestran todos los jugadores', () => {
+    render(<BarraFiltros {...base} modo="resumen" params={new URLSearchParams()} />);
+    expect(screen.getByText('Sin filtros: se muestran todos los jugadores.')).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Filtros aplicados' })).toBeNull();
   });
 });

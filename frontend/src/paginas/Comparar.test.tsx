@@ -92,7 +92,9 @@ describe('CMP-001: comparar jugadores', () => {
     expect(screen.getByText('Falta en 1')).toBeInTheDocument();
     expect(screen.getAllByText('Dato no disponible').length).toBeGreaterThan(0);
     // veredicto
-    expect(screen.getByText('A 2 · B 0')).toBeInTheDocument();
+    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
+      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
+    );
     expect(screen.getByText(/es el más barato/)).toBeInTheDocument();
     // exportar PDF queda para el release 2
     expect(screen.getByText(/release 2/)).toBeInTheDocument();
@@ -116,7 +118,9 @@ describe('CMP-001: comparar jugadores', () => {
 
     expect(await screen.findByText(AVISO)).toBeInTheDocument();
     // la comparación sigue ahí
-    expect(screen.getByText('A 2 · B 0')).toBeInTheDocument();
+    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
+      /Ana Gómez\s*2\s*Beto Ruiz\s*0/,
+    );
     // el aviso no nombra las fuentes
     expect(screen.queryByText(/Sportmonks|API-Football/i)).not.toBeInTheDocument();
   });
@@ -180,24 +184,31 @@ describe('CMP-004: barras interactivas', () => {
 
   it('cada barra se alcanza con Tab y anuncia jugador, métrica, valor y Mejor', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    const barra = await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    const barra = await screen.findByRole('img', {
+      name: 'Ana Gómez, % pases completados, 87, Mejor',
+    });
     expect(barra).toHaveAttribute('tabindex', '0');
     expect(
-      screen.getByRole('img', { name: 'C, % pases completados, 80, Peor' }),
+      screen.getByRole('img', { name: 'Caro Díaz, % pases completados, 80, Peor' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'C, Goles, Dato no disponible' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Caro Díaz, Goles, Dato no disponible' }),
+    ).toBeInTheDocument();
   });
 
   it('al enfocar una barra el tooltip muestra el valor, las diferencias y el promedio; Escape lo cierra', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    const barra = await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    const barra = await screen.findByRole('img', {
+      name: 'Ana Gómez, % pases completados, 87, Mejor',
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar promedio de la posición' }));
     await screen.findAllByTestId('marca-promedio');
     fireEvent.focus(barra);
     const tip = await screen.findByRole('tooltip');
     expect(tip).toHaveTextContent('87');
-    expect(tip).toHaveTextContent('vs. B');
+    expect(tip).toHaveTextContent('vs. Beto Ruiz');
     expect(tip).toHaveTextContent('+4');
-    expect(tip).toHaveTextContent('vs. C');
+    expect(tip).toHaveTextContent('vs. Caro Díaz');
     expect(tip).toHaveTextContent('+7');
     expect(tip).toHaveTextContent('Promedio de la posición');
     expect(tip).toHaveTextContent('80');
@@ -207,31 +218,35 @@ describe('CMP-004: barras interactivas', () => {
 
   it('el tooltip de un dato faltante dice "Dato no disponible"', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    const barra = await screen.findByRole('img', { name: 'C, Goles, Dato no disponible' });
+    const barra = await screen.findByRole('img', { name: 'Caro Díaz, Goles, Dato no disponible' });
     fireEvent.focus(barra);
     expect(within(await screen.findByRole('tooltip')).getByText('Dato no disponible')).toBeTruthy();
   });
 
   it('la marca del promedio aparece cuando la ficha trae el promedio, y no si falla', async () => {
     const { unmount } = renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    // apagada por defecto (CMP-006)
+    expect(screen.queryByTestId('marca-promedio')).toBeNull();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar promedio de la posición' }));
     expect((await screen.findAllByTestId('marca-promedio')).length).toBeGreaterThan(0);
     unmount();
 
     fichaMock.mockRejectedValue(new Error('x'));
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar promedio de la posición' }));
     expect(screen.queryByTestId('marca-promedio')).toBeNull();
   });
 
   it('muestra el resumen en una frase', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    expect(await screen.findByText(/A gana en 2 de 3 métricas/)).toBeInTheDocument();
+    expect(await screen.findByText(/Ana Gómez gana en 2 de 3 métricas/)).toBeInTheDocument();
   });
 
   it('"Solo diferencias grandes" oculta las filas parecidas (RN-037)', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     fireEvent.click(screen.getByRole('checkbox', { name: 'Solo diferencias grandes' }));
     // 87/83/80 es 8 %: se oculta. 61/45/58 es 26 %: queda.
     expect(screen.queryByRole('img', { name: /% pases completados/ })).toBeNull();
@@ -240,7 +255,7 @@ describe('CMP-004: barras interactivas', () => {
 
   it('"Ocultar métricas sin datos" saca las filas donde falta un dato', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     fireEvent.click(screen.getByRole('checkbox', { name: 'Ocultar métricas sin datos' }));
     expect(screen.queryByRole('img', { name: /Goles/ })).toBeNull();
     expect(screen.getAllByRole('img', { name: /% pases completados/ }).length).toBe(3);
@@ -248,7 +263,7 @@ describe('CMP-004: barras interactivas', () => {
 
   it('el grupo filtra las métricas y un filtro sin filas ofrece quitarlo', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     fireEvent.click(screen.getByRole('radio', { name: 'Ataque' }));
     expect(screen.queryByRole('img', { name: /% pases/ })).toBeNull();
     expect(screen.getAllByRole('img', { name: /Goles/ }).length).toBe(3);
@@ -262,13 +277,18 @@ describe('CMP-004: barras interactivas', () => {
 
   it('ocultar a un jugador recalcula el resumen y no deja menos de 2', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    fireEvent.click(screen.getByRole('button', { name: 'Editar jugadores' }));
     const interruptorA = screen.getByRole('switch', { name: 'Mostrar a Ana Gómez' });
     expect(interruptorA).toBeChecked();
     fireEvent.click(interruptorA);
     // sin A: pases B 83 > C 80 (B mejor), duelos B 45 < C 58 (C mejor), goles B 5 (sin comparar con C)
-    expect(await screen.findByText(/B y C empatan en métricas/)).toBeInTheDocument();
-    expect(screen.getByText('B 1 · C 1')).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Beto Ruiz y Caro Díaz empatan en métricas/),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Métricas ganadas')).toHaveTextContent(
+      /Beto Ruiz\s*1\s*Caro Díaz\s*1/,
+    );
     // quedan 2 visibles: no se puede ocultar a otro
     expect(screen.getByRole('switch', { name: 'Mostrar a Beto Ruiz' })).toBeDisabled();
     expect(screen.getByRole('switch', { name: 'Mostrar a Caro Díaz' })).toBeDisabled();
@@ -281,6 +301,7 @@ describe('CMP-004: barras interactivas', () => {
     compararMock.mockResolvedValue(RESPUESTA);
     renderizarEn('/comparar?ids=1,2');
     await screen.findByRole('heading', { name: 'Ana Gómez' });
+    fireEvent.click(screen.getByRole('button', { name: 'Editar jugadores' }));
     expect(screen.getByRole('switch', { name: 'Mostrar a Ana Gómez' })).toBeDisabled();
   });
 
@@ -293,19 +314,21 @@ describe('CMP-004: barras interactivas', () => {
       ],
     });
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     fireEvent.click(screen.getByRole('radio', { name: 'Radar' }));
     expect(screen.getByRole('img', { name: /Radar de perfil/ })).toBeInTheDocument();
     expect(screen.queryByRole('img', { name: /% pases completados, 87/ })).toBeNull();
     fireEvent.click(screen.getByRole('radio', { name: 'Barras' }));
     expect(
-      screen.getByRole('img', { name: 'A, % pases completados, 87, Mejor' }),
+      screen.getByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' }),
     ).toBeInTheDocument();
   });
 
   it('resalta una métrica y atenúa las demás al pasar por encima', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    const barra = await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    const barra = await screen.findByRole('img', {
+      name: 'Ana Gómez, % pases completados, 87, Mejor',
+    });
     fireEvent.mouseEnter(barra.closest('.mrow') as Element);
     const filas = document.querySelectorAll('.mrow');
     expect(filas[0]).not.toHaveClass('is-dim');
@@ -314,14 +337,16 @@ describe('CMP-004: barras interactivas', () => {
 
   it('resalta a un jugador y atenúa a los otros al pasar por su nombre', async () => {
     renderizarEn('/comparar?ids=1,2,3');
-    await screen.findByRole('img', { name: 'A, % pases completados, 87, Mejor' });
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
     fireEvent.mouseEnter(
       screen.getByRole('heading', { name: 'Ana Gómez' }).closest('article') as Element,
     );
-    expect(screen.getByRole('img', { name: 'B, % pases completados, 83' })).toHaveClass('is-dim');
-    expect(screen.getByRole('img', { name: 'A, % pases completados, 87, Mejor' })).not.toHaveClass(
+    expect(screen.getByRole('img', { name: 'Beto Ruiz, % pases completados, 83' })).toHaveClass(
       'is-dim',
     );
+    expect(
+      screen.getByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' }),
+    ).not.toHaveClass('is-dim');
   });
 });
 
@@ -343,7 +368,8 @@ describe('CMP-005: armar la comparación sin volver a Buscar', () => {
       ],
     } as never);
     renderizarEn('/comparar?ids=1,2,3');
-    fireEvent.click(await screen.findByRole('button', { name: 'Cambiar a Beto Ruiz' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar jugadores' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar a Beto Ruiz' }));
     fireEvent.change(screen.getByLabelText('Buscar jugador por nombre'), {
       target: { value: 'dan' },
     });
@@ -354,7 +380,8 @@ describe('CMP-005: armar la comparación sin volver a Buscar', () => {
   it('"Quitar" pasa de 3 a 2, y con 2 no hay "Quitar"', async () => {
     compararMock.mockResolvedValueOnce(TRES).mockResolvedValue(RESPUESTA);
     renderizarEn('/comparar?ids=1,2,3');
-    fireEvent.click(await screen.findByRole('button', { name: 'Quitar a Caro Díaz' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar jugadores' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar a Caro Díaz' }));
     await waitFor(() => expect(compararMock).toHaveBeenLastCalledWith([1, 2]));
     await screen.findByRole('button', { name: 'Sumar jugador' });
     expect(screen.queryByRole('button', { name: /^Quitar a / })).toBeNull();
@@ -427,5 +454,97 @@ describe('UI-007: guía en Comparar', () => {
     await screen.findByRole('heading', { name: 'Ana Gómez' });
     fireEvent.click(screen.getByRole('button', { name: 'Qué es % pases completados' }));
     expect(screen.getByRole('note')).toHaveTextContent(/pases/i);
+  });
+});
+
+describe('CMP-006: comparación en columnas', () => {
+  beforeEach(() => {
+    fichaMock.mockResolvedValue({ promedios_posicion: PROMEDIOS } as never);
+    compararMock.mockResolvedValue(TRES);
+  });
+  afterEach(() => {
+    compararMock.mockReset();
+    fichaMock.mockReset();
+  });
+
+  it('las cabeceras van una al lado de la otra y muestran el nombre completo', async () => {
+    const { container } = renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    const cabeceras = container.querySelector('.cmp__heads') as HTMLElement;
+    expect(cabeceras.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+    const nombres = within(cabeceras)
+      .getAllByRole('heading')
+      .map((h) => h.textContent);
+    expect(nombres).toEqual(['Ana Gómez', 'Beto Ruiz', 'Caro Díaz']);
+    // cada cabecera tiene lo esencial y el link a la ficha
+    expect(within(cabeceras).getAllByRole('link', { name: /Ver ficha/ })).toHaveLength(3);
+  });
+
+  it('no usa letras (A, B, C) para nombrar a los jugadores', async () => {
+    const { container } = renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.queryByText(/Jugador [ABC]\b/)).toBeNull();
+    expect(container.querySelector('.bar__who')).toBeNull();
+  });
+
+  it('cada fila tiene una celda por jugador con su número y una barra proporcional a ese número', async () => {
+    const { container } = renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const ancho = (nombre: string) =>
+      (screen.getByRole('img', { name: nombre }).querySelector('.celda__barra') as HTMLElement)
+        .style.width;
+    // porcentajes: de 0 a 100
+    expect(ancho('Ana Gómez, % pases completados, 87, Mejor')).toBe('87%');
+    expect(ancho('Beto Ruiz, % pases completados, 83')).toBe('83%');
+    // goles: contra el mayor de la fila (5)
+    expect(ancho('Ana Gómez, Goles, 1, Peor')).toBe('20%');
+    expect(ancho('Beto Ruiz, Goles, 5, Mejor')).toBe('100%');
+    expect(ancho('Caro Díaz, Goles, Dato no disponible')).toBe('0%');
+    expect(container.querySelectorAll('.mrow').length).toBe(3);
+  });
+
+  it('el mejor es verde y el peor rojo, con su etiqueta', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const mejor = screen.getByRole('img', { name: 'Ana Gómez, % pases completados, 87, Mejor' });
+    const peor = screen.getByRole('img', { name: 'Caro Díaz, % pases completados, 80, Peor' });
+    const medio = screen.getByRole('img', { name: 'Beto Ruiz, % pases completados, 83' });
+    expect(mejor.closest('.celda')).toHaveClass('is-best');
+    expect(peor.closest('.celda')).toHaveClass('is-worst');
+    expect(medio.closest('.celda')).not.toHaveClass('is-best');
+    expect(medio.closest('.celda')).not.toHaveClass('is-worst');
+    expect(within(mejor.closest('.celda') as HTMLElement).getByText('Mejor')).toBeInTheDocument();
+    expect(within(peor.closest('.celda') as HTMLElement).getByText('Peor')).toBeInTheDocument();
+  });
+
+  it('"Editar jugadores" muestra por jugador Cambiar, Quitar y el interruptor de visibilidad', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.queryByRole('button', { name: 'Cambiar a Ana Gómez' })).toBeNull();
+
+    const abrir = screen.getByRole('button', { name: 'Editar jugadores' });
+    expect(abrir).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(abrir);
+
+    expect(abrir).toHaveAttribute('aria-expanded', 'true');
+    for (const nombre of ['Ana Gómez', 'Beto Ruiz', 'Caro Díaz']) {
+      expect(screen.getByRole('button', { name: `Cambiar a ${nombre}` })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: `Quitar a ${nombre}` })).toBeInTheDocument();
+      expect(screen.getByRole('switch', { name: `Mostrar a ${nombre}` })).toBeInTheDocument();
+    }
+  });
+
+  it('el valor de mercado va en la cabecera y la diferencia de valor abajo', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.getByText('EUR 1.500.000')).toBeInTheDocument();
+    expect(screen.getByText('EUR 900.000', { selector: '.cmp__head b' })).toBeInTheDocument();
+    expect(screen.getByText(/es el más barato de la comparación/)).toBeInTheDocument();
+  });
+
+  it('no queda ninguna marca de "release 2" a la vista salvo la del botón de PDF', async () => {
+    renderizarEn('/comparar?ids=1,2,3');
+    await screen.findByRole('heading', { name: 'Ana Gómez' });
+    expect(screen.getAllByText(/release 2/)).toHaveLength(1);
   });
 });

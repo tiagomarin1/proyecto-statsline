@@ -5,9 +5,7 @@ import BarraFiltros from '../componentes/BarraFiltros';
 import AyudaAtajos from '../componentes/AyudaAtajos';
 import BarraSeleccion from '../componentes/BarraSeleccion';
 import ProgresoFlujo from '../componentes/ProgresoFlujo';
-import PanelJugador from '../componentes/PanelJugador';
 import Paginacion from '../componentes/Paginacion';
-import TablaJugadores from '../componentes/TablaJugadores';
 import TarjetaJugador from '../componentes/TarjetaJugador';
 import { useAvisar } from '../contexto/AvisosContext';
 import { buscarJugadores, listarLigas } from '../servicios/jugadores';
@@ -29,13 +27,11 @@ import {
   NOMBRES_FILTRO,
   ORDENES,
   sinOrdenNoDisponible,
-  TAMANO_TABLA,
   TAMANO_TARJETAS,
 } from '../utilidades/filtros';
 import { POSICIONES } from '../utilidades/formato';
-import { usePantallaChica } from '../utilidades/pantalla';
 import { guardarUltimaBusqueda } from '../utilidades/persistencia';
-import { PLANTILLAS } from '../utilidades/plantillas';
+import { MAX_COMPARAR, useSeleccion } from '../utilidades/seleccion';
 
 /** Un 422 trae un mensaje por campo; se muestra con la etiqueta del filtro, no el genérico. */
 function mensajeDeError(e: unknown) {
@@ -43,8 +39,6 @@ function mensajeDeError(e: unknown) {
   if (!e.errores?.length) return e.message;
   return e.errores.map((x) => `${ETIQUETAS_FILTRO[x.campo] ?? x.campo}: ${x.mensaje}`).join(' ');
 }
-
-const MAX_COMPARAR = 3;
 
 /** Campos obligatorios del perfil (RN-023), como los nombra el 422 del backend. */
 const OBLIGATORIOS_PERFIL = ['posicion', 'liga_id', 'edad'];
@@ -89,14 +83,12 @@ export default function Buscar() {
   const navegar = useNavigate();
   const ubicacion = useLocation();
   const avisar = useAvisar();
-  const pantallaChica = usePantallaChica();
   const [ligas, setLigas] = useState<Liga[]>([]);
   const [respuesta, setRespuesta] = useState<RespuestaBusqueda | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  // Selección para comparar (CMP-001). Guarda el jugador entero para que la barra lo muestre
-  // aunque cambie de página de resultados.
-  const [seleccion, setSeleccion] = useState<JugadorResumen[]>([]);
+  // Selección para comparar (CMP-001, RN-007)
+  const { seleccion, setSeleccion, alternar: alternarSeleccion } = useSeleccion(avisar);
   // CMP-005: "Comparar con…" desde la ficha o el panel llega con el jugador de origen
   const origen = (ubicacion.state as { comparar?: JugadorResumen } | null)?.comparar;
   useEffect(() => {
@@ -112,15 +104,14 @@ export default function Buscar() {
   // UI-007: "Volver a resultados" desde la comparación devuelve a esta misma búsqueda
   const consulta = params.toString();
   useEffect(() => guardarUltimaBusqueda(consulta), [consulta]);
-  // Jugador cuyo detalle está abierto en el panel (UI-002)
-  const [elegidoId, setElegidoId] = useState<number | null>(null);
   // BUS-005: el perfil guardado (uno por usuario, RN-023) y lo que falta para guardar uno
   const [perfilGuardado, setPerfilGuardado] = useState<PerfilBusqueda | null>(null);
   const [errorPerfil, setErrorPerfil] = useState('');
   const [camposInvalidos, setCamposInvalidos] = useState<string[]>([]);
 
   const orden = (params.get('orden') as OrdenBusqueda | null) ?? 'minutos';
-  const elegido = respuesta?.resultados.find((j) => j.id === elegidoId) ?? null;
+  // UI-009: sin `ver=1` la pantalla son solo los filtros; con `ver=1`, los resultados
+  const viendo = params.get('ver') === '1';
 
   useEffect(() => {
     listarLigas()
@@ -133,12 +124,20 @@ export default function Buscar() {
   }, []);
 
   useEffect(() => {
+    // En la pantalla de filtros no se piden resultados (UI-009)
+    if (!viendo) {
+      setRespuesta(null);
+      setError('');
+      setCargando(false);
+      return;
+    }
     let vigente = true;
     setCargando(true);
     setError('');
-    // El tamaño de página no es un filtro: no va en la URL, solo en el pedido
+    // El tamaño de página no es un filtro y `ver` es solo del frontend: van solo en el pedido
     const consulta = new URLSearchParams(params);
-    consulta.set('tamano', String(pantallaChica ? TAMANO_TARJETAS : TAMANO_TABLA));
+    consulta.delete('ver');
+    consulta.set('tamano', String(TAMANO_TARJETAS));
     buscarJugadores(consulta)
       .then((r) => vigente && setRespuesta(r))
       .catch((e) => {
@@ -151,21 +150,7 @@ export default function Buscar() {
     return () => {
       vigente = false;
     };
-  }, [params, pantallaChica]);
-
-  // Si el jugador del panel ya no está en la lista (cambió un filtro o el orden), se cierra
-  useEffect(() => {
-    if (elegidoId !== null && respuesta && !elegido) setElegidoId(null);
-  }, [elegidoId, respuesta, elegido]);
-
-  useEffect(() => {
-    if (elegidoId === null) return;
-    const alTeclear = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setElegidoId(null);
-    };
-    document.addEventListener('keydown', alTeclear);
-    return () => document.removeEventListener('keydown', alTeclear);
-  }, [elegidoId]);
+  }, [params, viendo]);
 
   /** Aplica los filtros que llegan y conserva el orden si sigue disponible (RN-029); siempre
    *  vuelve a la página 1. */
@@ -175,7 +160,26 @@ export default function Buscar() {
     setCamposInvalidos([]);
     const nuevos = new URLSearchParams(filtros);
     if (params.get('orden')) nuevos.set('orden', params.get('orden')!);
+    if (viendo) nuevos.set('ver', '1');
     setParams(sinOrdenNoDisponible(nuevos));
+  }
+
+  /** UI-009: "Ver resultados" pasa los filtros del formulario a la URL y pide los candidatos. */
+  function verResultados(filtros: Record<string, string>) {
+    setErrorPerfil('');
+    setCamposInvalidos([]);
+    const nuevos = new URLSearchParams(filtros);
+    if (params.get('orden')) nuevos.set('orden', params.get('orden')!);
+    nuevos.set('ver', '1');
+    setParams(sinOrdenNoDisponible(nuevos));
+  }
+
+  /** UI-009: "Modificar filtros" vuelve a la primera pantalla con los filtros cargados. */
+  function modificarFiltros() {
+    const nuevos = new URLSearchParams(params);
+    nuevos.delete('ver');
+    nuevos.delete('pagina');
+    setParams(nuevos);
   }
 
   /** BUS-005: guarda o reemplaza el perfil. Lo obligatorio lo valida el backend (RN-023), que
@@ -237,31 +241,6 @@ export default function Buscar() {
     }
   }
 
-  function alternarSeleccion(j: JugadorResumen) {
-    if (seleccion.some((s) => s.id === j.id)) {
-      setSeleccion(seleccion.filter((s) => s.id !== j.id));
-      return;
-    }
-    if (seleccion.length >= MAX_COMPARAR) {
-      avisar(`Se pueden comparar hasta ${MAX_COMPARAR} jugadores a la vez.`);
-      return;
-    }
-    setSeleccion([...seleccion, j]);
-  }
-
-  /** CMP-005: desde el panel, deja al jugador seleccionado y pide elegir al otro */
-  function compararCon(j: JugadorResumen) {
-    if (!seleccion.some((s) => s.id === j.id)) {
-      if (seleccion.length >= MAX_COMPARAR) {
-        avisar(`Se pueden comparar hasta ${MAX_COMPARAR} jugadores a la vez.`);
-        return;
-      }
-      setSeleccion([...seleccion, j]);
-    }
-    setElegidoId(null);
-    avisar('Elegí a quién compararlo');
-  }
-
   function compararSeleccion() {
     navegar(`/comparar?ids=${seleccion.map((s) => s.id).join(',')}`);
   }
@@ -290,8 +269,6 @@ export default function Buscar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seleccion]);
 
-  const sinFiltros = ![...params.keys()].some((k) => k !== 'orden' && k !== 'pagina');
-
   const filtrosSinPaginado = new URLSearchParams(params);
   filtrosSinPaginado.delete('pagina');
   filtrosSinPaginado.delete('orden');
@@ -301,190 +278,161 @@ export default function Buscar() {
       <div className="app__head">
         <div>
           <h1>Buscar jugadores</h1>
-          <p>Definí el perfil que necesita tu plantel y revisá a los candidatos que lo cumplen.</p>
+          <p>
+            {viendo
+              ? 'Estos son los candidatos que cumplen tu búsqueda.'
+              : 'Definí el perfil que necesita tu plantel y después mirá a los candidatos.'}
+          </p>
         </div>
       </div>
 
       <ProgresoFlujo paso={seleccion.length >= 2 ? 2 : 1} />
 
-      <BarraFiltros
-        params={params}
-        ligas={ligas}
-        onCambiar={aplicarFiltros}
-        onGuardarPerfil={guardarPerfilDeBusqueda}
-        onCargarPerfil={
-          perfilGuardado ? () => aplicarFiltros(filtrosDePerfil(perfilGuardado)) : undefined
-        }
-        resumenPerfil={perfilGuardado && resumenDePerfil(perfilGuardado, ligas)}
-        errorPerfil={errorPerfil}
-        camposInvalidos={camposInvalidos}
-        chica={pantallaChica}
-        totalResultados={respuesta?.total ?? null}
-      />
+      {!viendo ? (
+        <BarraFiltros
+          modo="filtros"
+          params={params}
+          ligas={ligas}
+          onCambiar={aplicarFiltros}
+          onVerResultados={verResultados}
+          onGuardarPerfil={guardarPerfilDeBusqueda}
+          onCargarPerfil={
+            perfilGuardado ? () => aplicarFiltros(filtrosDePerfil(perfilGuardado)) : undefined
+          }
+          resumenPerfil={perfilGuardado && resumenDePerfil(perfilGuardado, ligas)}
+          errorPerfil={errorPerfil}
+          camposInvalidos={camposInvalidos}
+        />
+      ) : (
+        <>
+          <BarraFiltros
+            modo="resumen"
+            params={params}
+            ligas={ligas}
+            onCambiar={aplicarFiltros}
+            onModificar={modificarFiltros}
+          />
 
-      {sinFiltros && (
-        <section className="plantillas" aria-label="Empezá con una plantilla">
-          <h2>Empezá con una plantilla</h2>
-          <div className="plantillas__lista">
-            {PLANTILLAS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className="chip"
-                onClick={() => aplicarFiltros(p.filtros)}
-              >
-                {p.titulo}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div className="results">
-        <div className="results__bar">
-          <div>
-            <h2>Candidatos</h2>
-            {respuesta && <p className="results__meta num">{respuesta.total} resultados</p>}
-          </div>
-          {pantallaChica && (
-            <label className="results__sort">
-              Ordenar por
-              <select
-                className="input"
-                value={orden}
-                onChange={(e) => cambiar('orden', e.target.value)}
-              >
-                {Object.entries(ORDENES)
-                  .filter(([v]) => !(v in ordenesNoDisponibles))
-                  .map(([v, l]) => (
-                    <option key={v} value={v}>
-                      {l}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          )}
-        </div>
-
-        {error && (
-          <div className="alert" role="alert">
-            <span className="alert__i">!</span>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {respuesta && (
-          <>
-            {respuesta.liga_sin_datos && (
-              <div className="alert alert--warn">
-                <span className="alert__i">i</span>
-                <span>
-                  Esa liga no está cubierta por nuestra fuente de datos. Elegí otra para seguir.
-                </span>
+          <div className="results">
+            <div className="results__bar">
+              <div>
+                <h2>Candidatos</h2>
+                {respuesta && <p className="results__meta num">{respuesta.total} resultados</p>}
               </div>
-            )}
-            {respuesta.excluidos_por_dato_faltante > 0 && (
-              <div className="alert alert--info">
-                <span className="alert__i">i</span>
-                <span>
-                  {respuesta.excluidos_por_dato_faltante} jugador(es) quedaron afuera porque su liga
-                  no publica alguna métrica por la que filtrás.
-                </span>
-              </div>
-            )}
-            {respuesta.excluidos_sin_valor > 0 && (
-              <div className="alert alert--info">
-                <span className="alert__i">i</span>
-                <span>
-                  {respuesta.excluidos_sin_valor} jugador(es) quedaron afuera por no tener valor de
-                  mercado publicado.
-                </span>
-              </div>
-            )}
-
-            {respuesta.total === 0 ? (
-              <div className="card empty">
-                <h3>No hay jugadores que cumplan estos filtros</h3>
-                {respuesta.sugerencia && (
-                  <button
-                    className="btn btn--primary"
-                    type="button"
-                    onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
-                  >
-                    Relajar {respuesta.sugerencia.etiqueta}
-                  </button>
-                )}
-                <button
-                  className="btn btn--ghost btn--sm"
-                  type="button"
-                  onClick={() => setParams({})}
+              <label className="results__sort">
+                Ordenar por
+                <select
+                  className="input"
+                  value={orden}
+                  onChange={(e) => cambiar('orden', e.target.value)}
                 >
-                  Limpiar todos los filtros
-                </button>
+                  {Object.entries(ORDENES)
+                    .filter(([v]) => !(v in ordenesNoDisponibles))
+                    .map(([v, l]) => (
+                      <option key={v} value={v}>
+                        {l}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            </div>
+
+            {error && (
+              <div className="alert" role="alert">
+                <span className="alert__i">!</span>
+                <span>{error}</span>
               </div>
-            ) : (
+            )}
+
+            {respuesta && (
               <>
-                {/* Mientras llegan los resultados nuevos se siguen viendo los anteriores, atenuados */}
-                <div className={`cuerpo${cargando ? ' is-cargando' : ''}`} aria-busy={cargando}>
-                  {pantallaChica ? (
-                    <div className="follow">
-                      {respuesta.resultados.map((j) => (
-                        <TarjetaJugador
-                          key={j.id}
-                          jugador={j}
-                          filtros={params.toString()}
-                          onAlternarSeguimiento={alternar}
-                          seleccionado={seleccion.some((s) => s.id === j.id)}
-                          onAlternarSeleccion={alternarSeleccion}
-                        />
-                      ))}
+                {respuesta.liga_sin_datos && (
+                  <div className="alert alert--warn">
+                    <span className="alert__i">i</span>
+                    <span>
+                      Esa liga no está cubierta por nuestra fuente de datos. Elegí otra para seguir.
+                    </span>
+                  </div>
+                )}
+                {respuesta.excluidos_por_dato_faltante > 0 && (
+                  <div className="alert alert--info">
+                    <span className="alert__i">i</span>
+                    <span>
+                      {respuesta.excluidos_por_dato_faltante} jugador(es) quedaron afuera porque su
+                      liga no publica alguna métrica por la que filtrás.
+                    </span>
+                  </div>
+                )}
+                {respuesta.excluidos_sin_valor > 0 && (
+                  <div className="alert alert--info">
+                    <span className="alert__i">i</span>
+                    <span>
+                      {respuesta.excluidos_sin_valor} jugador(es) quedaron afuera por no tener valor
+                      de mercado publicado.
+                    </span>
+                  </div>
+                )}
+
+                {respuesta.total === 0 ? (
+                  <div className="card empty">
+                    <h3>No hay jugadores que cumplan estos filtros</h3>
+                    {respuesta.sugerencia && (
+                      <button
+                        className="btn btn--primary"
+                        type="button"
+                        onClick={() => cambiar(respuesta.sugerencia!.filtro, null)}
+                      >
+                        Relajar {respuesta.sugerencia.etiqueta}
+                      </button>
+                    )}
+                    <button
+                      className="btn btn--ghost btn--sm"
+                      type="button"
+                      onClick={() => setParams({ ver: '1' })}
+                    >
+                      Limpiar todos los filtros
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mientras llegan los resultados nuevos se siguen viendo los anteriores, atenuados */}
+                    <div className={`cuerpo${cargando ? ' is-cargando' : ''}`} aria-busy={cargando}>
+                      <div className="pgrid">
+                        {respuesta.resultados.map((j) => (
+                          <TarjetaJugador
+                            key={j.id}
+                            jugador={j}
+                            filtros={params.toString()}
+                            onAlternarSeguimiento={alternar}
+                            seleccionado={seleccion.some((s) => s.id === j.id)}
+                            onAlternarSeleccion={alternarSeleccion}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  ) : (
-                    <div className={`cuerpo__grilla${elegido ? ' con-panel' : ''}`}>
-                      <TablaJugadores
-                        jugadores={respuesta.resultados}
-                        orden={orden}
-                        ordenesNoDisponibles={ordenesNoDisponibles}
-                        elegidoId={elegido?.id ?? null}
-                        seleccionIds={seleccion.map((s) => s.id)}
-                        onOrdenar={(o) => cambiar('orden', o)}
-                        onElegir={(j) => setElegidoId(elegidoId === j.id ? null : j.id)}
-                        onAlternarSeguimiento={alternar}
-                        onAlternarSeleccion={alternarSeleccion}
-                      />
-                      {elegido && (
-                        <PanelJugador
-                          jugador={elegido}
-                          filtros={params.toString()}
-                          onCerrar={() => setElegidoId(null)}
-                          onAlternarSeguimiento={alternar}
-                          onCompararCon={compararCon}
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Paginacion
-                  pagina={respuesta.pagina}
-                  totalPaginas={Math.ceil(respuesta.total / respuesta.tamano)}
-                  onCambiar={(p) => cambiar('pagina', String(p))}
-                />
+                    <Paginacion
+                      pagina={respuesta.pagina}
+                      totalPaginas={Math.ceil(respuesta.total / respuesta.tamano)}
+                      onCambiar={(p) => cambiar('pagina', String(p))}
+                    />
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
+          </div>
+        </>
+      )}
 
-        {ayudaAbierta && <AyudaAtajos onCerrar={() => setAyudaAbierta(false)} />}
+      {ayudaAbierta && <AyudaAtajos onCerrar={() => setAyudaAbierta(false)} />}
 
-        {seleccion.length > 0 && (
-          <BarraSeleccion
-            seleccion={seleccion}
-            onQuitar={(id) => setSeleccion(seleccion.filter((s) => s.id !== id))}
-            onLimpiar={() => setSeleccion([])}
-            onComparar={compararSeleccion}
-          />
-        )}
-      </div>
+      {seleccion.length > 0 && (
+        <BarraSeleccion
+          seleccion={seleccion}
+          onQuitar={(id) => setSeleccion(seleccion.filter((s) => s.id !== id))}
+          onLimpiar={() => setSeleccion([])}
+          onComparar={compararSeleccion}
+        />
+      )}
     </div>
   );
 }

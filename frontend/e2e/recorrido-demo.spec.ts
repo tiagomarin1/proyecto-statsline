@@ -71,9 +71,10 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
 
   const resultados = page.getByText(/^\d+ resultados$/);
   const chips = page.getByRole('list', { name: 'Filtros aplicados' });
-  const filas = page
-    .getByRole('row')
-    .filter({ has: page.getByRole('button', { name: /^Ver detalle de / }) });
+  // UI-010: cada candidato es una tarjeta (article) con su link "Ver ficha"
+  const tarjetas = page
+    .getByRole('article')
+    .filter({ has: page.getByRole('link', { name: /^Ver ficha/ }) });
 
   await test.step('Ingresar (AUT-002)', async () => {
     await page.goto('/buscar');
@@ -92,35 +93,41 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
     await expect(nav.getByText('Javier', { exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Buscar' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Seguimiento' })).toBeVisible();
-    await expect(resultados).toHaveText('40 resultados');
+    // UI-009: la primera pantalla son solo los filtros; los candidatos recién aparecen con
+    // "Ver resultados"
+    await expect(page.getByRole('button', { name: 'Ver resultados' })).toBeVisible();
+    await expect(resultados).toHaveCount(0);
   });
 
-  await test.step('Filtrar (BUS-001, BUS-002, BUS-006, UI-002)', async () => {
-    // Los filtros se aplican solos: no hay botón "Aplicar"
+  await test.step('Filtrar y ver resultados (BUS-001, BUS-002, BUS-006, UI-009)', async () => {
     await page.getByLabel('Posición', { exact: true }).selectOption({ label: 'Defensor' });
     await page.getByLabel('Liga', { exact: true }).selectOption({ label: 'Liga Profesional' });
+    // Los filtros no piden nada hasta tocar "Ver resultados"
+    await expect(resultados).toHaveCount(0);
+    await page.getByRole('button', { name: 'Ver resultados' }).click();
 
     await expect(page).toHaveURL(/[?&]posicion=defensor(&|$)/);
     await expect(page).toHaveURL(/[?&]liga_id=\d+(&|$)/);
     await expect(chips.getByText('Defensor', { exact: true })).toBeVisible();
     await expect(chips.getByText('Liga Profesional', { exact: true })).toBeVisible();
     await expect(resultados).toHaveText('6 resultados');
-    await expect(filas).toHaveCount(6);
-    for (const fila of await filas.all()) {
-      await expect(fila).toContainText('Defensor');
-      await expect(fila).toContainText('Liga Profesional');
+    await expect(tarjetas).toHaveCount(6);
+    for (const tarjeta of await tarjetas.all()) {
+      await expect(tarjeta).toContainText('Defensor');
+      await expect(tarjeta).toContainText('Liga Profesional');
     }
     // RN-021: por defecto, de más a menos minutos
-    await expect(filas.first()).toContainText('L. Magallán');
+    await expect(tarjetas.first()).toContainText('L. Magallán');
     // RN-008: el valor que falta se dice, no es un 0
-    await expect(filas.first()).toContainText('Dato no disponible');
-    await expect(filas.first()).not.toContainText('EUR');
+    await expect(tarjetas.first()).toContainText('Dato no disponible');
+    await expect(tarjetas.first()).not.toContainText('EUR');
   });
 
   await test.step('Ficha (JUG-001)', async () => {
-    await page.getByRole('button', { name: 'Ver detalle de S. Arias' }).click();
-    const panel = page.getByRole('complementary', { name: 'Detalle de S. Arias' });
-    await panel.getByRole('link', { name: 'Ver ficha completa' }).click();
+    await tarjetas
+      .filter({ hasText: 'S. Arias' })
+      .getByRole('link', { name: /^Ver ficha/ })
+      .click();
 
     await expect(page).toHaveURL(/\/ficha\/\d+\?.*posicion=defensor/);
     await expect(page.getByRole('heading', { level: 1, name: 'S. Arias' })).toBeVisible();
@@ -151,13 +158,12 @@ test('inf002 recorrido de la demo: ingresar, filtrar, ficha, comparar y seguimie
 
     await expect(page).toHaveURL(/\/comparar\?ids=\d+,\d+$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Comparar jugadores' })).toBeVisible();
-    const columnaA = page.getByRole('article').filter({ hasText: 'Jugador A' });
-    const columnaB = page.getByRole('article').filter({ hasText: 'Jugador B' });
-    await expect(columnaA.getByRole('heading', { name: 'S. Arias' })).toBeVisible();
-    await expect(columnaB.getByRole('heading', { name: 'M. Rojo' })).toBeVisible();
+    // CMP-006: cada jugador va en su columna, con el nombre completo
+    await expect(page.getByRole('heading', { name: 'S. Arias' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'M. Rojo' })).toBeVisible();
     // RN-006: Mejor/Peor por métrica
     await expect(page.getByRole('article').filter({ hasText: 'Métricas ganadas' })).toContainText(
-      'A 3 · B 5',
+      /S\. Arias\s*3\s*M\. Rojo\s*5/,
     );
     const diferencia = page.getByRole('article').filter({ hasText: 'Diferencia de valor' });
     await expect(diferencia).toContainText('EUR 1.075.000');

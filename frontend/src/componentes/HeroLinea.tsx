@@ -74,9 +74,10 @@ export function HeroLinea({ conSesion, destino }: Props) {
             defaults: { ease: 'none' },
             scrollTrigger: movil
               ? {
+                  // la barra del celular es flotante y no ocupa lugar: el hero empieza en el borde
                   trigger: hero,
-                  start: `top ${alturaBarra}px`,
-                  end: `bottom ${alturaBarra}px`,
+                  start: 'top top',
+                  end: 'bottom top',
                   scrub: 0.6,
                   invalidateOnRefresh: true,
                 }

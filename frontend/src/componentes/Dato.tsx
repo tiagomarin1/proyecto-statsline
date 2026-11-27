@@ -1,3 +1,5 @@
+import { formatearNumero } from '../utilidades/formato';
+
 /** null ≠ 0 (RN-008): si la liga no publica la métrica se dice, no se inventa un cero.
  *  `corto` es para las celdas de la tabla: se ve "N/D", y el texto completo queda para lectores
  *  de pantalla y para el tooltip. */
@@ -26,7 +28,7 @@ export default function Dato({
   }
   return (
     <span className="num">
-      {valor}
+      {formatearNumero(valor)}
       {sufijo}
     </span>
   );

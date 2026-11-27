@@ -11,7 +11,7 @@ import { ErrorApi } from '../servicios/api';
 import { obtenerFicha } from '../servicios/jugadores';
 import { alternarSeguimiento } from '../servicios/seguimiento';
 import type { FichaJugador, Metricas } from '../tipos/api';
-import { formatearEur, POSICIONES } from '../utilidades/formato';
+import { formatearEur, formatearNumero, iniciales, POSICIONES } from '../utilidades/formato';
 import { resumenDeFicha } from '../utilidades/jugador';
 import { usePantallaChica } from '../utilidades/pantalla';
 
@@ -43,6 +43,18 @@ function topeMetrica(
   return base > 0 ? base * 1.25 : 1;
 }
 
+/** UI-010: cuánto está el valor sobre o bajo el promedio de la posición (RN-015). Resta de los dos
+ *  valores ya redondeados (RN-018); sin promedio no hay comparación. */
+function textoDiferencia(valor: number, promedio: number | null) {
+  if (promedio === null) return null;
+  const dif = Math.round((valor - promedio) * 100) / 100;
+  if (dif === 0) return { texto: 'En el promedio', clase: 'igual' };
+  const cuanto = formatearNumero(Math.abs(dif));
+  return dif > 0
+    ? { texto: `${cuanto} por encima del promedio`, clase: 'sobre' }
+    : { texto: `${cuanto} por debajo del promedio`, clase: 'bajo' };
+}
+
 export default function Ficha() {
   const { id = '' } = useParams();
   const [filtros] = useSearchParams();
@@ -59,6 +71,7 @@ export default function Ficha() {
     const paraCoincidencia = new URLSearchParams(filtros);
     paraCoincidencia.delete('pagina');
     paraCoincidencia.delete('orden');
+    paraCoincidencia.delete('ver');
     obtenerFicha(id, paraCoincidencia)
       .then(setFicha)
       .catch((e) =>
@@ -115,19 +128,27 @@ export default function Ficha() {
       <ProgresoFlujo paso={2} volverA={`/buscar?${filtros}`} />
       <div className="ficha">
         <section className="card ficha__hero">
-          <div>
-            <h1>{ficha.nombre}</h1>
-            <div className="ficha__meta">
-              {ficha.posicion && (
-                <span className="chip chip--accent">{POSICIONES[ficha.posicion]}</span>
-              )}
-              <span className="chip">{ficha.equipo}</span>
-              <span className="chip">{ficha.liga.nombre}</span>
-              {ficha.edad !== null && <span className="chip">{ficha.edad} años</span>}
-              {ficha.nacionalidad && <span className="chip">{ficha.nacionalidad}</span>}
-              {ficha.liga.cobertura === 'basica' && (
-                <span className="chip chip--warn">Datos básicos</span>
-              )}
+          <div className="ficha__id">
+            <span
+              className={`avatar avatar--xl avatar--${ficha.posicion ?? 'nd'}`}
+              aria-hidden="true"
+            >
+              {iniciales(ficha.nombre)}
+            </span>
+            <div>
+              <h1>{ficha.nombre}</h1>
+              <div className="ficha__meta">
+                {ficha.posicion && (
+                  <span className="chip chip--accent">{POSICIONES[ficha.posicion]}</span>
+                )}
+                <span className="chip">{ficha.equipo}</span>
+                <span className="chip">{ficha.liga.nombre}</span>
+                {ficha.edad !== null && <span className="chip">{ficha.edad} años</span>}
+                {ficha.nacionalidad && <span className="chip">{ficha.nacionalidad}</span>}
+                {ficha.liga.cobertura === 'basica' && (
+                  <span className="chip chip--warn">Datos básicos</span>
+                )}
+              </div>
             </div>
           </div>
           <div className="ficha__right">
@@ -163,6 +184,31 @@ export default function Ficha() {
           </div>
         </section>
 
+        <section className="ficha__kpis" aria-label="Datos clave">
+          <div className="ficha__kpi">
+            <span>Edad</span>
+            <b>{ficha.edad !== null ? `${ficha.edad} años` : <Dato valor={null} />}</b>
+          </div>
+          <div className="ficha__kpi">
+            <span>Minutos</span>
+            <b>
+              <Dato valor={metricas.minutos_jugados} />
+            </b>
+          </div>
+          <div className="ficha__kpi">
+            <span>Rating</span>
+            <b>
+              <Dato valor={metricas.rating} />
+            </b>
+          </div>
+          <div className="ficha__kpi">
+            <span>Partidos</span>
+            <b>
+              <Dato valor={metricas.partidos_jugados} />
+            </b>
+          </div>
+        </section>
+
         {chica && (
           <div className="ptabs" role="tablist" aria-label="Secciones de la ficha">
             {pestanas.map((p, i) => (
@@ -191,62 +237,67 @@ export default function Ficha() {
         >
           {ver('metricas') && (
             <section className="card mlist">
-              <div style={{ padding: '16px 18px 10px' }}>
+              <div className="mlist__cab">
                 <h2>Métricas de rendimiento</h2>
-                <p className="muted" style={{ fontSize: 13.5, marginTop: 4 }}>
+                <p className="muted">
                   La barra es el valor del jugador; la marca vertical, el promedio de la posición.
                 </p>
               </div>
-              {METRICAS.map((m) => {
-                const valor = metricas[m.clave];
-                const promedio = promedios[m.clave];
-                if (valor === null) {
-                  return (
-                    <div key={m.clave} className="mitem">
-                      <div className="mitem__top">
-                        <span>
-                          {m.label}
-                          <InfoMetrica metrica={m.clave} etiqueta={m.label} />
-                        </span>
-                        <b>
+              <div className="mgrid">
+                {METRICAS.map((m) => {
+                  const valor = metricas[m.clave];
+                  const promedio = promedios[m.clave];
+                  const etiqueta = (
+                    <span className="mitem__lbl">
+                      {m.label}
+                      <InfoMetrica metrica={m.clave} etiqueta={m.label} />
+                    </span>
+                  );
+                  if (valor === null) {
+                    return (
+                      <div key={m.clave} className="mitem mitem--nd">
+                        {etiqueta}
+                        <b className="mitem__num">
                           <Dato valor={null} />
                         </b>
+                        <p className="mitem__foot">{ficha.liga.nombre} no publica esta métrica.</p>
                       </div>
-                      <p className="mitem__foot">{ficha.liga.nombre} no publica esta métrica.</p>
+                    );
+                  }
+                  const tope = topeMetrica(m.clave, m.sufijo, valor, promedio);
+                  const dif = textoDiferencia(valor, promedio);
+                  return (
+                    <div key={m.clave} className="mitem">
+                      {etiqueta}
+                      <b className="mitem__num">
+                        <Dato valor={valor} sufijo={m.sufijo} />
+                      </b>
+                      <div className="mitem__bar">
+                        <div
+                          className="mitem__fill"
+                          style={{ width: `${Math.min(100, (valor / tope) * 100)}%` }}
+                        />
+                        {promedio !== null && (
+                          <span
+                            className="mitem__avg"
+                            style={{ left: `${Math.min(99, (promedio / tope) * 100)}%` }}
+                          />
+                        )}
+                      </div>
+                      <p className="mitem__foot">
+                        {dif && (
+                          <span className={`mitem__dif mitem__dif--${dif.clase}`}>{dif.texto}</span>
+                        )}
+                        {promedio !== null && (
+                          <span>
+                            Promedio de la posición: <Dato valor={promedio} sufijo={m.sufijo} />
+                          </span>
+                        )}
+                      </p>
                     </div>
                   );
-                }
-                const tope = topeMetrica(m.clave, m.sufijo, valor, promedio);
-                return (
-                  <div key={m.clave} className="mitem">
-                    <div className="mitem__top">
-                      <span>
-                        {m.label}
-                        <InfoMetrica metrica={m.clave} etiqueta={m.label} />
-                      </span>
-                      <b className="num">
-                        {valor}
-                        {m.sufijo ?? ''}
-                      </b>
-                    </div>
-                    <div className="mitem__bar">
-                      <div
-                        className="mitem__fill"
-                        style={{ width: `${Math.min(100, (valor / tope) * 100)}%` }}
-                      />
-                      {promedio !== null && (
-                        <span
-                          className="mitem__avg"
-                          style={{ left: `${Math.min(99, (promedio / tope) * 100)}%` }}
-                        />
-                      )}
-                    </div>
-                    <p className="mitem__foot">
-                      Promedio de la posición: <Dato valor={promedio} sufijo={m.sufijo} />
-                    </p>
-                  </div>
-                );
-              })}
+                })}
+              </div>
             </section>
           )}
 

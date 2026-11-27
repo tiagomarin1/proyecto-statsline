@@ -23,10 +23,12 @@ interface Props {
   errorPerfil?: string;
   /** Campos que se marcan como inválidos (`edad` marca los dos extremos del rango). */
   camposInvalidos?: string[];
-  /** UI-006: en celular el formulario va en un panel que sube desde abajo. */
-  chica?: boolean;
-  /** UI-006: lo que dice el botón del panel: "Ver N resultados". */
-  totalResultados?: number | null;
+  /** UI-009: "filtros" es la primera pantalla (formulario); "resumen" es la de resultados (chips). */
+  modo?: 'filtros' | 'resumen';
+  /** UI-009: el botón principal. Recibe los filtros tal como están en el formulario. */
+  onVerResultados?: (filtros: Record<string, string>) => void;
+  /** UI-009: en el resumen, vuelve a la primera pantalla. */
+  onModificar?: () => void;
 }
 
 /** Etiqueta del chip de un filtro activo. */
@@ -69,11 +71,10 @@ export default function BarraFiltros({
   resumenPerfil,
   errorPerfil,
   camposInvalidos = [],
-  chica = false,
-  totalResultados = null,
+  modo = 'filtros',
+  onVerResultados,
+  onModificar,
 }: Props) {
-  const [abierta, setAbierta] = useState(false);
-  const hoja = useRef<HTMLDivElement>(null);
   const aplicados = filtrosDeParams(params);
   const clave = JSON.stringify(aplicados);
   const [valores, setValores] = useState(aplicados);
@@ -91,17 +92,6 @@ export default function BarraFiltros({
   }, [clave]);
 
   useEffect(() => () => clearTimeout(temporizador.current), []);
-
-  // UI-006: con el panel abierto el foco va a él y la página de atrás no se mueve
-  useEffect(() => {
-    if (!abierta) return;
-    hoja.current?.focus();
-    const previo = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previo;
-    };
-  }, [abierta]);
 
   function cambiar(nombre: string, valor: string, inmediato: boolean) {
     const nuevos = { ...actuales.current };
@@ -126,6 +116,13 @@ export default function BarraFiltros({
     const filtros = actuales.current;
     if (JSON.stringify(filtros) !== clave) onCambiar(filtros);
     onGuardarPerfil?.(filtros);
+  }
+
+  /** UI-009: "Ver resultados" aplica lo que se ve en el formulario, incluso si se acaba de tipear
+   * y todavía no se había pasado a la URL. */
+  function verResultados() {
+    clearTimeout(temporizador.current);
+    onVerResultados?.(actuales.current);
   }
 
   // `true` o nada: sin la marca, el atributo no se escribe
@@ -252,21 +249,9 @@ export default function BarraFiltros({
       </details>
 
       {onGuardarPerfil && (
-        <div className="bf__perfil">
-          <p className="muted bf__resumen">
-            {resumenPerfil ?? 'Todavía no guardaste un perfil de búsqueda.'}
-          </p>
-          <div className="bf__acciones">
-            {onCargarPerfil && (
-              <button className="btn btn--ghost btn--sm" type="button" onClick={onCargarPerfil}>
-                Cargar perfil guardado
-              </button>
-            )}
-            <button className="btn btn--primary btn--sm" type="button" onClick={guardarPerfil}>
-              Guardar perfil de búsqueda
-            </button>
-          </div>
-        </div>
+        <p className="muted bf__resumen">
+          {resumenPerfil ?? 'Todavía no guardaste un perfil de búsqueda.'}
+        </p>
       )}
       {errorPerfil && (
         <div className="alert" role="alert">
@@ -274,6 +259,21 @@ export default function BarraFiltros({
           <span>{errorPerfil}</span>
         </div>
       )}
+      <div className="bf__pie">
+        <button className="btn btn--primary btn--lg" type="button" onClick={verResultados}>
+          Ver resultados
+        </button>
+        {onGuardarPerfil && (
+          <button className="btn btn--ghost" type="button" onClick={guardarPerfil}>
+            Guardar perfil de búsqueda
+          </button>
+        )}
+        {onCargarPerfil && (
+          <button className="btn btn--ghost btn--sm" type="button" onClick={onCargarPerfil}>
+            Cargar perfil guardado
+          </button>
+        )}
+      </div>
     </>
   );
 
@@ -306,70 +306,27 @@ export default function BarraFiltros({
     </>
   );
 
-  if (!chica) {
+  if (modo === 'resumen') {
     return (
-      <section className="card bf" aria-label="Filtros de búsqueda">
-        {formulario}
+      <section className="card bf bf--resumen" aria-label="Resumen de la búsqueda">
+        {chips.length === 0 && (
+          <p className="muted">Sin filtros: se muestran todos los jugadores.</p>
+        )}
         {listaChips}
+        <button
+          className="btn btn--ghost btn--sm bf__modificar"
+          type="button"
+          onClick={onModificar}
+        >
+          Modificar filtros
+        </button>
       </section>
     );
   }
 
-  const textoVer =
-    totalResultados === null
-      ? 'Ver resultados'
-      : `Ver ${totalResultados} ${totalResultados === 1 ? 'resultado' : 'resultados'}`;
-
   return (
-    <section className="card bf bf--chica" aria-label="Filtros de búsqueda">
-      <div className="bf__tira">
-        <button
-          className="btn btn--primary"
-          type="button"
-          aria-haspopup="dialog"
-          aria-expanded={abierta}
-          onClick={() => setAbierta(true)}
-        >
-          Filtros{chips.length > 0 ? ` (${chips.length})` : ''}
-        </button>
-      </div>
-      {listaChips}
-      {abierta && (
-        <>
-          <div
-            className="hoja__fondo"
-            data-testid="fondo-filtros"
-            onClick={() => setAbierta(false)}
-          />
-          <div
-            ref={hoja}
-            className="hoja"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filtros"
-            tabIndex={-1}
-            onKeyDown={(e) => e.key === 'Escape' && setAbierta(false)}
-          >
-            <div className="hoja__cab">
-              <h2>Filtros</h2>
-              <button
-                type="button"
-                className="hoja__x"
-                aria-label="Cerrar filtros"
-                onClick={() => setAbierta(false)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="hoja__cuerpo">{formulario}</div>
-            <div className="hoja__pie">
-              <button className="btn btn--primary" type="button" onClick={() => setAbierta(false)}>
-                {textoVer}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+    <section className="card bf" aria-label="Filtros de búsqueda">
+      {formulario}
     </section>
   );
 }
