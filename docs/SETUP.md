@@ -143,7 +143,7 @@ ADR-0009 (que reemplaza a ADR-0006) y ADR-0010 (PostgreSQL). Las tres piezas son
 | PostgreSQL | Aiven, plan gratis | PostgreSQL con TLS obligatorio (ADR-0010) |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) | Tests de backend y frontend, más el build y el arranque de la imagen. Si pasa en `main`, el job `desplegar` llama al deploy hook de Render |
 | Sincronización | GitHub Actions (`.github/workflows/sincronizacion.yml`) | Solo a mano desde el 26/11/2026 (INF-003): *Actions → Sincronización diaria → Run workflow*, con fuente, liga y temporada opcionales. Los datos quedan congelados con la última corrida |
-| Monitor | UptimeRobot, plan gratis (INF-003) | Le pega a `/api/v1/salud` cada 20 minutos para que Render no se duerma y avisa por mail si la app se cae |
+| Monitor | UptimeRobot, plan gratis (INF-003) | Le pega a `/api/v1/salud` cada 5 minutos para que Render no se duerma y avisa por mail si la app se cae |
 
 ### 1. Base en Aiven
 
@@ -172,8 +172,7 @@ Render despliega solo `main` y solo con el CI en verde: el auto-deploy de Render
 Render gratis apaga el servicio después de 15 minutos sin tráfico, y Aiven gratis apaga la base si no tiene actividad. Para evitarlo, un monitor de UptimeRobot le pega al health check, que también consulta la base:
 
 1. Crear la cuenta en https://uptimerobot.com (plan gratis).
-2. *New monitor* → tipo **HTTP(s)**, URL `https://statsline-4dyy.onrender.com/api/v1/salud`, intervalo **20 minutos**, alertas por mail.
-3. Si llegan alertas falsas de caída (el arranque en frío tarda más que el timeout del monitor), subir el timeout o bajar el intervalo a 14 minutos.
+2. *New monitor* → tipo **HTTP(s)**, URL `https://statsline-4dyy.onrender.com/api/v1/salud`, intervalo **5 minutos** (el plan gratis solo ofrece 5 o 30; con 30, Render se duerme entre pings), alertas por mail.
 
 **Si Aiven igual apaga la base:** el host da NXDOMAIN, Render queda en "almost live" y el monitor avisa. Se arregla en console.aiven.io → el servicio → "⋯" → *Power on service* (el host y los datos se conservan; tarda unos 5 minutos). Después, re-ejecutar el job `desplegar` del último CI de `main`: los deploys pedidos mientras la base estaba apagada fallan, y a la base le pueden faltar migraciones.
 
