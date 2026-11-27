@@ -102,6 +102,8 @@ export default function FilaMetrica({
             'fila-cmp',
             esMejor ? 'is-best' : '',
             esPeor ? 'is-worst' : '',
+            // CMP-007: la que tiene dato y no es ni Mejor ni Peor va en amarillo
+            v !== null && !esMejor && !esPeor ? 'is-medio' : '',
             j.oculto ? 'is-oculto' : '',
             jugadorFoco !== null && jugadorFoco !== j.id ? 'is-dim' : '',
             abierto ? 'is-activa' : '',

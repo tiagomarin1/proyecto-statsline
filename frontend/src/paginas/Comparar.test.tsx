@@ -542,7 +542,7 @@ describe('CMP-006 y CMP-007: cabeceras en columnas y métricas en filas apiladas
     expect(ancho('Caro Díaz, Goles, Dato no disponible')).toBe('0%');
   });
 
-  it('CMP-007: el mejor es verde y el peor rojo, con su etiqueta; el del medio, neutro', async () => {
+  it('CMP-007: el mejor es verde y el peor rojo, con su etiqueta; el del medio, amarillo', async () => {
     renderizarEn('/comparar?ids=1,2,3');
     const mejor = await screen.findByRole('img', {
       name: 'Ana Gómez, % pases completados, 87, Mejor',
@@ -553,6 +553,19 @@ describe('CMP-006 y CMP-007: cabeceras en columnas y métricas en filas apiladas
     expect(peor).toHaveClass('is-worst');
     expect(medio).not.toHaveClass('is-best');
     expect(medio).not.toHaveClass('is-worst');
+    // la intermedia va en amarillo; la mejor y la peor no
+    expect(medio).toHaveClass('is-medio');
+    expect(mejor).not.toHaveClass('is-medio');
+    expect(peor).not.toHaveClass('is-medio');
+    // sin dato no hay barra que pintar
+    expect(
+      screen.getByRole('img', { name: 'Caro Díaz, Goles, Dato no disponible' }),
+    ).not.toHaveClass('is-medio');
+    // la leyenda explica los tres colores
+    const leyenda = document.querySelector('.legend') as HTMLElement;
+    expect(within(leyenda).getByText('Mejor')).toBeInTheDocument();
+    expect(within(leyenda).getByText('Intermedio')).toBeInTheDocument();
+    expect(within(leyenda).getByText('Peor')).toBeInTheDocument();
     expect(within(mejor).getByText('Mejor')).toBeInTheDocument();
     expect(within(peor).getByText('Peor')).toBeInTheDocument();
     expect(within(medio).queryByText(/Mejor|Peor/)).toBeNull();

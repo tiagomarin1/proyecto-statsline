@@ -2,6 +2,9 @@
 
 Se agrega una línea cada vez que una feature pasa a `hecho`, en el mismo commit.
 
+## 2026-11-27 (barra intermedia en amarillo)
+- CMP-007 (en testing): en la comparación, la barra del jugador que no es Mejor ni Peor pasa de gris a amarillo (token `--medio`, con su versión para modo oscuro); verde el Mejor y rojo el Peor siguen igual. La leyenda suma "Intermedio" y el PDF (CMP-002) usa los mismos colores. Solo frontend.
+
 ## 2026-11-27 (nombre del usuario con mayúscula inicial)
 - UI-012 (en testing): el nombre del usuario se muestra con mayúscula inicial ("tiago marin" → "Tiago Marin") en el menú, en el celular y en escritorio, y en los avisos "Hola, Tiago." y "Cuenta creada. Bienvenido, Tiago."; no cambia lo guardado. Lo hacen `nombrePropio` y `primerNombre` (`utilidades/formato.ts`): las partículas van en minúscula ("María de la Cruz"), las partes con guion o apóstrofe se tratan por separado ("Ana-María", "O'Brien") y una palabra que ya mezcla mayúsculas y minúsculas no se toca ("McDonald"). No se aplica al club ni a los jugadores, y no cambia lo que se manda a la API. Solo frontend: sin backend ni migraciones.
 

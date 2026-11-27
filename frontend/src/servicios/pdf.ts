@@ -23,6 +23,7 @@ const LINEA: Rgb = [217, 213, 203];
 const PISTA: Rgb = [232, 229, 222];
 const BUENO: Rgb = [21, 118, 79];
 const MALO: Rgb = [163, 32, 23];
+const MEDIO: Rgb = [217, 165, 20]; // amarillo de la barra intermedia (CMP-007)
 
 class Lienzo {
   y = MARGEN;
@@ -161,7 +162,7 @@ function fila(l: Lienzo, f: FilaPdf) {
   doc.setFillColor(...PISTA);
   doc.roundedRect(X_BARRA, yb, ANCHO_BARRA, 3, 1.5, 1.5, 'F');
   if (f.pct > 0) {
-    const tono = f.marca === 'Mejor' ? BUENO : f.marca === 'Peor' ? MALO : GRIS_CLARO;
+    const tono = f.marca === 'Mejor' ? BUENO : f.marca === 'Peor' ? MALO : MEDIO;
     doc.setFillColor(...tono);
     doc.roundedRect(X_BARRA, yb, Math.max(3, (ANCHO_BARRA * f.pct) / 100), 3, 1.5, 1.5, 'F');
   }

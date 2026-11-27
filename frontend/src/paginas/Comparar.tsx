@@ -445,6 +445,10 @@ export default function Comparar() {
                   Mejor
                 </span>
                 <span>
+                  <i style={{ background: 'var(--medio)' }} />
+                  Intermedio
+                </span>
+                <span>
                   <i style={{ background: 'var(--bad)' }} />
                   Peor
                 </span>
