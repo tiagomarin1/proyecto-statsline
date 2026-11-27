@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
@@ -10,6 +10,7 @@ export default function LayoutApp() {
   const { usuario, salir } = useSesion();
   const avisar = useAvisar();
   const navegar = useNavigate();
+  const { pathname } = useLocation();
 
   // Sombra + blur en la barra apenas se scrollea.
   const [scrolleado, setScrolleado] = useState(false);
@@ -54,7 +55,7 @@ export default function LayoutApp() {
         </div>
       </header>
 
-      <main className="main">
+      <main key={pathname} className="main main--in">
         <Outlet />
       </main>
 

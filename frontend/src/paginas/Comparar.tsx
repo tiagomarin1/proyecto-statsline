@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
+import Esqueleto from '../componentes/Esqueleto';
 import FilaMetrica from '../componentes/FilaMetrica';
 import BuscadorJugador from '../componentes/BuscadorJugador';
 import RadarComparacion from '../componentes/RadarComparacion';
@@ -127,11 +128,7 @@ export default function Comparar() {
   }
 
   if (cargando) {
-    return (
-      <div className="wrap app">
-        <p className="muted">Armando la comparación…</p>
-      </div>
-    );
+    return <Esqueleto tipo="comparacion" />;
   }
 
   if (error || !datos) {

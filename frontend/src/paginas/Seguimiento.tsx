@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import Esqueleto from '../componentes/Esqueleto';
 import TarjetaJugador from '../componentes/TarjetaJugador';
 import { useAvisar } from '../contexto/AvisosContext';
 import { useSesion } from '../contexto/SesionContext';
@@ -42,7 +43,7 @@ export default function Seguimiento() {
           <span>{error}</span>
         </div>
       )}
-      {!jugadores && !error && <p className="muted">Cargando…</p>}
+      {!jugadores && !error && <Esqueleto tipo="lista" />}
       {jugadores?.length === 0 && (
         <div className="card empty">
           <h3>Todavía no guardaste ningún jugador</h3>

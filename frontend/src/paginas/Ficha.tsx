@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Dato from '../componentes/Dato';
+import Esqueleto from '../componentes/Esqueleto';
 import Trayectoria from '../componentes/Trayectoria';
 import { useAvisar } from '../contexto/AvisosContext';
 import { ErrorApi } from '../servicios/api';
@@ -88,7 +89,7 @@ export default function Ficha() {
       </div>
     );
   }
-  if (!ficha) return <p className="wrap app muted">Cargando…</p>;
+  if (!ficha) return <Esqueleto tipo="ficha" />;
 
   const { metricas, promedios_posicion: promedios, valor_mercado: valor, coincidencia } = ficha;
 

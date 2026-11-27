@@ -435,3 +435,170 @@
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* ===== UI-005: microanimaciones ===== */
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bump {
+  0% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-4px) scale(1.25);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes brillo {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.main--in {
+  animation: entrada var(--mov-medio) var(--mov-curva);
+}
+.bump {
+  display: inline-block;
+  animation: bump var(--mov-medio) var(--mov-curva);
+}
+
+/* La estrella y el check hacen un pop al activarse */
+.fav {
+  transition:
+    color var(--mov-rapido) ease,
+    background var(--mov-rapido) ease,
+    transform var(--mov-rapido) var(--mov-curva);
+}
+.fav:active {
+  transform: scale(0.9);
+}
+.fav[aria-pressed='true'] {
+  animation: pop var(--mov-medio) var(--mov-curva);
+}
+.pcard input[type='checkbox']:checked,
+.tbl input[type='checkbox']:checked {
+  animation: pop var(--mov-medio) var(--mov-curva);
+}
+
+/* Feedback al tocar */
+.pcard,
+.tbl tbody tr {
+  transition:
+    transform var(--mov-rapido) var(--mov-curva),
+    box-shadow var(--mov-medio) ease,
+    background var(--mov-rapido) ease;
+}
+.pcard:active {
+  transform: scale(0.995);
+}
+.chip button,
+.seg button,
+.bj__lista button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Las tarjetas entran con un pequeño desfase */
+.follow > .pcard {
+  animation: entrada var(--mov-medio) var(--mov-curva) both;
+}
+.follow > .pcard:nth-child(2) {
+  animation-delay: 40ms;
+}
+.follow > .pcard:nth-child(3) {
+  animation-delay: 80ms;
+}
+.follow > .pcard:nth-child(4) {
+  animation-delay: 120ms;
+}
+.follow > .pcard:nth-child(5) {
+  animation-delay: 160ms;
+}
+.follow > .pcard:nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+.tbl tbody tr {
+  animation: entrada var(--mov-medio) var(--mov-curva) both;
+}
+.tbl tbody tr:nth-child(2) {
+  animation-delay: 30ms;
+}
+.tbl tbody tr:nth-child(3) {
+  animation-delay: 60ms;
+}
+.tbl tbody tr:nth-child(4) {
+  animation-delay: 90ms;
+}
+.tbl tbody tr:nth-child(n + 5) {
+  animation-delay: 120ms;
+}
+
+/* Esqueletos */
+.esq {
+  display: grid;
+  gap: 16px;
+}
+.esq__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.esq__b {
+  border-radius: var(--r-lg);
+  background: linear-gradient(
+      100deg,
+      var(--surface-2) 30%,
+      var(--surface) 50%,
+      var(--surface-2) 70%
+    )
+    0 0 / 200% 100%;
+  animation: brillo 1.4s linear infinite;
+}
+.esq__tarjeta {
+  height: 180px;
+}
+.esq__hero {
+  height: 150px;
+}
+.esq__cab {
+  height: 150px;
+}
+.esq__fila {
+  height: 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main--in,
+  .bump,
+  .follow > .pcard,
+  .tbl tbody tr,
+  .esq__b,
+  .fav[aria-pressed='true'],
+  .pcard input[type='checkbox']:checked,
+  .tbl input[type='checkbox']:checked {
+    animation: none !important;
+  }
+}

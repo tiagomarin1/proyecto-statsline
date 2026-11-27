@@ -51,7 +51,15 @@ export default function BarraSeleccion({ seleccion, onQuitar, onLimpiar, onCompa
         </button>
       )}
       <button className="btn btn--primary" type="button" disabled={n < 2} onClick={onComparar}>
-        Comparar{n ? ` ${n}` : ''}
+        Comparar
+        {n ? (
+          <span key={n} className="bump">
+            {' '}
+            {n}
+          </span>
+        ) : (
+          ''
+        )}
       </button>
     </div>
   );
